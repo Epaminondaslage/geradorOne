@@ -1,8 +1,67 @@
-# GeradorOne — Gerador de Prompts v2
+# GeradorOne
 
-Aplicação editável para gerar briefings completos de materiais didáticos. A modalidade local funciona no navegador e não envia dados. O servidor Node.js oferece uma API segura de pré-visualização e é a base para integrar geração por IA e PDF.
+Plataforma web para planejar materiais didáticos visualmente ricos e gerar prompts completos para ferramentas de inteligência artificial. O GeradorOne organiza intenção pedagógica, referências, identidade visual e recursos gráficos em um briefing estruturado, acessível e exportável.
 
-## Executar
+## Recursos atuais
+
+### Configuração pedagógica
+
+- Disciplina, assunto principal, público e objetivo de aprendizagem.
+- Cinco níveis de profundidade.
+- Diferentes tipos de material e estilos de escrita.
+- Inclusão opcional de códigos e habilidades da BNCC.
+- Campo para textos e materiais de referência.
+- Instruções explícitas para não inventar códigos, fontes, normas ou dados.
+
+### Direção visual
+
+- 12 estilos de ilustração com miniaturas de acabamento.
+- Paleta visual configurada separadamente do estilo das ilustrações.
+- Formatos para tela, impressão A4 e apresentação 16:9.
+- Temas claro e escuro, com detecção do sistema e preferência persistente.
+- Interface responsiva para computadores, tablets e celulares.
+
+### Recursos gráficos
+
+- Mapas mentais, diagramas, ilustrações e infográficos.
+- Gráficos baseados apenas em dados verificáveis.
+- Quadros comparativos, linhas do tempo, ícones e sinalização.
+- Controles de frequência, profundidade visual e densidade textual.
+- Saída de diagramas em Mermaid, SVG editável ou especificação visual.
+- Políticas para uso opcional de imagens geradas por IA.
+
+Cada recurso possui uma miniatura que representa sua estrutura visual, além de instruções para objetivo pedagógico, conteúdo, legenda, produção gráfica e texto alternativo.
+
+### Projetos e exportações
+
+- Geração do prompt em um modal, sem perder ou limpar o formulário.
+- Cópia com confirmação visual e notificação.
+- Prévia HTML exibida dentro do modal.
+- Exportação do prompt em TXT.
+- Exportação e importação do projeto em JSON.
+- Salvamento e restauração de rascunhos no navegador.
+- Preparação para PDF usando **Salvar como PDF** no diálogo de impressão.
+
+> O PDF atual contém a versão imprimível do prompt/roteiro. A geração automática do material didático completo por IA ainda depende da integração futura com um provedor de modelos.
+
+## Arquitetura
+
+### Navegador
+
+O diretório `public/` contém HTML, CSS e JavaScript sem framework. A montagem inicial do prompt, os rascunhos e as exportações TXT/JSON são processados no navegador.
+
+### Backend Node.js
+
+O arquivo `server.js`:
+
+- serve os arquivos da interface;
+- expõe `GET /api/health` para monitoramento;
+- expõe `POST /api/render` para gerar a prévia HTML segura;
+- limita requisições a 1 MB;
+- escapa conteúdo fornecido pelo usuário;
+- aplica cabeçalhos de segurança e política de conteúdo.
+
+## Executar com Node.js
 
 Requer Node.js 18 ou superior.
 
@@ -10,34 +69,54 @@ Requer Node.js 18 ou superior.
 npm start
 ```
 
-Abra `http://127.0.0.1:3000`. Para testar:
+Acesse `http://127.0.0.1:3000`.
+
+Para executar os testes:
 
 ```bash
 npm test
 ```
 
-### Docker
+## Executar com Docker
 
 ```bash
 docker compose up -d --build
 ```
 
-Por padrão, a aplicação fica disponível na porta `8123` do servidor. O contêiner roda sem privilégios, com sistema de arquivos somente leitura, sem capabilities Linux e com política de reinício automático.
+A aplicação será publicada na porta `8123` do servidor. O contêiner executa como usuário não privilegiado, usa sistema de arquivos somente leitura, remove capabilities Linux, impede elevação de privilégios, possui verificação de saúde e reinício automático.
 
-## Arquitetura em duas modalidades
+## Implantação atual
 
-1. **Gerador local:** `public/` contém HTML, CSS e JavaScript sem framework ou dependências. Gera, copia e exporta o prompt e o projeto JSON inteiramente no navegador.
-2. **Backend Node.js:** `server.js` serve a interface e expõe `GET /api/health` e `POST /api/render`. A rota atual produz uma prévia HTML escapada e pronta para impressão.
+- Diretório: `/opt/geradorOne`
+- Contêiner: `gerador-one`
+- Imagem: `gerador-one:2.0.0`
+- Porta externa: `8123`
+- Rede local: `http://IP-INTERNO:8123`
 
-## Próxima etapa no servidor Linux
+## Estrutura do projeto
 
-- Colocar o projeto em um diretório não público e executá-lo com um usuário de serviço.
-- Usar um proxy HTTPS (Nginx, Caddy ou equivalente) e limitar o tamanho das requisições.
-- Para PDF, adicionar Playwright/Puppeteer no servidor e gerar o PDF a partir do HTML, com fila, timeout e limpeza de temporários.
-- Para Mermaid e Chart.js, renderizar apenas especificações validadas e usar versões fixadas. O prompt já solicita Mermaid e tabelas de dados sem fabricar números.
-- Para imagens por IA, manter a chave somente em variável de ambiente no backend; validar prompt, tipo e tamanho; aplicar limites de uso e registrar erros sem conteúdo sensível.
-- Nunca colocar chaves de API em `public/app.js` nem no HTML.
+```text
+.
+├── Dockerfile
+├── compose.yaml
+├── package.json
+├── server.js
+├── public/
+│   ├── index.html
+│   ├── app.js
+│   ├── styles.css
+│   └── theme.css
+└── test/
+    └── server.test.js
+```
 
-## Implantação
+## Limitações e próximas integrações
 
-Ainda não foi feita porque nenhum endereço, caminho ou acesso ao servidor Linux foi fornecido. Depois de receber esses dados, valide primeiro em ambiente de homologação e só então publique.
+- Renderização real de Mermaid e Chart.js na apostila final.
+- Geração automática do conteúdo por um provedor de IA.
+- Geração opcional de imagens por IA com chave armazenada somente no backend.
+- PDF produzido diretamente no servidor, sem depender do diálogo de impressão.
+- Autenticação, limites por usuário e histórico persistente de projetos.
+- Proxy HTTPS e domínio definitivo para acesso fora da rede local.
+
+Chaves de API nunca devem ser colocadas nos arquivos de `public/` nem enviadas ao repositório.
