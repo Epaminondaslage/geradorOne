@@ -51,7 +51,7 @@ function renderDocument(payload) {
 }
 
 async function handleApi(req, res, pathname) {
-  if (req.method === 'GET' && pathname === '/api/health') return json(res, 200, { ok: true, service: 'gerador-apostilas-ai' });
+  if (req.method === 'GET' && pathname === '/api/health') return json(res, 200, { ok: true, service: 'gerador-one' });
   if (req.method === 'POST' && pathname === '/api/render') {
     try {
       const raw = await readBody(req);
@@ -90,6 +90,6 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-if (require.main === module) server.listen(PORT, HOST, () => console.log(`Apostila AI: http://${HOST}:${PORT}`));
+if (require.main === module) server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`));
 
 module.exports = { server, renderDocument, escapeHtml };

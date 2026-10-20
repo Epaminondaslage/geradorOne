@@ -1,4 +1,4 @@
-# Apostila AI — Gerador de Prompts v2
+# GeradorOne — Gerador de Prompts v2
 
 Aplicação editável para gerar briefings completos de materiais didáticos. A modalidade local funciona no navegador e não envia dados. O servidor Node.js oferece uma API segura de pré-visualização e é a base para integrar geração por IA e PDF.
 
