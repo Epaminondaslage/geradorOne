@@ -12,7 +12,7 @@
   <a class="skip-link" href="#formulario">Ir para o formulário</a>
   <header class="topbar">
     <div class="brand" aria-label="GeradorOne">
-      <span class="brand-mark" aria-hidden="true">A</span>
+      <span class="brand-mark" aria-hidden="true">1</span>
       <span><strong>GeradorOne</strong><small>Planeje materiais didáticos visualmente ricos</small></span>
     </div>
     <div class="top-actions">
@@ -22,17 +22,28 @@
   </header>
 
   <main class="layout">
-    <section class="intro">
-      <p class="eyebrow">Gerador profissional de prompts</p>
-      <h1>Da intenção pedagógica a um material <em>realmente visual.</em></h1>
-      <p>Configure conteúdo, recursos gráficos e critérios de qualidade. O gerador transforma suas escolhas em um briefing completo para uma IA.</p>
-      <div class="steps" aria-label="Etapas"><span class="active">1. Configure</span><span>2. Revise</span><span>3. Exporte</span></div>
-      <div class="project-actions" aria-label="Gerenciar projeto">
-        <button id="save-draft" type="button">Salvar rascunho</button>
-        <button id="restore-draft" type="button">Restaurar rascunho</button>
-        <button id="import-project" type="button">Importar projeto</button>
-        <input id="project-file" type="file" accept="application/json,.json" hidden>
+    <section class="hero">
+      <div class="intro">
+        <p class="eyebrow">Estúdio de materiais didáticos</p>
+        <h1>Transforme conteúdo em uma experiência <em>visual e memorável.</em></h1>
+        <p>Modele mapas mentais, diagramas, ilustrações e gráficos com intenção pedagógica — tudo em um briefing pronto para produção.</p>
+        <div class="steps" aria-label="Etapas"><span class="active">1. Configure</span><span>2. Revise</span><span>3. Exporte</span></div>
+        <div class="project-actions" aria-label="Gerenciar projeto">
+          <button id="save-draft" type="button">Salvar rascunho</button>
+          <button id="restore-draft" type="button">Restaurar rascunho</button>
+          <button id="import-project" type="button">Importar projeto</button>
+          <input id="project-file" type="file" accept="application/json,.json" hidden>
+        </div>
       </div>
+      <aside class="hero-canvas" aria-label="Exemplos de recursos visuais que podem compor o material">
+        <div class="canvas-top"><span>Prévia do sistema visual</span><span class="live-dot">8 recursos ativos</span></div>
+        <div class="canvas-grid">
+          <article class="mini-card mindmap-card"><div class="mini-label">Mapa mental</div><div class="mindmap" aria-hidden="true"><i class="node center">Tema</i><i class="node n1">Conceito</i><i class="node n2">Exemplo</i><i class="node n3">Prática</i><i class="node n4">Síntese</i><b class="line l1"></b><b class="line l2"></b><b class="line l3"></b><b class="line l4"></b></div></article>
+          <article class="mini-card chart-card"><div class="mini-label">Gráfico didático</div><div class="bars" aria-hidden="true"><i style="--h:38%"></i><i style="--h:64%"></i><i style="--h:82%"></i><i style="--h:56%"></i></div><div class="chart-caption"><span>conceito</span><span>aplicação</span></div></article>
+          <article class="mini-card flow-card"><div class="mini-label">Fluxo de aprendizagem</div><div class="flow" aria-hidden="true"><span>Explorar</span><b>→</b><span>Praticar</span><b>→</b><span>Aplicar</span></div></article>
+        </div>
+        <div class="canvas-footer"><span class="chip coral">Infográficos</span><span class="chip purple">Ilustrações</span><span class="chip yellow">BNCC</span></div>
+      </aside>
     </section>
 
     <form id="formulario" novalidate>

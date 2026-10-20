@@ -19,7 +19,8 @@ themeButton.addEventListener('click', () => setTheme(document.documentElement.da
 const styleContainer = document.querySelector('#style-options');
 styles.forEach(([name, description], index) => styleContainer.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="style-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="style-${index}"><strong>${name}</strong><small>${description}</small></label></div>`));
 const resourceContainer = document.querySelector('#resource-options');
-resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}" checked><label for="${name}"><span class="icon" aria-hidden="true">${icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
+const visualSamples = { mapasMentais:'●—○—○', diagramas:'□ → ◇', ilustracoes:'✦ ◒ ✦', infograficos:'▦ ▤ ▥', graficos:'▂▅▇▆', quadros:'▤ ≠ ▤', linhas:'●—●—●', icones:'⬡ ◉ ◇' };
+resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}" checked><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
 
 const form = document.querySelector('#formulario');
 const output = document.querySelector('#prompt-output');
