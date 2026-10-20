@@ -20,6 +20,7 @@ Plataforma web para planejar materiais didáticos visualmente ricos e gerar prom
 - Formatos para tela, impressão A4 e apresentação 16:9.
 - Temas claro e escuro, com detecção do sistema e preferência persistente.
 - Interface responsiva para computadores, tablets e celulares.
+- Linha de progresso numerada que avança entre configuração, revisão e exportação.
 
 ### Recursos gráficos
 
@@ -40,9 +41,10 @@ Cada recurso possui uma miniatura que representa sua estrutura visual, além de 
 - Exportação do prompt em TXT.
 - Exportação e importação do projeto em JSON.
 - Salvamento e restauração de rascunhos no navegador.
-- Preparação para PDF usando **Salvar como PDF** no diálogo de impressão.
+- Geração e download direto de um arquivo PDF real pelo backend.
+- Prompt orientado a entregar um único HTML autônomo com CSS e SVG incorporados, sem arquivos Python auxiliares.
 
-> O PDF atual contém a versão imprimível do prompt/roteiro. A geração automática do material didático completo por IA ainda depende da integração futura com um provedor de modelos.
+> O PDF gerado pela plataforma contém o prompt/roteiro. A geração automática do material didático completo em PDF ainda depende da integração futura com um provedor de modelos.
 
 ## Arquitetura
 
@@ -115,7 +117,7 @@ A aplicação será publicada na porta `8123` do servidor. O contêiner executa 
 - Renderização real de Mermaid e Chart.js na apostila final.
 - Geração automática do conteúdo por um provedor de IA.
 - Geração opcional de imagens por IA com chave armazenada somente no backend.
-- PDF produzido diretamente no servidor, sem depender do diálogo de impressão.
+- PDF final da apostila produzido após integração com um provedor de IA.
 - Autenticação, limites por usuário e histórico persistente de projetos.
 - Proxy HTTPS e domínio definitivo para acesso fora da rede local.
 

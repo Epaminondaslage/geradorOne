@@ -2,6 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const { URL } = require('node:url');
+const PDFDocument = require('pdfkit');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -50,6 +51,20 @@ function renderDocument(payload) {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:900px;margin:auto;padding:48px;color:#17212b}h1{color:#087f78}.box{background:#f1faf9;border:1px solid #c5e7e3;border-radius:16px;padding:24px}@media print{body{padding:0}.box{border:0}}</style></head><body><h1>${title}</h1><p>Roteiro estruturado para geração do material.</p><div class="box">${prompt}</div></body></html>`;
 }
 
+function renderPdf(payload) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margins: { top: 54, bottom: 54, left: 54, right: 54 }, info: { Title: String(payload.title || 'Prompt GeradorOne'), Author: 'GeradorOne' } });
+    const chunks = [];
+    doc.on('data', chunk => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+    doc.font('Helvetica-Bold').fontSize(20).fillColor('#08766f').text(String(payload.title || 'Prompt GeradorOne'));
+    doc.moveDown(.5).font('Helvetica').fontSize(10).fillColor('#62717f').text('Prompt estruturado pelo GeradorOne');
+    doc.moveDown(1.2).font('Helvetica').fontSize(9.5).fillColor('#17212b').text(String(payload.prompt || ''), { lineGap: 3, align: 'left' });
+    doc.end();
+  });
+}
+
 async function handleApi(req, res, pathname) {
   if (req.method === 'GET' && pathname === '/api/health') return json(res, 200, { ok: true, service: 'gerador-one' });
   if (req.method === 'POST' && pathname === '/api/render') {
@@ -61,6 +76,19 @@ async function handleApi(req, res, pathname) {
       return json(res, 200, { html, renderer: 'preview', note: 'Prévia segura. A geração por IA e o PDF devem ser conectados no servidor.' });
     } catch (error) {
       return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'JSON inválido.' });
+    }
+  }
+  if (req.method === 'POST' && pathname === '/api/pdf') {
+    try {
+      const raw = await readBody(req);
+      const payload = JSON.parse(raw || '{}');
+      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
+      const pdf = await renderPdf(payload);
+      res.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="prompt-geradorone.pdf"', 'Content-Length': pdf.length, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
+      res.end(pdf);
+      return true;
+    } catch (error) {
+      return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'Não foi possível gerar o PDF.' });
     }
   }
   return false;
@@ -92,4 +120,4 @@ const server = http.createServer(async (req, res) => {
 
 if (require.main === module) server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`));
 
-module.exports = { server, renderDocument, escapeHtml };
+module.exports = { server, renderDocument, renderPdf, escapeHtml };

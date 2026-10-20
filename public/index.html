@@ -27,7 +27,14 @@
         <p class="eyebrow">Estúdio de materiais didáticos</p>
         <h1>Transforme conteúdo em uma experiência <em>visual e memorável.</em></h1>
         <p>Modele mapas mentais, diagramas, ilustrações e gráficos com intenção pedagógica — tudo em um briefing pronto para produção.</p>
-        <div class="steps" aria-label="Etapas"><span class="active">1. Configure</span><span>2. Revise</span><span>3. Exporte</span></div>
+        <div id="workflow-progress" class="workflow-progress" aria-label="Progresso da criação" style="--progress:0%">
+          <div class="progress-track" aria-hidden="true"><i></i></div>
+          <ol>
+            <li class="active" data-step="1" aria-current="step"><span>1</span><strong>Configure</strong></li>
+            <li data-step="2"><span>2</span><strong>Revise</strong></li>
+            <li data-step="3"><span>3</span><strong>Exporte</strong></li>
+          </ol>
+        </div>
         <div class="project-actions" aria-label="Gerenciar projeto">
           <button id="save-draft" type="button">Salvar rascunho</button>
           <button id="restore-draft" type="button">Restaurar rascunho</button>
@@ -89,6 +96,7 @@
         <div class="grid two integration-row">
           <label>Formato dos diagramas<select name="formatoDiagrama"><option selected>Mermaid + descrição textual</option><option>SVG editável + descrição textual</option><option>Somente especificação visual</option></select></label>
           <label>Imagens por IA<select name="modoImagem"><option selected>Somente criar prompts de imagem</option><option>Preparar integração opcional no backend</option><option>Não usar imagens geradas por IA</option></select></label>
+          <label>Formato de entrega<select name="formatoEntrega"><option value="pdf" selected>Arquivo PDF final</option><option value="html">Arquivo HTML autônomo</option></select></label>
         </div>
         <label class="full">Orientações visuais adicionais<textarea name="orientacoes" rows="3" placeholder="Ex.: usar mapas mentais radiais, gráficos apenas com dados fornecidos e ilustrações inclusivas."></textarea></label>
       </section>
@@ -112,7 +120,7 @@
         <button id="copy" type="button"><span class="copy-icon" aria-hidden="true">⧉</span><span class="copy-label">Copiar prompt</span></button>
         <button id="export-txt" type="button">Baixar TXT</button>
         <button id="export-json" type="button">Baixar projeto</button>
-        <button id="export-pdf" class="pdf-action" type="button">Salvar em PDF</button>
+        <button id="export-pdf" class="pdf-action" type="button">Baixar PDF</button>
       </nav>
       <div class="modal-content">
         <pre id="prompt-output" tabindex="0"></pre>

@@ -31,7 +31,7 @@ body {
 }
 
 .topbar { background: var(--topbar); }
-.skip-link, .steps span, input, select, textarea { background: var(--field); color: var(--ink); }
+.skip-link, input, select, textarea { background: var(--field); color: var(--ink); }
 .top-actions, .project-actions { display: flex; align-items: center; gap: 9px; }
 .icon-button, .project-actions button {
   border: 1px solid var(--line);
@@ -97,7 +97,7 @@ html[data-theme="dark"] .card h2 { color: #f1f8f7; }
 html[data-theme="dark"] .option label small,
 html[data-theme="dark"] .resource label small,
 html[data-theme="dark"] .card-head p { color: #b6c7c5; }
-html[data-theme="dark"] .steps .active { background: #35c7b4; border-color: #35c7b4; color: #061b19; }
+.workflow-progress{position:relative;max-width:480px;margin-top:28px;padding:0 6px}.workflow-progress ol{list-style:none;display:flex;justify-content:space-between;margin:0;padding:0;position:relative;z-index:2}.workflow-progress li{display:grid;justify-items:center;gap:7px;color:var(--muted);font-size:12px;font-weight:800}.workflow-progress li span{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--paper);border:2px solid var(--line);color:var(--muted);transition:.25s}.workflow-progress li.active span,.workflow-progress li.complete span{background:var(--teal);border-color:var(--teal);color:#062522;box-shadow:0 0 0 5px color-mix(in srgb,var(--teal) 15%,transparent)}.workflow-progress li.active strong,.workflow-progress li.complete strong{color:var(--teal-dark)}.progress-track{position:absolute;top:16px;left:23px;right:23px;height:3px;background:var(--line);overflow:hidden}.progress-track i{display:block;width:var(--progress);height:100%;background:linear-gradient(90deg,var(--teal),#45d4bd);transition:width .35s ease}
 html[data-theme="dark"] .project-actions button,
 html[data-theme="dark"] .icon-button { color: #eef8f7; border-color: #3c5c59; background: #172a29; }
 html[data-theme="dark"] .result-actions button { color: #baf5ec; background: #173d39; }
@@ -133,4 +133,5 @@ html[data-theme="dark"] .number { background: #19433f; color: #8aeee0; }
   .modal-content pre, .modal-content iframe { min-height: 0; }
   .toast { left: 14px; right: 14px; bottom: 14px; text-align: center; }
   .resource-head{align-items:flex-start;flex-wrap:wrap}.resource-tools{width:100%;margin-left:58px}.resource-tools button{flex:1}
+  .workflow-progress{max-width:none}.workflow-progress li strong{font-size:11px}
 }

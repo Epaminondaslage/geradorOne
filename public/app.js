@@ -41,6 +41,20 @@ const toast = document.querySelector('#toast');
 let currentPrompt = '';
 let currentPreviewHtml = '';
 let toastTimer;
+let workflowStage = 1;
+
+function setWorkflowStage(stage, formPercent = 100) {
+  workflowStage = Math.max(workflowStage, stage);
+  const progress = document.querySelector('#workflow-progress');
+  const width = workflowStage === 1 ? Math.min(33, formPercent * .33) : workflowStage === 2 ? 66 : 100;
+  progress.style.setProperty('--progress', `${width}%`);
+  progress.querySelectorAll('li').forEach(item => {
+    const number = Number(item.dataset.step);
+    item.classList.toggle('complete', number < workflowStage);
+    item.classList.toggle('active', number === workflowStage);
+    if (number === workflowStage) item.setAttribute('aria-current', 'step'); else item.removeAttribute('aria-current');
+  });
+}
 
 function updateResourceSummary() {
   const count = resources.filter(([name]) => form.elements.namedItem(name)?.checked).length;
@@ -99,6 +113,7 @@ function updateCompletion() {
   const score = required.filter(k => data[k]).length * 20 + optional.filter(k => data[k]).length * 8 + selectedResources(data).length * 2;
   document.querySelector('#completion').textContent = `${Math.min(100, score)}%`;
   updateResourceSummary();
+  if (workflowStage === 1) setWorkflowStage(1, Math.min(100, score));
 }
 form.addEventListener('input', updateCompletion);
 document.querySelector('#select-all-resources').addEventListener('click', () => { resources.forEach(([name]) => { form.elements.namedItem(name).checked = true; }); updateCompletion(); });
@@ -110,11 +125,15 @@ form.addEventListener('submit', event => {
   form.querySelectorAll('[required]').forEach(field => { const bad = !field.value.trim(); field.setAttribute('aria-invalid', String(bad)); if (bad) valid = false; });
   if (!valid) { form.querySelector('[aria-invalid=true]').focus(); return; }
   const settings = dataObject();
-  currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Quando houver Mermaid ou SVG, forneça também uma descrição textual acessível.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.`;
+  const deliveryInstruction = settings.formatoEntrega === 'pdf'
+    ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
+    : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
+  currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n8. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
   output.textContent = currentPrompt;
   output.hidden = false;
   previewFrame.hidden = true;
   currentPreviewHtml = '';
+  setWorkflowStage(2);
   resultModal.showModal();
   status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao solicitar a prévia HTML.';
 });
@@ -135,13 +154,14 @@ document.querySelector('#copy').addEventListener('click', async () => {
     button.classList.add('copied');
     button.querySelector('.copy-icon').textContent = '✓';
     button.querySelector('.copy-label').textContent = 'Copiado!';
+    setWorkflowStage(3);
     status.textContent = 'Prompt copiado para a área de transferência.';
     notify('Prompt copiado com sucesso');
     setTimeout(() => { button.classList.remove('copied'); button.querySelector('.copy-icon').textContent = '⧉'; button.querySelector('.copy-label').textContent = 'Copiar prompt'; }, 2200);
   } catch { status.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'; }
 });
-document.querySelector('#export-txt').addEventListener('click', () => download('prompt-apostila.txt', currentPrompt, 'text/plain;charset=utf-8'));
-document.querySelector('#export-json').addEventListener('click', () => download('projeto-apostila.json', JSON.stringify({ version: 2, createdAt: new Date().toISOString(), settings: dataObject(), prompt: currentPrompt }, null, 2), 'application/json'));
+document.querySelector('#export-txt').addEventListener('click', () => { download('prompt-apostila.txt', currentPrompt, 'text/plain;charset=utf-8'); setWorkflowStage(3); notify('Arquivo TXT preparado'); });
+document.querySelector('#export-json').addEventListener('click', () => { download('projeto-apostila.json', JSON.stringify({ version: 2, createdAt: new Date().toISOString(), settings: dataObject(), prompt: currentPrompt }, null, 2), 'application/json'); setWorkflowStage(3); notify('Projeto JSON preparado'); });
 document.querySelector('#preview').addEventListener('click', async () => {
   status.textContent = 'Preparando prévia…';
   try {
@@ -161,17 +181,18 @@ document.querySelector('#show-prompt').addEventListener('click', () => { preview
 document.querySelector('#close-modal').addEventListener('click', () => resultModal.close());
 resultModal.addEventListener('click', event => { if (event.target === resultModal) resultModal.close(); });
 document.querySelector('#export-pdf').addEventListener('click', async () => {
-  status.textContent = 'Preparando versão para PDF…';
+  setWorkflowStage(3);
+  status.textContent = 'Gerando arquivo PDF…';
   try {
-    if (!currentPreviewHtml) {
-      const response = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto, prompt: currentPrompt }) });
-      if (!response.ok) throw new Error('Falha no PDF');
-      currentPreviewHtml = (await response.json()).html;
-    }
-    previewFrame.srcdoc = currentPreviewHtml;
-    previewFrame.hidden = false;
-    output.hidden = true;
-    previewFrame.onload = () => { previewFrame.contentWindow.focus(); previewFrame.contentWindow.print(); status.textContent = 'Na janela de impressão, escolha “Salvar como PDF”.'; };
+    const response = await fetch('/api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto || 'Prompt GeradorOne', prompt: currentPrompt }) });
+    if (!response.ok) throw new Error('Falha no PDF');
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = Object.assign(document.createElement('a'), { href: url, download: 'prompt-geradorone.pdf' });
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    status.textContent = 'PDF gerado e baixado.';
+    notify('PDF gerado com sucesso');
   } catch { status.textContent = 'Não foi possível preparar o PDF.'; }
 });
 
