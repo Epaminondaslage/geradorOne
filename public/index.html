@@ -99,12 +99,29 @@
       </div>
     </form>
 
-    <section id="resultado" class="result card" hidden aria-live="polite">
-      <div class="result-head"><div><p class="eyebrow">Pronto para usar</p><h2>Prompt da apostila</h2></div><div class="result-actions"><button id="copy" type="button">Copiar</button><button id="export-txt" type="button">Exportar .txt</button><button id="export-json" type="button">Exportar projeto</button><button id="preview" type="button">Prévia HTML</button></div></div>
-      <pre id="prompt-output" tabindex="0"></pre>
+  </main>
+  <dialog id="result-modal" class="result-modal" aria-labelledby="result-title">
+    <section class="modal-shell">
+      <header class="modal-head">
+        <div><p class="eyebrow">Pronto para usar</p><h2 id="result-title">Prompt da apostila</h2></div>
+        <button id="close-modal" class="modal-close" type="button" aria-label="Fechar resultado">×</button>
+      </header>
+      <nav class="result-actions" aria-label="Ações do resultado">
+        <button id="show-prompt" class="active" type="button">Ver prompt</button>
+        <button id="preview" type="button">Prévia HTML</button>
+        <button id="copy" type="button"><span class="copy-icon" aria-hidden="true">⧉</span><span class="copy-label">Copiar prompt</span></button>
+        <button id="export-txt" type="button">Baixar TXT</button>
+        <button id="export-json" type="button">Baixar projeto</button>
+        <button id="export-pdf" class="pdf-action" type="button">Salvar em PDF</button>
+      </nav>
+      <div class="modal-content">
+        <pre id="prompt-output" tabindex="0"></pre>
+        <iframe id="preview-frame" title="Prévia HTML do prompt" hidden></iframe>
+      </div>
       <p id="status" class="status" role="status"></p>
     </section>
-  </main>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <footer><span>GeradorOne v2</span><span>O gerador não valida automaticamente conteúdos ou códigos curriculares.</span></footer>
   <script src="app.js" defer></script>
 </body>

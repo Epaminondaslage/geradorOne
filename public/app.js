@@ -20,14 +20,35 @@ const styleContainer = document.querySelector('#style-options');
 const styleSamples = ['● ᴗ ●','╱╲〰','✎ ✦ ☁','● ABC ✦','⌬ ⌖ ◌','◈ 01 ◈','▦ ↑ 72','— ○ —','◒ ◉ ◐','▣ ◉ ▣','Aa § 01','★ ● ▲'];
 styles.forEach(([name, description], index) => styleContainer.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="style-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="style-${index}"><span class="style-sample sample-${index}" aria-hidden="true">${styleSamples[index]}</span><strong>${name}</strong><small>${description}</small></label></div>`));
 const resourceContainer = document.querySelector('#resource-options');
-const visualSamples = { mapasMentais:'●—○—○', diagramas:'□ → ◇', ilustracoes:'✦ ◒ ✦', infograficos:'▦ ▤ ▥', graficos:'▂▅▇▆', quadros:'▤ ≠ ▤', linhas:'●—●—●', icones:'⬡ ◉ ◇' };
+const visualSamples = {
+  mapasMentais:'<span class="mm-core">A</span><i class="mm-dot d1"></i><i class="mm-dot d2"></i><i class="mm-dot d3"></i><b class="mm-edge e1"></b><b class="mm-edge e2"></b><b class="mm-edge e3"></b>',
+  diagramas:'<span class="flow-box">1</span><b class="flow-arrow">→</b><span class="flow-box">2</span><b class="flow-arrow">→</b><span class="flow-box">3</span>',
+  ilustracoes:'<i class="scene-sun"></i><i class="scene-hill h1"></i><i class="scene-hill h2"></i>',
+  infograficos:'<span class="info-ring"></span><span class="info-lines"><i></i><i></i><i></i></span>',
+  graficos:'<span class="chart-bars"><i></i><i></i><i></i><i></i></span><b class="chart-line">⌁</b>',
+  quadros:'<span class="compare-card">A<br><i></i><i></i></span><b class="compare-vs">×</b><span class="compare-card">B<br><i></i><i></i></span>',
+  linhas:'<span class="timeline-line"><i></i><i></i><i></i><i></i></span>',
+  icones:'<span class="icon-set"><i>✓</i><i>!</i><i>?</i></span>'
+};
 resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}" checked><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
 
 const form = document.querySelector('#formulario');
 const output = document.querySelector('#prompt-output');
-const result = document.querySelector('#resultado');
+const resultModal = document.querySelector('#result-modal');
+const previewFrame = document.querySelector('#preview-frame');
 const status = document.querySelector('#status');
+const toast = document.querySelector('#toast');
 let currentPrompt = '';
+let currentPreviewHtml = '';
+let toastTimer;
+
+function notify(message) {
+  clearTimeout(toastTimer);
+  toast.textContent = message;
+  toast.hidden = false;
+  toast.classList.add('show');
+  toastTimer = setTimeout(() => { toast.classList.remove('show'); toast.hidden = true; }, 2600);
+}
 
 function dataObject() {
   const fd = new FormData(form);
@@ -83,8 +104,10 @@ form.addEventListener('submit', event => {
   const settings = dataObject();
   currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Quando houver Mermaid ou SVG, forneça também uma descrição textual acessível.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.`;
   output.textContent = currentPrompt;
-  result.hidden = false;
-  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  output.hidden = false;
+  previewFrame.hidden = true;
+  currentPreviewHtml = '';
+  resultModal.showModal();
   status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao solicitar a prévia HTML.';
 });
 
@@ -93,34 +116,69 @@ function download(name, content, type) {
   const anchor = Object.assign(document.createElement('a'), { href: url, download: name });
   anchor.click(); URL.revokeObjectURL(url);
 }
-document.querySelector('#copy').addEventListener('click', async () => { await navigator.clipboard.writeText(currentPrompt); status.textContent = 'Prompt copiado.'; });
+document.querySelector('#copy').addEventListener('click', async () => {
+  const button = document.querySelector('#copy');
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(currentPrompt);
+    else {
+      const area = Object.assign(document.createElement('textarea'), { value: currentPrompt });
+      document.body.append(area); area.select(); document.execCommand('copy'); area.remove();
+    }
+    button.classList.add('copied');
+    button.querySelector('.copy-icon').textContent = '✓';
+    button.querySelector('.copy-label').textContent = 'Copiado!';
+    status.textContent = 'Prompt copiado para a área de transferência.';
+    notify('Prompt copiado com sucesso');
+    setTimeout(() => { button.classList.remove('copied'); button.querySelector('.copy-icon').textContent = '⧉'; button.querySelector('.copy-label').textContent = 'Copiar prompt'; }, 2200);
+  } catch { status.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'; }
+});
 document.querySelector('#export-txt').addEventListener('click', () => download('prompt-apostila.txt', currentPrompt, 'text/plain;charset=utf-8'));
 document.querySelector('#export-json').addEventListener('click', () => download('projeto-apostila.json', JSON.stringify({ version: 2, createdAt: new Date().toISOString(), settings: dataObject(), prompt: currentPrompt }, null, 2), 'application/json'));
 document.querySelector('#preview').addEventListener('click', async () => {
   status.textContent = 'Preparando prévia…';
   try {
-    const response = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto, prompt: currentPrompt }) });
-    if (!response.ok) throw new Error('Falha na prévia');
-    const { html } = await response.json();
-    const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-    status.textContent = 'Prévia HTML aberta em nova aba.';
-  } catch { status.textContent = 'Inicie pelo servidor Node.js para usar a prévia HTML. O prompt continua disponível.'; }
+    if (!currentPreviewHtml) {
+      const response = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto, prompt: currentPrompt }) });
+      if (!response.ok) throw new Error('Falha na prévia');
+      currentPreviewHtml = (await response.json()).html;
+    }
+    previewFrame.srcdoc = currentPreviewHtml;
+    previewFrame.hidden = false;
+    output.hidden = true;
+    status.textContent = 'Prévia HTML exibida no modal.';
+  } catch { status.textContent = 'Não foi possível gerar a prévia. O prompt continua disponível.'; }
+});
+
+document.querySelector('#show-prompt').addEventListener('click', () => { previewFrame.hidden = true; output.hidden = false; status.textContent = 'Exibindo o prompt completo.'; });
+document.querySelector('#close-modal').addEventListener('click', () => resultModal.close());
+resultModal.addEventListener('click', event => { if (event.target === resultModal) resultModal.close(); });
+document.querySelector('#export-pdf').addEventListener('click', async () => {
+  status.textContent = 'Preparando versão para PDF…';
+  try {
+    if (!currentPreviewHtml) {
+      const response = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto, prompt: currentPrompt }) });
+      if (!response.ok) throw new Error('Falha no PDF');
+      currentPreviewHtml = (await response.json()).html;
+    }
+    previewFrame.srcdoc = currentPreviewHtml;
+    previewFrame.hidden = false;
+    output.hidden = true;
+    previewFrame.onload = () => { previewFrame.contentWindow.focus(); previewFrame.contentWindow.print(); status.textContent = 'Na janela de impressão, escolha “Salvar como PDF”.'; };
+  } catch { status.textContent = 'Não foi possível preparar o PDF.'; }
 });
 
 updateCompletion();
 
 document.querySelector('#save-draft').addEventListener('click', () => {
   localStorage.setItem('apostila-draft-v2', JSON.stringify(dataObject()));
-  status.textContent = 'Rascunho salvo neste navegador.';
+  notify('Rascunho salvo neste navegador');
 });
 
 document.querySelector('#restore-draft').addEventListener('click', () => {
   const saved = localStorage.getItem('apostila-draft-v2');
-  if (!saved) { status.textContent = 'Nenhum rascunho salvo neste navegador.'; return; }
-  try { applyData(JSON.parse(saved)); status.textContent = 'Rascunho restaurado.'; }
-  catch { status.textContent = 'O rascunho salvo não pôde ser lido.'; }
+  if (!saved) { notify('Nenhum rascunho salvo'); return; }
+  try { applyData(JSON.parse(saved)); notify('Rascunho restaurado'); }
+  catch { notify('O rascunho salvo não pôde ser lido'); }
 });
 
 const projectFile = document.querySelector('#project-file');
@@ -128,12 +186,12 @@ document.querySelector('#import-project').addEventListener('click', () => projec
 projectFile.addEventListener('change', async () => {
   const file = projectFile.files[0];
   if (!file) return;
-  if (file.size > 1_000_000) { status.textContent = 'Arquivo maior que 1 MB não aceito.'; return; }
+  if (file.size > 1_000_000) { notify('Arquivo maior que 1 MB não aceito'); return; }
   try {
     const project = JSON.parse(await file.text());
     if (!project.settings || typeof project.settings !== 'object') throw new Error('Formato inválido');
     applyData(project.settings);
-    status.textContent = 'Projeto importado. Revise os campos antes de gerar.';
-  } catch { status.textContent = 'Projeto inválido. Use um JSON exportado pela plataforma.'; }
+    notify('Projeto importado. Revise antes de gerar');
+  } catch { notify('Projeto inválido. Use um JSON exportado pela plataforma'); }
   projectFile.value = '';
 });
