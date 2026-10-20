@@ -97,13 +97,14 @@
           <label>Formato dos diagramas<select name="formatoDiagrama"><option selected>Mermaid + descrição textual</option><option>SVG editável + descrição textual</option><option>Somente especificação visual</option></select></label>
           <label>Imagens por IA<select name="modoImagem"><option selected>Somente criar prompts de imagem</option><option>Preparar integração opcional no backend</option><option>Não usar imagens geradas por IA</option></select></label>
           <label>Formato de entrega<select name="formatoEntrega"><option value="pdf" selected>Arquivo PDF final</option><option value="html">Arquivo HTML autônomo</option></select></label>
+          <label>Modo de geração<select id="generation-mode" name="modoGeracao"><option value="prompt" selected>Gerar somente o prompt</option><option value="ai">Gerar o material com IA</option></select><small id="ai-availability" class="field-status">Verificando disponibilidade da IA…</small></label>
         </div>
         <label class="full">Orientações visuais adicionais<textarea name="orientacoes" rows="3" placeholder="Ex.: usar mapas mentais radiais, gráficos apenas com dados fornecidos e ilustrações inclusivas."></textarea></label>
       </section>
 
       <div class="action-bar">
         <p><strong id="completion">0%</strong><span>Configuração preenchida</span></p>
-        <button class="primary" type="submit">Gerar prompt completo <span aria-hidden="true">→</span></button>
+        <button id="generate-button" class="primary" type="submit"><span class="generate-label">Gerar prompt completo</span> <span aria-hidden="true">→</span></button>
       </div>
     </form>
 
@@ -124,7 +125,8 @@
       </nav>
       <div class="modal-content">
         <pre id="prompt-output" tabindex="0"></pre>
-        <iframe id="preview-frame" title="Prévia HTML do prompt" hidden></iframe>
+        <iframe id="preview-frame" title="Prévia HTML do prompt" sandbox hidden></iframe>
+        <section id="generated-files" class="generated-files" aria-label="Arquivos gerados" hidden></section>
       </div>
       <p id="status" class="status" role="status"></p>
     </section>

@@ -9,6 +9,8 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3000
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-6-astra}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     ports:
       - "8123:3000"
     read_only: true

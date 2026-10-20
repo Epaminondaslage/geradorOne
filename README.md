@@ -2,6 +2,8 @@
 
 Plataforma web para planejar materiais didáticos visualmente ricos e gerar prompts completos para ferramentas de inteligência artificial. O GeradorOne organiza intenção pedagógica, referências, identidade visual e recursos gráficos em um briefing estruturado, acessível e exportável.
 
+O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produza diretamente o material final em HTML ou PDF.
+
 ## Recursos atuais
 
 ### Configuração pedagógica
@@ -43,8 +45,11 @@ Cada recurso possui uma miniatura que representa sua estrutura visual, além de 
 - Salvamento e restauração de rascunhos no navegador.
 - Geração e download direto de um arquivo PDF real pelo backend.
 - Prompt orientado a entregar um único HTML autônomo com CSS e SVG incorporados, sem arquivos Python auxiliares.
+- Modo opcional **Gerar material com IA**, executado exclusivamente pelo backend.
+- Arquivos gerados apresentados em modal, com nome, tipo, tamanho aproximado e botão **Salvar localmente**.
+- Conversão do HTML interno produzido pela IA em PDF real pelo Chromium do contêiner.
 
-> O PDF gerado pela plataforma contém o prompt/roteiro. A geração automática do material didático completo em PDF ainda depende da integração futura com um provedor de modelos.
+No modo **somente prompt**, o botão de PDF exporta o prompt/roteiro. No modo **IA**, o PDF contém o material didático completo produzido pelo modelo e renderizado pelo servidor.
 
 ## Arquitetura
 
@@ -59,6 +64,8 @@ O arquivo `server.js`:
 - serve os arquivos da interface;
 - expõe `GET /api/health` para monitoramento;
 - expõe `POST /api/render` para gerar a prévia HTML segura;
+- expõe `GET /api/ai/status` para informar se a IA está configurada;
+- expõe `POST /api/generate` para produzir o material com IA e devolver os arquivos ao modal;
 - limita requisições a 1 MB;
 - escapa conteúdo fornecido pelo usuário;
 - aplica cabeçalhos de segurança e política de conteúdo.
@@ -86,6 +93,15 @@ docker compose up -d --build
 ```
 
 A aplicação será publicada na porta `8123` do servidor. O contêiner executa como usuário não privilegiado, usa sistema de arquivos somente leitura, remove capabilities Linux, impede elevação de privilégios, possui verificação de saúde e reinício automático.
+
+Crie um arquivo `.env` no servidor, sem adicioná-lo ao Git, com:
+
+```env
+OPENAI_API_KEY=sua-chave
+OPENAI_MODEL=gpt-6-astra
+```
+
+A chave é lida somente pelo backend e nunca é enviada ao navegador ou incluída nos arquivos gerados.
 
 ## Implantação atual
 
@@ -115,9 +131,7 @@ A aplicação será publicada na porta `8123` do servidor. O contêiner executa 
 ## Limitações e próximas integrações
 
 - Renderização real de Mermaid e Chart.js na apostila final.
-- Geração automática do conteúdo por um provedor de IA.
 - Geração opcional de imagens por IA com chave armazenada somente no backend.
-- PDF final da apostila produzido após integração com um provedor de IA.
 - Autenticação, limites por usuário e histórico persistente de projetos.
 - Proxy HTTPS e domínio definitivo para acesso fora da rede local.
 

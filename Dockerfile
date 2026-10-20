@@ -6,6 +6,10 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 
+RUN apk add --no-cache chromium
+
+ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+
 COPY --chown=node:node package.json package-lock.json server.js ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --chown=node:node public ./public

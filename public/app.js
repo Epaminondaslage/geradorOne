@@ -36,12 +36,32 @@ const form = document.querySelector('#formulario');
 const output = document.querySelector('#prompt-output');
 const resultModal = document.querySelector('#result-modal');
 const previewFrame = document.querySelector('#preview-frame');
+const generatedFiles = document.querySelector('#generated-files');
 const status = document.querySelector('#status');
 const toast = document.querySelector('#toast');
 let currentPrompt = '';
 let currentPreviewHtml = '';
 let toastTimer;
 let workflowStage = 1;
+let currentFiles = [];
+
+function updateGenerationMode() {
+  const ai = form.elements.modoGeracao.value === 'ai';
+  document.querySelector('.generate-label').textContent = ai ? 'Gerar material com IA' : 'Gerar prompt completo';
+}
+
+async function checkAiAvailability() {
+  const label = document.querySelector('#ai-availability');
+  try {
+    const response = await fetch('/api/ai/status');
+    const data = await response.json();
+    label.textContent = data.available ? `IA disponível no servidor · ${data.model}` : 'IA não configurada no servidor; o modo prompt continua disponível.';
+    label.className = `field-status ${data.available ? 'available' : 'unavailable'}`;
+  } catch {
+    label.textContent = 'Não foi possível verificar a IA.';
+    label.className = 'field-status unavailable';
+  }
+}
 
 function setWorkflowStage(stage, formPercent = 100) {
   workflowStage = Math.max(workflowStage, stage);
@@ -115,11 +135,11 @@ function updateCompletion() {
   updateResourceSummary();
   if (workflowStage === 1) setWorkflowStage(1, Math.min(100, score));
 }
-form.addEventListener('input', updateCompletion);
+form.addEventListener('input', () => { updateCompletion(); updateGenerationMode(); });
 document.querySelector('#select-all-resources').addEventListener('click', () => { resources.forEach(([name]) => { form.elements.namedItem(name).checked = true; }); updateCompletion(); });
 document.querySelector('#clear-resources').addEventListener('click', () => { resources.forEach(([name]) => { form.elements.namedItem(name).checked = false; }); updateCompletion(); });
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   let valid = true;
   form.querySelectorAll('[required]').forEach(field => { const bad = !field.value.trim(); field.setAttribute('aria-invalid', String(bad)); if (bad) valid = false; });
@@ -129,13 +149,74 @@ form.addEventListener('submit', event => {
     ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
     : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
   currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n8. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
+  const aiMode = settings.modoGeracao === 'ai';
+  document.querySelector('#result-title').textContent = aiMode ? 'Material gerado com IA' : 'Prompt da apostila';
+  document.querySelector('.result-actions').hidden = aiMode;
   output.textContent = currentPrompt;
-  output.hidden = false;
+  output.hidden = aiMode;
   previewFrame.hidden = true;
+  generatedFiles.hidden = !aiMode;
   currentPreviewHtml = '';
+  currentFiles = [];
   setWorkflowStage(2);
   resultModal.showModal();
-  status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao solicitar a prévia HTML.';
+  if (!aiMode) {
+    status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao solicitar a prévia HTML.';
+    return;
+  }
+  generatedFiles.innerHTML = '<div class="ai-loading"><span class="ai-spinner" aria-hidden="true"></span><strong>Produzindo o material…</strong><span>Esta etapa pode levar alguns minutos. Não feche esta janela.</span></div>';
+  status.textContent = 'A IA está criando e finalizando o arquivo solicitado.';
+  const button = document.querySelector('#generate-button');
+  button.disabled = true;
+  try {
+    const response = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt: currentPrompt }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível gerar o material.');
+    currentFiles = result.files || [];
+    renderGeneratedFiles();
+    setWorkflowStage(3);
+    status.textContent = `${currentFiles.length} arquivo${currentFiles.length === 1 ? '' : 's'} gerado${currentFiles.length === 1 ? '' : 's'} com ${result.model}. Escolha onde salvar.`;
+    notify('Material gerado com sucesso');
+  } catch (error) {
+    generatedFiles.innerHTML = `<div class="ai-loading"><strong>Não foi possível gerar o material.</strong><span>${escapeUi(error.message)}</span></div>`;
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
+function escapeUi(value) {
+  return String(value).replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+}
+
+function fileBlob(file) {
+  const binary = atob(file.data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: file.mimeType });
+}
+
+function saveGeneratedFile(index) {
+  const file = currentFiles[index];
+  if (!file) return;
+  const url = URL.createObjectURL(fileBlob(file));
+  const anchor = Object.assign(document.createElement('a'), { href: url, download: file.name });
+  anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  notify(`${file.name} pronto para salvar`);
+}
+
+function renderGeneratedFiles() {
+  generatedFiles.innerHTML = currentFiles.map((file, index) => {
+    const extension = file.name.split('.').pop().toUpperCase();
+    const size = Math.round((file.data.length * .75) / 1024);
+    return `<article class="generated-file"><span class="file-icon">${escapeUi(extension)}</span><div><h3>${escapeUi(file.name)}</h3><p>${escapeUi(file.mimeType)} · aproximadamente ${size} KB</p></div><button type="button" data-save-file="${index}">Salvar localmente</button></article>`;
+  }).join('');
+}
+
+generatedFiles.addEventListener('click', event => {
+  const button = event.target.closest('[data-save-file]');
+  if (button) saveGeneratedFile(Number(button.dataset.saveFile));
 });
 
 function download(name, content, type) {
@@ -197,6 +278,8 @@ document.querySelector('#export-pdf').addEventListener('click', async () => {
 });
 
 updateCompletion();
+updateGenerationMode();
+checkAiAvailability();
 
 document.querySelector('#save-draft').addEventListener('click', () => {
   localStorage.setItem('apostila-draft-v2', JSON.stringify(dataObject()));
