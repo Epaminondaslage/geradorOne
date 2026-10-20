@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gerador de prompts completos para apostilas e materiais didáticos.">
+  <title>Apostila AI — Gerador de Prompts</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#formulario">Ir para o formulário</a>
+  <header class="topbar">
+    <div class="brand" aria-label="Apostila AI">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <span><strong>Apostila AI</strong><small>Planeje materiais didáticos visualmente ricos</small></span>
+    </div>
+    <span class="local-badge">Funciona localmente</span>
+  </header>
+
+  <main class="layout">
+    <section class="intro">
+      <p class="eyebrow">Gerador profissional de prompts</p>
+      <h1>Da intenção pedagógica a um material <em>realmente visual.</em></h1>
+      <p>Configure conteúdo, recursos gráficos e critérios de qualidade. O gerador transforma suas escolhas em um briefing completo para uma IA.</p>
+      <div class="steps" aria-label="Etapas"><span class="active">1. Configure</span><span>2. Revise</span><span>3. Exporte</span></div>
+    </section>
+
+    <form id="formulario" novalidate>
+      <section class="card" aria-labelledby="dados-title">
+        <div class="card-head"><span class="number">01</span><div><h2 id="dados-title">Dados do material</h2><p>Defina o que será ensinado e para quem.</p></div></div>
+        <div class="grid two">
+          <label>Disciplina <span aria-hidden="true">*</span><input name="disciplina" required placeholder="Ex.: Matemática, Inglês, História"></label>
+          <label>Assunto principal <span aria-hidden="true">*</span><input name="assunto" required placeholder="Ex.: Habilidades de inglês do 6º ano"></label>
+          <label>Público / faixa etária <span aria-hidden="true">*</span><select name="publico" required><option value="">Selecione</option><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
+          <label>Profundidade<select name="profundidade"><option>Introdutório</option><option>Básico</option><option selected>Intermediário</option><option>Avançado</option><option>Completo</option></select></label>
+          <label class="full">Objetivo de aprendizagem<textarea name="objetivo" rows="3" placeholder="Ex.: Capacitar professores para ministrar o conteúdo de inglês do 6º ano."></textarea></label>
+          <label>Tipo de material<select name="tipo"><option>Apostila didática</option><option>Resumo visual</option><option>Guia do professor</option><option>Sequência didática</option><option>Caderno de atividades</option><option>Livro visual</option></select></label>
+          <label>Estilo de escrita<select name="escrita"><option>Didático</option><option>Acadêmico</option><option>Conversacional</option><option>Objetivo</option><option>Lúdico</option><option>Técnico</option></select></label>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="pedagogia-title">
+        <div class="card-head"><span class="number">02</span><div><h2 id="pedagogia-title">Configuração pedagógica</h2><p>Adicione referências e limites contra informações inventadas.</p></div></div>
+        <div class="grid two">
+          <label>Códigos da BNCC (opcional)<input name="bncc" placeholder="Ex.: EF06LI01, EF06LI02"></label>
+          <label class="switch-row"><span><strong>Sugerir habilidades da BNCC</strong><small>Somente quando houver correspondência verificável.</small></span><input name="sugerirBncc" type="checkbox" role="switch" checked></label>
+          <label class="full">Texto ou material de referência<textarea name="referencias" rows="5" placeholder="Cole definições, trechos, fontes ou observações obrigatórias. Não inclua dados pessoais sensíveis."></textarea></label>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="visual-title">
+        <div class="card-head"><span class="number">03</span><div><h2 id="visual-title">Direção visual</h2><p>Escolha uma linguagem consistente para tela e impressão.</p></div></div>
+        <fieldset><legend>Estilo visual</legend><div id="style-options" class="style-grid"></div></fieldset>
+        <div class="grid two palette-row">
+          <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
+          <label>Formato prioritário<select name="formato"><option>Tela e impressão</option><option>Somente tela</option><option>Impressão A4</option><option>Apresentação 16:9</option></select></label>
+        </div>
+      </section>
+
+      <section class="card visual-card" aria-labelledby="recursos-title">
+        <div class="card-head"><span class="number">04</span><div><h2 id="recursos-title">Recursos visuais</h2><p>Determine quantidade, complexidade e finalidade pedagógica.</p></div></div>
+        <div id="resource-options" class="resource-grid"></div>
+        <div class="grid three controls">
+          <label>Frequência visual<select name="frequencia"><option>Essencial — 1 por seção</option><option selected>Equilibrada — 2 a 3 por seção</option><option>Intensa — 4 ou mais por seção</option></select></label>
+          <label>Profundidade visual<select name="profundidadeVisual"><option>Simples</option><option selected>Detalhada</option><option>Avançada</option></select></label>
+          <label>Densidade do texto<select name="densidade"><option>Enxuta</option><option selected>Equilibrada</option><option>Completa</option></select></label>
+        </div>
+        <label class="full">Orientações visuais adicionais<textarea name="orientacoes" rows="3" placeholder="Ex.: usar mapas mentais radiais, gráficos apenas com dados fornecidos e ilustrações inclusivas."></textarea></label>
+      </section>
+
+      <div class="action-bar">
+        <p><strong id="completion">0%</strong><span>Configuração preenchida</span></p>
+        <button class="primary" type="submit">Gerar prompt completo <span aria-hidden="true">→</span></button>
+      </div>
+    </form>
+
+    <section id="resultado" class="result card" hidden aria-live="polite">
+      <div class="result-head"><div><p class="eyebrow">Pronto para usar</p><h2>Prompt da apostila</h2></div><div class="result-actions"><button id="copy" type="button">Copiar</button><button id="export-txt" type="button">Exportar .txt</button><button id="export-json" type="button">Exportar projeto</button><button id="preview" type="button">Prévia HTML</button></div></div>
+      <pre id="prompt-output" tabindex="0"></pre>
+      <p id="status" class="status" role="status"></p>
+    </section>
+  </main>
+  <footer><span>Apostila AI v2</span><span>O gerador não valida automaticamente conteúdos ou códigos curriculares.</span></footer>
+  <script src="app.js" defer></script>
+</body>
+</html>
