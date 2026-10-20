@@ -17,7 +17,8 @@ setTheme(preferredTheme);
 themeButton.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 
 const styleContainer = document.querySelector('#style-options');
-styles.forEach(([name, description], index) => styleContainer.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="style-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="style-${index}"><strong>${name}</strong><small>${description}</small></label></div>`));
+const styleSamples = ['● ᴗ ●','╱╲〰','✎ ✦ ☁','● ABC ✦','⌬ ⌖ ◌','◈ 01 ◈','▦ ↑ 72','— ○ —','◒ ◉ ◐','▣ ◉ ▣','Aa § 01','★ ● ▲'];
+styles.forEach(([name, description], index) => styleContainer.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="style-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="style-${index}"><span class="style-sample sample-${index}" aria-hidden="true">${styleSamples[index]}</span><strong>${name}</strong><small>${description}</small></label></div>`));
 const resourceContainer = document.querySelector('#resource-options');
 const visualSamples = { mapasMentais:'●—○—○', diagramas:'□ → ◇', ilustracoes:'✦ ◒ ✦', infograficos:'▦ ▤ ▥', graficos:'▂▅▇▆', quadros:'▤ ≠ ▤', linhas:'●—●—●', icones:'⬡ ◉ ◇' };
 resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}" checked><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
