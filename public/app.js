@@ -5,6 +5,17 @@ const resources = [
   ['mapasMentais','◉','Mapas mentais','Síntese radial e conexões'],['diagramas','◇','Diagramas','Processos, relações e fluxos'],['ilustracoes','✦','Ilustrações','Conceitos, cenas e objetos'],['infograficos','▦','Infográficos','Dados e explicações visuais'],['graficos','⌁','Gráficos','Somente com dados verificáveis'],['quadros','▤','Quadros comparativos','Contrastes e classificações'],['linhas','↝','Linhas do tempo','Eventos em sequência'],['icones','⬡','Ícones e sinalização','Navegação e destaques']
 ];
 
+const themeButton = document.querySelector('#theme-toggle');
+const preferredTheme = localStorage.getItem('apostila-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  themeButton.setAttribute('aria-pressed', String(theme === 'dark'));
+  themeButton.querySelector('[aria-hidden]').textContent = theme === 'dark' ? '☀' : '☾';
+  localStorage.setItem('apostila-theme', theme);
+}
+setTheme(preferredTheme);
+themeButton.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+
 const styleContainer = document.querySelector('#style-options');
 styles.forEach(([name, description], index) => styleContainer.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="style-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="style-${index}"><strong>${name}</strong><small>${description}</small></label></div>`));
 const resourceContainer = document.querySelector('#resource-options');
@@ -26,6 +37,21 @@ function dataObject() {
 
 function selectedResources(data) {
   return resources.filter(([name]) => data[name]).map(([, , title]) => title);
+}
+
+function applyData(data) {
+  Object.entries(data || {}).forEach(([name, value]) => {
+    const fields = form.elements.namedItem(name);
+    if (!fields) return;
+    if (fields instanceof RadioNodeList) {
+      [...fields].forEach(field => { field.checked = field.value === value; });
+    } else if (fields.type === 'checkbox') {
+      fields.checked = Boolean(value);
+    } else if (typeof value === 'string') {
+      fields.value = value;
+    }
+  });
+  updateCompletion();
 }
 
 function text(value, fallback = 'Não informado') { return value?.trim() || fallback; }
@@ -52,11 +78,12 @@ form.addEventListener('submit', event => {
   let valid = true;
   form.querySelectorAll('[required]').forEach(field => { const bad = !field.value.trim(); field.setAttribute('aria-invalid', String(bad)); if (bad) valid = false; });
   if (!valid) { form.querySelector('[aria-invalid=true]').focus(); return; }
-  currentPrompt = generatePrompt(dataObject());
+  const settings = dataObject();
+  currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Quando houver Mermaid ou SVG, forneça também uma descrição textual acessível.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.`;
   output.textContent = currentPrompt;
   result.hidden = false;
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  status.textContent = 'Prompt gerado localmente. Nenhum dado foi enviado.';
+  status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao solicitar a prévia HTML.';
 });
 
 function download(name, content, type) {
@@ -81,3 +108,30 @@ document.querySelector('#preview').addEventListener('click', async () => {
 });
 
 updateCompletion();
+
+document.querySelector('#save-draft').addEventListener('click', () => {
+  localStorage.setItem('apostila-draft-v2', JSON.stringify(dataObject()));
+  status.textContent = 'Rascunho salvo neste navegador.';
+});
+
+document.querySelector('#restore-draft').addEventListener('click', () => {
+  const saved = localStorage.getItem('apostila-draft-v2');
+  if (!saved) { status.textContent = 'Nenhum rascunho salvo neste navegador.'; return; }
+  try { applyData(JSON.parse(saved)); status.textContent = 'Rascunho restaurado.'; }
+  catch { status.textContent = 'O rascunho salvo não pôde ser lido.'; }
+});
+
+const projectFile = document.querySelector('#project-file');
+document.querySelector('#import-project').addEventListener('click', () => projectFile.click());
+projectFile.addEventListener('change', async () => {
+  const file = projectFile.files[0];
+  if (!file) return;
+  if (file.size > 1_000_000) { status.textContent = 'Arquivo maior que 1 MB não aceito.'; return; }
+  try {
+    const project = JSON.parse(await file.text());
+    if (!project.settings || typeof project.settings !== 'object') throw new Error('Formato inválido');
+    applyData(project.settings);
+    status.textContent = 'Projeto importado. Revise os campos antes de gerar.';
+  } catch { status.textContent = 'Projeto inválido. Use um JSON exportado pela plataforma.'; }
+  projectFile.value = '';
+});
