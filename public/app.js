@@ -30,7 +30,7 @@ const visualSamples = {
   linhas:'<span class="timeline-line"><i></i><i></i><i></i><i></i></span>',
   icones:'<span class="icon-set"><i>✓</i><i>!</i><i>?</i></span>'
 };
-resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}" checked><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
+resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
 
 const form = document.querySelector('#formulario');
 const output = document.querySelector('#prompt-output');
@@ -41,6 +41,11 @@ const toast = document.querySelector('#toast');
 let currentPrompt = '';
 let currentPreviewHtml = '';
 let toastTimer;
+
+function updateResourceSummary() {
+  const count = resources.filter(([name]) => form.elements.namedItem(name)?.checked).length;
+  document.querySelector('#resource-summary').textContent = count ? `${count} recurso${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''}` : 'Escolha os recursos';
+}
 
 function notify(message) {
   clearTimeout(toastTimer);
@@ -93,8 +98,11 @@ function updateCompletion() {
   const optional = ['objetivo','referencias','orientacoes'];
   const score = required.filter(k => data[k]).length * 20 + optional.filter(k => data[k]).length * 8 + selectedResources(data).length * 2;
   document.querySelector('#completion').textContent = `${Math.min(100, score)}%`;
+  updateResourceSummary();
 }
 form.addEventListener('input', updateCompletion);
+document.querySelector('#select-all-resources').addEventListener('click', () => { resources.forEach(([name]) => { form.elements.namedItem(name).checked = true; }); updateCompletion(); });
+document.querySelector('#clear-resources').addEventListener('click', () => { resources.forEach(([name]) => { form.elements.namedItem(name).checked = false; }); updateCompletion(); });
 
 form.addEventListener('submit', event => {
   event.preventDefault();
