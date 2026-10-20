@@ -149,6 +149,7 @@ form.addEventListener('submit', async event => {
     ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
     : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
   currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n8. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
+  if (settings.modoImagem === 'gerar') currentPrompt += '\n\n9. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se as imagens não estiverem renderizadas no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
   const aiMode = settings.modoGeracao === 'ai';
   document.querySelector('#result-title').textContent = aiMode ? 'Material gerado com IA' : 'Prompt da apostila';
   document.querySelector('.result-actions').hidden = aiMode;
@@ -169,7 +170,8 @@ form.addEventListener('submit', async event => {
   const button = document.querySelector('#generate-button');
   button.disabled = true;
   try {
-    const response = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt: currentPrompt }) });
+    const imageCount = settings.frequencia.startsWith('Intensa') ? 3 : settings.frequencia.startsWith('Equilibrada') ? 2 : 1;
+    const response = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt: currentPrompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível gerar o material.');
     currentFiles = result.files || [];

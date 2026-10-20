@@ -32,6 +32,7 @@ O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produ
 - Controles de frequência, profundidade visual e densidade textual.
 - Saída de diagramas em Mermaid, SVG editável ou especificação visual.
 - Políticas para uso opcional de imagens geradas por IA.
+- Geração de imagens reais pela mesma integração de IA, incorporadas ao HTML/PDF e também disponibilizadas como arquivos PNG separados.
 
 Cada recurso possui uma miniatura que representa sua estrutura visual, além de instruções para objetivo pedagógico, conteúdo, legenda, produção gráfica e texto alternativo.
 
@@ -48,6 +49,7 @@ Cada recurso possui uma miniatura que representa sua estrutura visual, além de 
 - Modo opcional **Gerar material com IA**, executado exclusivamente pelo backend.
 - Arquivos gerados apresentados em modal, com nome, tipo, tamanho aproximado e botão **Salvar localmente**.
 - Conversão do HTML interno produzido pela IA em PDF real pelo Chromium do contêiner.
+- Frequência visual controla a geração de uma a três imagens por material; a entrega falha se a IA não devolver as imagens obrigatórias.
 
 No modo **somente prompt**, o botão de PDF exporta o prompt/roteiro. No modo **IA**, o PDF contém o material didático completo produzido pelo modelo e renderizado pelo servidor.
 
@@ -99,6 +101,7 @@ Crie um arquivo `.env` no servidor, sem adicioná-lo ao Git, com:
 ```env
 OPENAI_API_KEY=sua-chave
 OPENAI_MODEL=gpt-6-astra
+OPENAI_IMAGE_MODEL=gpt-image-2.5-flare
 ```
 
 A chave é lida somente pelo backend e nunca é enviada ao navegador ou incluída nos arquivos gerados.
@@ -131,7 +134,6 @@ A chave é lida somente pelo backend e nunca é enviada ao navegador ou incluíd
 ## Limitações e próximas integrações
 
 - Renderização real de Mermaid e Chart.js na apostila final.
-- Geração opcional de imagens por IA com chave armazenada somente no backend.
 - Autenticação, limites por usuário e histórico persistente de projetos.
 - Proxy HTTPS e domínio definitivo para acesso fora da rede local.
 

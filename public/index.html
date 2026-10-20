@@ -95,7 +95,7 @@
         </div>
         <div class="grid two integration-row">
           <label>Formato dos diagramas<select name="formatoDiagrama"><option selected>Mermaid + descrição textual</option><option>SVG editável + descrição textual</option><option>Somente especificação visual</option></select></label>
-          <label>Imagens por IA<select name="modoImagem"><option selected>Somente criar prompts de imagem</option><option>Preparar integração opcional no backend</option><option>Não usar imagens geradas por IA</option></select></label>
+          <label>Imagens por IA<select name="modoImagem"><option value="gerar" selected>Gerar imagens reais e incorporar</option><option value="nao-usar">Não usar imagens geradas por IA</option></select><small class="field-status">No modo IA, as imagens são criadas e inseridas no HTML ou PDF. Nenhum espaço reservado.</small></label>
           <label>Formato de entrega<select name="formatoEntrega"><option value="pdf" selected>Arquivo PDF final</option><option value="html">Arquivo HTML autônomo</option></select></label>
           <label>Modo de geração<select id="generation-mode" name="modoGeracao"><option value="prompt" selected>Gerar somente o prompt</option><option value="ai">Gerar o material com IA</option></select><small id="ai-availability" class="field-status">Verificando disponibilidade da IA…</small></label>
         </div>

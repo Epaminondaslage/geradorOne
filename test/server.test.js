@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, extractOutputText } = require('../server');
+const { renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, extractOutputText, embedImages } = require('../server');
 
 test('escapa HTML não confiável', () => {
   assert.equal(escapeHtml('<script>"x"</script>'), '&lt;script&gt;&quot;x&quot;&lt;/script&gt;');
@@ -28,4 +28,11 @@ test('limpa recursos ativos e externos do HTML gerado', () => {
   const html = cleanGeneratedHtml('```html\n<html><body onload="x()"><script>alert(1)</script><img src="https://example.com/x.png"><h1>Seguro</h1></body></html>\n```');
   assert.match(html, /<h1>Seguro<\/h1>/);
   assert.doesNotMatch(html, /script|onload|https:\/\//i);
+});
+
+test('incorpora imagens reais ao HTML final', () => {
+  const html = embedImages('<html><body><h1>Aula</h1></body></html>', [{ data: 'aW1hZ2Vt' }]);
+  assert.match(html, /data:image\/png;base64,aW1hZ2Vt/);
+  assert.match(html, /Ilustrações do conteúdo/);
+  assert.ok(html.indexOf('geradorone-ai-images') < html.indexOf('</body>'));
 });

@@ -115,6 +115,40 @@ async function requestAiHtml(prompt) {
   }
 }
 
+async function requestAiImage(prompt, position, total) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 180_000);
+  try {
+    const response = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || 'gpt-6-astra',
+        input: `Crie a ilustração educacional ${position} de ${total} para o material descrito a seguir. A imagem deve ensinar um conceito central diferente das demais, respeitar o público, a paleta e o estilo solicitados, ter composição clara e não conter textos, letras, marcas ou logotipos. Não invente dados factuais.\n\n${prompt.slice(0, 24000)}`,
+        tools: [{ type: 'image_generation', model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare' }],
+        tool_choice: { type: 'image_generation' }
+      })
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'A geração de imagem foi recusada.'), { status: response.status >= 500 ? 502 : 400 });
+    const image = (body.output || []).find(item => item.type === 'image_generation_call' && item.result);
+    if (!image) throw Object.assign(new Error('A IA não devolveu a imagem obrigatória.'), { status: 502 });
+    return { data: image.result, prompt: image.revised_prompt || `Ilustração educacional ${position}` };
+  } catch (error) {
+    if (error.name === 'AbortError') throw Object.assign(new Error('A geração de imagem excedeu o tempo máximo.'), { status: 504 });
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function embedImages(html, images) {
+  if (!images.length) return html;
+  const gallery = `<style>.geradorone-ai-images{break-inside:avoid;margin:2rem 0}.geradorone-ai-images figure{margin:1.5rem 0;break-inside:avoid}.geradorone-ai-images img{display:block;width:100%;max-height:720px;object-fit:contain;border-radius:18px}.geradorone-ai-images figcaption{margin-top:.6rem;font:500 .9rem/1.5 system-ui,sans-serif;color:#52605f}</style><section class="geradorone-ai-images" aria-label="Ilustrações educacionais geradas por inteligência artificial"><h2>Ilustrações do conteúdo</h2>${images.map((image, index) => `<figure><img src="data:image/png;base64,${image.data}" alt="Ilustração educacional gerada por IA para apoiar o conceito ${index + 1}"><figcaption>Ilustração educacional ${index + 1}, criada para este material.</figcaption></figure>`).join('')}</section>`;
+  return /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${gallery}</body>`) : `${html}${gallery}`;
+}
+
 async function htmlToPdf(html) {
   const workDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'geradorone-'));
   const htmlPath = path.join(workDir, 'material.html');
@@ -165,12 +199,16 @@ async function handleApi(req, res, pathname) {
       if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
       if (!['pdf', 'html'].includes(payload.format)) return json(res, 400, { error: 'Formato de saída inválido.' });
       const generated = await requestAiHtml(payload.prompt);
+      const imageCount = payload.generateImages ? Math.max(1, Math.min(3, Number(payload.imageCount) || 1)) : 0;
+      const images = imageCount ? await Promise.all(Array.from({ length: imageCount }, (_, index) => requestAiImage(payload.prompt, index + 1, imageCount))) : [];
+      generated.html = embedImages(generated.html, images);
       const safeName = String(payload.title || 'material-didatico').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 70).toLowerCase() || 'material-didatico';
+      const imageFiles = images.map((image, index) => ({ name: `${safeName}-ilustracao-${index + 1}.png`, mimeType: 'image/png', encoding: 'base64', data: image.data }));
       if (payload.format === 'pdf') {
         const pdf = await htmlToPdf(generated.html);
-        return json(res, 200, { model: generated.model, files: [{ name: `${safeName}.pdf`, mimeType: 'application/pdf', encoding: 'base64', data: pdf.toString('base64') }] });
+        return json(res, 200, { model: generated.model, files: [{ name: `${safeName}.pdf`, mimeType: 'application/pdf', encoding: 'base64', data: pdf.toString('base64') }, ...imageFiles] });
       }
-      return json(res, 200, { model: generated.model, files: [{ name: `${safeName}.html`, mimeType: 'text/html;charset=utf-8', encoding: 'base64', data: Buffer.from(generated.html).toString('base64'), preview: generated.html }] });
+      return json(res, 200, { model: generated.model, files: [{ name: `${safeName}.html`, mimeType: 'text/html;charset=utf-8', encoding: 'base64', data: Buffer.from(generated.html).toString('base64'), preview: generated.html }, ...imageFiles] });
     } catch (error) {
       console.error('Falha na geração por IA:', error.message);
       return json(res, error.status || 500, { error: error.status ? error.message : 'Não foi possível gerar o material com IA.' });
@@ -205,4 +243,4 @@ const server = http.createServer(async (req, res) => {
 
 if (require.main === module) server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`));
 
-module.exports = { server, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, extractOutputText, htmlToPdf };
+module.exports = { server, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, extractOutputText, htmlToPdf, embedImages };
