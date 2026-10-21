@@ -10,8 +10,46 @@ const PDFDocument = require('pdfkit');
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
 const PUBLIC_DIR = path.join(__dirname, 'public');
+const RUNTIME_DIR = path.join(__dirname, 'runtime');
+const RUNTIME_CONFIG_PATH = path.join(RUNTIME_DIR, 'ai-config.json');
 const MAX_BODY = 1_000_000;
 const execFileAsync = promisify(execFile);
+
+function readRuntimeAiConfig() {
+  try {
+    const raw = fs.readFileSync(RUNTIME_CONFIG_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    return {
+      apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey : '',
+      model: typeof parsed.model === 'string' && parsed.model.trim() ? parsed.model.trim() : '',
+      imageModel: typeof parsed.imageModel === 'string' && parsed.imageModel.trim() ? parsed.imageModel.trim() : ''
+    };
+  } catch {
+    return { apiKey: '', model: '', imageModel: '' };
+  }
+}
+
+function getAiConfig() {
+  const runtime = readRuntimeAiConfig();
+  return {
+    apiKey: runtime.apiKey || process.env.OPENAI_API_KEY || '',
+    model: runtime.model || process.env.OPENAI_MODEL || 'gpt-6-astra',
+    imageModel: runtime.imageModel || process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare'
+  };
+}
+
+async function writeRuntimeAiConfig(partial) {
+  const current = readRuntimeAiConfig();
+  const next = {
+    apiKey: typeof partial.apiKey === 'string' && partial.apiKey.trim() ? partial.apiKey.trim() : current.apiKey,
+    model: typeof partial.model === 'string' ? partial.model.trim() : current.model,
+    imageModel: typeof partial.imageModel === 'string' ? partial.imageModel.trim() : current.imageModel
+  };
+  if (partial.clearApiKey) next.apiKey = '';
+  await fs.promises.mkdir(RUNTIME_DIR, { recursive: true, mode: 0o700 });
+  await fs.promises.writeFile(RUNTIME_CONFIG_PATH, JSON.stringify(next, null, 2), { mode: 0o600 });
+  return next;
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -90,23 +128,24 @@ function cleanGeneratedHtml(value) {
 }
 
 async function requestAiHtml(prompt) {
-  if (!process.env.OPENAI_API_KEY) throw Object.assign(new Error('A IA ainda não foi configurada no servidor.'), { status: 503 });
+  const config = getAiConfig();
+  if (!config.apiKey) throw Object.assign(new Error('A IA ainda não foi configurada no servidor.'), { status: 503 });
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180_000);
   try {
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-6-astra',
+        model: config.model,
         instructions: 'Crie o material completo solicitado como um único HTML autônomo. Retorne somente o HTML, começando por <!doctype html>. Use CSS e SVG inline para todos os elementos visuais. Não use JavaScript, URLs externas, fontes externas, Mermaid, arquivos auxiliares, Markdown ou explicações. Não invente dados, fontes, citações ou códigos curriculares.',
         input: prompt
       })
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'O provedor de IA recusou a solicitação.'), { status: response.status >= 500 ? 502 : 400 });
-    return { html: cleanGeneratedHtml(extractOutputText(body)), model: body.model || process.env.OPENAI_MODEL || 'OpenAI' };
+    return { html: cleanGeneratedHtml(extractOutputText(body)), model: body.model || config.model };
   } catch (error) {
     if (error.name === 'AbortError') throw Object.assign(new Error('A geração excedeu o tempo máximo de três minutos.'), { status: 504 });
     throw error;
@@ -116,17 +155,19 @@ async function requestAiHtml(prompt) {
 }
 
 async function requestAiImage(prompt, position, total) {
+  const config = getAiConfig();
+  if (!config.apiKey) throw Object.assign(new Error('A IA ainda não foi configurada no servidor.'), { status: 503 });
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180_000);
   try {
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-6-astra',
+        model: config.model,
         input: `Crie a ilustração educacional ${position} de ${total} para o material descrito a seguir. A imagem deve ensinar um conceito central diferente das demais, respeitar o público, a paleta e o estilo solicitados, ter composição clara e não conter textos, letras, marcas ou logotipos. Não invente dados factuais.\n\n${prompt.slice(0, 24000)}`,
-        tools: [{ type: 'image_generation', model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2.5-flare' }],
+        tools: [{ type: 'image_generation', model: config.imageModel }],
         tool_choice: { type: 'image_generation' }
       })
     });
@@ -167,7 +208,27 @@ async function htmlToPdf(html) {
 
 async function handleApi(req, res, pathname) {
   if (req.method === 'GET' && pathname === '/api/health') return json(res, 200, { ok: true, service: 'gerador-one' });
-  if (req.method === 'GET' && pathname === '/api/ai/status') return json(res, 200, { available: Boolean(process.env.OPENAI_API_KEY), provider: 'OpenAI', model: process.env.OPENAI_API_KEY ? (process.env.OPENAI_MODEL || 'gpt-6-astra') : null });
+  if (req.method === 'GET' && pathname === '/api/ai/status') {
+    const config = getAiConfig();
+    return json(res, 200, { available: Boolean(config.apiKey), provider: 'OpenAI', model: config.apiKey ? config.model : null });
+  }
+  if (req.method === 'GET' && pathname === '/api/ai/config') {
+    const config = getAiConfig();
+    return json(res, 200, { hasApiKey: Boolean(config.apiKey), model: config.model, imageModel: config.imageModel });
+  }
+  if (req.method === 'POST' && pathname === '/api/ai/config') {
+    try {
+      const raw = await readBody(req);
+      const payload = JSON.parse(raw || '{}');
+      if (payload.apiKey !== undefined && typeof payload.apiKey !== 'string') return json(res, 400, { error: 'Chave inválida.' });
+      if (payload.model !== undefined && typeof payload.model !== 'string') return json(res, 400, { error: 'Modelo inválido.' });
+      if (payload.imageModel !== undefined && typeof payload.imageModel !== 'string') return json(res, 400, { error: 'Modelo de imagem inválido.' });
+      const saved = await writeRuntimeAiConfig(payload);
+      return json(res, 200, { hasApiKey: Boolean(saved.apiKey), model: saved.model, imageModel: saved.imageModel });
+    } catch (error) {
+      return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'Não foi possível salvar a configuração.' });
+    }
+  }
   if (req.method === 'POST' && pathname === '/api/render') {
     try {
       const raw = await readBody(req);

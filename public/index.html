@@ -17,6 +17,7 @@
     </div>
     <div class="top-actions">
       <span class="local-badge">Executando no servidor</span>
+      <button id="ai-config-open" class="icon-button" type="button" aria-haspopup="dialog" aria-controls="ai-config-modal"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="17" height="17"><circle cx="10" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3.5v2M10 14.5v2M16.5 10h-2M5.5 10h-2M14.6 5.4l-1.4 1.4M6.8 13.2l-1.4 1.4M14.6 14.6l-1.4-1.4M6.8 6.8 5.4 5.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="theme-label">Config API IA</span></button>
       <button id="theme-toggle" class="icon-button" type="button" aria-label="Alternar tema" aria-pressed="false"><span class="icon-slot" aria-hidden="true"></span><span class="theme-label">Tema</span></button>
     </div>
   </header>
@@ -129,6 +130,25 @@
         <section id="generated-files" class="generated-files" aria-label="Arquivos gerados" hidden></section>
       </div>
       <p id="status" class="status" role="status"></p>
+    </section>
+  </dialog>
+  <dialog id="ai-config-modal" class="result-modal ai-config-modal" aria-labelledby="ai-config-title">
+    <section class="modal-shell">
+      <header class="modal-head">
+        <div><p class="eyebrow">Servidor</p><h2 id="ai-config-title">Config API IA</h2></div>
+        <button id="ai-config-close" class="modal-close" type="button" aria-label="Fechar configuração"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </header>
+      <form id="ai-config-form" class="ai-config-form">
+        <p id="ai-config-current" class="field-status">Verificando configuração…</p>
+        <label>Chave da API (OpenAI)<input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual"></label>
+        <label>Modelo de texto<input id="ai-config-model" name="model" type="text" placeholder="gpt-6-astra"></label>
+        <label>Modelo de imagem<input id="ai-config-image-model" name="imageModel" type="text" placeholder="gpt-image-2.5-flare"></label>
+        <div class="ai-config-actions">
+          <button id="ai-config-clear" type="button">Remover chave</button>
+          <button id="ai-config-save" class="primary" type="submit">Salvar configuração</button>
+        </div>
+        <p id="ai-config-status" class="status" role="status"></p>
+      </form>
     </section>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

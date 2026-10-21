@@ -297,6 +297,68 @@ updateCompletion();
 updateGenerationMode();
 checkAiAvailability();
 
+const aiConfigModal = document.querySelector('#ai-config-modal');
+const aiConfigForm = document.querySelector('#ai-config-form');
+const aiConfigCurrent = document.querySelector('#ai-config-current');
+const aiConfigStatus = document.querySelector('#ai-config-status');
+
+async function loadAiConfig() {
+  aiConfigCurrent.textContent = 'Verificando configuração…';
+  aiConfigCurrent.className = 'field-status';
+  try {
+    const response = await fetch('/api/ai/config');
+    const data = await response.json();
+    aiConfigCurrent.textContent = data.hasApiKey ? `Chave configurada · modelo ${data.model}` : 'Nenhuma chave configurada no servidor.';
+    aiConfigCurrent.className = `field-status ${data.hasApiKey ? 'available' : 'unavailable'}`;
+    document.querySelector('#ai-config-model').value = data.model || '';
+    document.querySelector('#ai-config-image-model').value = data.imageModel || '';
+    document.querySelector('#ai-config-key').value = '';
+  } catch {
+    aiConfigCurrent.textContent = 'Não foi possível carregar a configuração atual.';
+    aiConfigCurrent.className = 'field-status unavailable';
+  }
+}
+
+document.querySelector('#ai-config-open').addEventListener('click', () => { aiConfigStatus.textContent = ''; loadAiConfig(); aiConfigModal.showModal(); });
+document.querySelector('#ai-config-close').addEventListener('click', () => aiConfigModal.close());
+aiConfigModal.addEventListener('click', event => { if (event.target === aiConfigModal) aiConfigModal.close(); });
+
+aiConfigForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  aiConfigStatus.textContent = 'Salvando…';
+  try {
+    const body = {
+      apiKey: document.querySelector('#ai-config-key').value,
+      model: document.querySelector('#ai-config-model').value,
+      imageModel: document.querySelector('#ai-config-image-model').value
+    };
+    const response = await fetch('/api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível salvar.');
+    aiConfigStatus.textContent = 'Configuração salva. Aplicada imediatamente, sem reiniciar o servidor.';
+    notify('Configuração de IA salva');
+    await loadAiConfig();
+    checkAiAvailability();
+  } catch (error) {
+    aiConfigStatus.textContent = error.message;
+  }
+});
+
+document.querySelector('#ai-config-clear').addEventListener('click', async () => {
+  aiConfigStatus.textContent = 'Removendo chave…';
+  try {
+    const response = await fetch('/api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clearApiKey: true }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível remover a chave.');
+    aiConfigStatus.textContent = 'Chave removida.';
+    notify('Chave de IA removida');
+    await loadAiConfig();
+    checkAiAvailability();
+  } catch (error) {
+    aiConfigStatus.textContent = error.message;
+  }
+});
+
 document.querySelector('#save-draft').addEventListener('click', () => {
   localStorage.setItem('apostila-draft-v2', JSON.stringify(dataObject()));
   notify('Rascunho salvo neste navegador');
