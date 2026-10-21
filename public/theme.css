@@ -45,8 +45,12 @@ body {
   cursor: pointer;
 }
 .icon-button { display: flex; align-items: center; gap: 7px; }
-.icon-slot, .icon-svg { display: inline-flex; width: 17px; height: 17px; }
+.icon-slot, .icon-svg { display: inline-flex; width: 17px; height: 17px; flex-shrink: 0; }
 .icon-svg { vertical-align: -3px; }
+.project-actions button, .resource-tools button, .result-actions button, .primary {
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.copy-icon { display: inline-flex; align-items: center; }
 .project-actions { margin-top: 18px; flex-wrap: wrap; }
 .integration-row { margin-top: 18px; }
 .field-status{display:block;margin-top:7px;color:var(--muted);font-weight:600}.field-status.available{color:var(--teal-dark)}.field-status.unavailable{color:#a84848}
