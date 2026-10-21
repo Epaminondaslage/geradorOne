@@ -55,7 +55,7 @@ function updateGenerationMode() {
 async function checkAiAvailability() {
   const label = document.querySelector('#ai-availability');
   try {
-    const response = await fetch('/api/ai/status');
+    const response = await fetch('api/ai/status');
     const data = await response.json();
     label.textContent = data.available ? `IA disponível no servidor · ${data.provider} · ${data.model}` : 'IA não configurada no servidor; o modo prompt continua disponível.';
     label.className = `field-status ${data.available ? 'available' : 'unavailable'}`;
@@ -182,7 +182,7 @@ form.addEventListener('submit', async event => {
   label.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>Gerando…';
   try {
     const imageCount = settings.frequencia.startsWith('Intensa') ? 3 : settings.frequencia.startsWith('Equilibrada') ? 2 : 1;
-    const response = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt: currentPrompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
+    const response = await fetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt: currentPrompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível gerar o material.');
     currentFiles = result.files || [];
@@ -263,7 +263,7 @@ document.querySelector('#preview').addEventListener('click', async () => {
   status.textContent = 'Preparando prévia…';
   try {
     if (!currentPreviewHtml) {
-      const response = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto, prompt: currentPrompt }) });
+      const response = await fetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto, prompt: currentPrompt }) });
       if (!response.ok) throw new Error('Falha na prévia');
       currentPreviewHtml = (await response.json()).html;
     }
@@ -281,7 +281,7 @@ document.querySelector('#export-pdf').addEventListener('click', async () => {
   setWorkflowStage(3);
   status.textContent = 'Gerando arquivo PDF…';
   try {
-    const response = await fetch('/api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto || 'Prompt GeradorOne', prompt: currentPrompt }) });
+    const response = await fetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto || 'Prompt GeradorOne', prompt: currentPrompt }) });
     if (!response.ok) throw new Error('Falha no PDF');
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -321,7 +321,7 @@ async function loadAiConfig() {
   aiConfigCurrent.textContent = 'Verificando configuração…';
   aiConfigCurrent.className = 'field-status';
   try {
-    const response = await fetch('/api/ai/config');
+    const response = await fetch('api/ai/config');
     const data = await response.json();
     const providerLabel = data.provider === 'gemini' ? 'Gemini' : 'OpenAI';
     aiConfigCurrent.textContent = data.hasApiKey ? `Chave configurada · ${providerLabel} · modelo ${data.model}` : `Nenhuma chave configurada (${providerLabel}).`;
@@ -351,7 +351,7 @@ aiConfigForm.addEventListener('submit', async event => {
       model: aiConfigModelInput.value,
       imageModel: aiConfigImageModelInput.value
     };
-    const response = await fetch('/api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const response = await fetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível salvar.');
     aiConfigStatus.textContent = 'Configuração salva. Aplicada imediatamente, sem reiniciar o servidor.';
@@ -366,7 +366,7 @@ aiConfigForm.addEventListener('submit', async event => {
 document.querySelector('#ai-config-clear').addEventListener('click', async () => {
   aiConfigStatus.textContent = 'Removendo chave…';
   try {
-    const response = await fetch('/api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clearApiKey: true }) });
+    const response = await fetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clearApiKey: true }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível remover a chave.');
     aiConfigStatus.textContent = 'Chave removida.';

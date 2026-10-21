@@ -29,3 +29,19 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
+      - "traefik.http.routers.geradorone.rule=PathPrefix(`/geradorone`)"
+      - "traefik.http.routers.geradorone.entrypoints=http"
+      - "traefik.http.routers.geradorone.middlewares=geradorone-redirect,geradorone-strip"
+      - "traefik.http.middlewares.geradorone-redirect.redirectregex.regex=^(https?://[^/]+/geradorone)$$"
+      - "traefik.http.middlewares.geradorone-redirect.redirectregex.replacement=$${1}/"
+      - "traefik.http.middlewares.geradorone-strip.stripprefix.prefixes=/geradorone"
+      - "traefik.http.services.geradorone.loadbalancer.server.port=3000"
+
+networks:
+  coolify:
+    external: true
