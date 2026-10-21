@@ -7,10 +7,12 @@ const resources = [
 
 const themeButton = document.querySelector('#theme-toggle');
 const preferredTheme = localStorage.getItem('apostila-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+const sunIcon = '<svg class="icon-svg" viewBox="0 0 20 20" width="17" height="17"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v2.2M10 15.8V18M18 10h-2.2M4.2 10H2M15.6 4.4l-1.5 1.5M5.9 14.1l-1.5 1.5M15.6 15.6l-1.5-1.5M5.9 5.9 4.4 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const moonIcon = '<svg class="icon-svg" viewBox="0 0 20 20" width="17" height="17"><path d="M16 12.2A7 7 0 1 1 7.8 4a5.6 5.6 0 0 0 8.2 8.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   themeButton.setAttribute('aria-pressed', String(theme === 'dark'));
-  themeButton.querySelector('[aria-hidden]').textContent = theme === 'dark' ? '☀' : '☾';
+  themeButton.querySelector('.icon-slot').innerHTML = theme === 'dark' ? sunIcon : moonIcon;
   localStorage.setItem('apostila-theme', theme);
 }
 setTheme(preferredTheme);
@@ -22,13 +24,13 @@ styles.forEach(([name, description], index) => styleContainer.insertAdjacentHTML
 const resourceContainer = document.querySelector('#resource-options');
 const visualSamples = {
   mapasMentais:'<span class="mm-core">A</span><i class="mm-dot d1"></i><i class="mm-dot d2"></i><i class="mm-dot d3"></i><b class="mm-edge e1"></b><b class="mm-edge e2"></b><b class="mm-edge e3"></b>',
-  diagramas:'<span class="flow-box">1</span><b class="flow-arrow">→</b><span class="flow-box">2</span><b class="flow-arrow">→</b><span class="flow-box">3</span>',
+  diagramas:'<span class="flow-box">1</span><b class="flow-arrow"><svg class="icon-svg" viewBox="0 0 20 20" width="13" height="13"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span class="flow-box">2</span><b class="flow-arrow"><svg class="icon-svg" viewBox="0 0 20 20" width="13" height="13"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span class="flow-box">3</span>',
   ilustracoes:'<i class="scene-sun"></i><i class="scene-hill h1"></i><i class="scene-hill h2"></i>',
   infograficos:'<span class="info-ring"></span><span class="info-lines"><i></i><i></i><i></i></span>',
-  graficos:'<span class="chart-bars"><i></i><i></i><i></i><i></i></span><b class="chart-line">⌁</b>',
-  quadros:'<span class="compare-card">A<br><i></i><i></i></span><b class="compare-vs">×</b><span class="compare-card">B<br><i></i><i></i></span>',
+  graficos:'<span class="chart-bars"><i></i><i></i><i></i><i></i></span><b class="chart-line"><svg class="icon-svg" viewBox="0 0 20 20" width="20" height="20"><path d="M2 14l4-5 4 3 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></b>',
+  quadros:'<span class="compare-card">A<br><i></i><i></i></span><b class="compare-vs"><svg class="icon-svg" viewBox="0 0 20 20" width="14" height="14"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></b><span class="compare-card">B<br><i></i><i></i></span>',
   linhas:'<span class="timeline-line"><i></i><i></i><i></i><i></i></span>',
-  icones:'<span class="icon-set"><i>✓</i><i>!</i><i>?</i></span>'
+  icones:'<span class="icon-set"><i><svg class="icon-svg" viewBox="0 0 20 20" width="14" height="14"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><i><svg class="icon-svg" viewBox="0 0 20 20" width="14" height="14"><path d="M10 4v8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="10" cy="15.5" r="1.3" fill="currentColor"/></svg></i><i><svg class="icon-svg" viewBox="0 0 20 20" width="14" height="14"><path d="M7.3 7.5a2.7 2.7 0 1 1 3.9 2.4c-.9.5-1.2 1-1.2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="15" r="1.2" fill="currentColor"/></svg></i></span>'
 };
 resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
 
@@ -79,6 +81,10 @@ function setWorkflowStage(stage, formPercent = 100) {
 function updateResourceSummary() {
   const count = resources.filter(([name]) => form.elements.namedItem(name)?.checked).length;
   document.querySelector('#resource-summary').textContent = count ? `${count} recurso${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''}` : 'Escolha os recursos';
+  document.querySelectorAll('[data-resource]').forEach(element => {
+    const field = form.elements.namedItem(element.dataset.resource);
+    element.classList.toggle('active', Boolean(field?.checked));
+  });
 }
 
 function notify(message) {
@@ -131,7 +137,9 @@ function updateCompletion() {
   const required = ['disciplina','assunto','publico'];
   const optional = ['objetivo','referencias','orientacoes'];
   const score = required.filter(k => data[k]).length * 20 + optional.filter(k => data[k]).length * 8 + selectedResources(data).length * 2;
-  document.querySelector('#completion').textContent = `${Math.min(100, score)}%`;
+  const percent = Math.min(100, score);
+  document.querySelector('#completion').textContent = `${percent}%`;
+  document.querySelector('#completion-ring').style.setProperty('--pct', percent);
   updateResourceSummary();
   if (workflowStage === 1) setWorkflowStage(1, Math.min(100, score));
 }
@@ -149,7 +157,7 @@ form.addEventListener('submit', async event => {
     ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
     : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
   currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n8. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
-  if (settings.modoImagem === 'gerar') currentPrompt += '\n\n9. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se as imagens não estiverem renderizadas no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
+  if (settings.modoImagem === 'gerar') currentPrompt += '\n\n9. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final, se a plataforma usada tiver ferramenta própria de geração de imagem.\n- Se a plataforma não tiver ferramenta de geração de imagem raster, produza ilustrações vetoriais em SVG acessível e renderizadas no próprio arquivo, seguindo a mesma especificação do briefing.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se nenhum visual estiver de fato renderizado (raster ou vetorial) no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
   const aiMode = settings.modoGeracao === 'ai';
   document.querySelector('#result-title').textContent = aiMode ? 'Material gerado com IA' : 'Prompt da apostila';
   document.querySelector('.result-actions').hidden = aiMode;
@@ -168,7 +176,10 @@ form.addEventListener('submit', async event => {
   generatedFiles.innerHTML = '<div class="ai-loading"><span class="ai-spinner" aria-hidden="true"></span><strong>Produzindo o material…</strong><span>Esta etapa pode levar alguns minutos. Não feche esta janela.</span></div>';
   status.textContent = 'A IA está criando e finalizando o arquivo solicitado.';
   const button = document.querySelector('#generate-button');
+  const label = button.querySelector('.generate-label');
+  const originalLabel = label.textContent;
   button.disabled = true;
+  label.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>Gerando…';
   try {
     const imageCount = settings.frequencia.startsWith('Intensa') ? 3 : settings.frequencia.startsWith('Equilibrada') ? 2 : 1;
     const response = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt: currentPrompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
@@ -184,6 +195,7 @@ form.addEventListener('submit', async event => {
     status.textContent = error.message;
   } finally {
     button.disabled = false;
+    label.textContent = originalLabel;
   }
 });
 
@@ -234,13 +246,15 @@ document.querySelector('#copy').addEventListener('click', async () => {
       const area = Object.assign(document.createElement('textarea'), { value: currentPrompt });
       document.body.append(area); area.select(); document.execCommand('copy'); area.remove();
     }
+    const copyIcon = button.querySelector('.copy-icon');
+    const defaultIconHtml = copyIcon.innerHTML;
     button.classList.add('copied');
-    button.querySelector('.copy-icon').textContent = '✓';
+    copyIcon.innerHTML = '<svg class="icon-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     button.querySelector('.copy-label').textContent = 'Copiado!';
     setWorkflowStage(3);
     status.textContent = 'Prompt copiado para a área de transferência.';
     notify('Prompt copiado com sucesso');
-    setTimeout(() => { button.classList.remove('copied'); button.querySelector('.copy-icon').textContent = '⧉'; button.querySelector('.copy-label').textContent = 'Copiar prompt'; }, 2200);
+    setTimeout(() => { button.classList.remove('copied'); copyIcon.innerHTML = defaultIconHtml; button.querySelector('.copy-label').textContent = 'Copiar prompt'; }, 2200);
   } catch { status.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'; }
 });
 document.querySelector('#export-txt').addEventListener('click', () => { download('prompt-apostila.txt', currentPrompt, 'text/plain;charset=utf-8'); setWorkflowStage(3); notify('Arquivo TXT preparado'); });
