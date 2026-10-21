@@ -57,7 +57,7 @@ async function checkAiAvailability() {
   try {
     const response = await fetch('/api/ai/status');
     const data = await response.json();
-    label.textContent = data.available ? `IA disponível no servidor · ${data.model}` : 'IA não configurada no servidor; o modo prompt continua disponível.';
+    label.textContent = data.available ? `IA disponível no servidor · ${data.provider} · ${data.model}` : 'IA não configurada no servidor; o modo prompt continua disponível.';
     label.className = `field-status ${data.available ? 'available' : 'unavailable'}`;
   } catch {
     label.textContent = 'Não foi possível verificar a IA.';
@@ -301,6 +301,21 @@ const aiConfigModal = document.querySelector('#ai-config-modal');
 const aiConfigForm = document.querySelector('#ai-config-form');
 const aiConfigCurrent = document.querySelector('#ai-config-current');
 const aiConfigStatus = document.querySelector('#ai-config-status');
+const aiConfigProvider = document.querySelector('#ai-config-provider');
+const aiConfigModelInput = document.querySelector('#ai-config-model');
+const aiConfigImageModelInput = document.querySelector('#ai-config-image-model');
+
+function applyAiConfigDatalists() {
+  const provider = aiConfigProvider.value;
+  aiConfigModelInput.setAttribute('list', `ai-text-models-${provider}`);
+  aiConfigImageModelInput.setAttribute('list', `ai-image-models-${provider}`);
+}
+aiConfigProvider.addEventListener('change', () => {
+  applyAiConfigDatalists();
+  aiConfigModelInput.value = '';
+  aiConfigImageModelInput.value = '';
+});
+applyAiConfigDatalists();
 
 async function loadAiConfig() {
   aiConfigCurrent.textContent = 'Verificando configuração…';
@@ -308,10 +323,13 @@ async function loadAiConfig() {
   try {
     const response = await fetch('/api/ai/config');
     const data = await response.json();
-    aiConfigCurrent.textContent = data.hasApiKey ? `Chave configurada · modelo ${data.model}` : 'Nenhuma chave configurada no servidor.';
+    const providerLabel = data.provider === 'gemini' ? 'Gemini' : 'OpenAI';
+    aiConfigCurrent.textContent = data.hasApiKey ? `Chave configurada · ${providerLabel} · modelo ${data.model}` : `Nenhuma chave configurada (${providerLabel}).`;
     aiConfigCurrent.className = `field-status ${data.hasApiKey ? 'available' : 'unavailable'}`;
-    document.querySelector('#ai-config-model').value = data.model || '';
-    document.querySelector('#ai-config-image-model').value = data.imageModel || '';
+    aiConfigProvider.value = data.provider || 'openai';
+    applyAiConfigDatalists();
+    aiConfigModelInput.value = data.model || '';
+    aiConfigImageModelInput.value = data.imageModel || '';
     document.querySelector('#ai-config-key').value = '';
   } catch {
     aiConfigCurrent.textContent = 'Não foi possível carregar a configuração atual.';
@@ -328,9 +346,10 @@ aiConfigForm.addEventListener('submit', async event => {
   aiConfigStatus.textContent = 'Salvando…';
   try {
     const body = {
+      provider: aiConfigProvider.value,
       apiKey: document.querySelector('#ai-config-key').value,
-      model: document.querySelector('#ai-config-model').value,
-      imageModel: document.querySelector('#ai-config-image-model').value
+      model: aiConfigModelInput.value,
+      imageModel: aiConfigImageModelInput.value
     };
     const response = await fetch('/api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const result = await response.json();
