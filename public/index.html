@@ -141,8 +141,10 @@
       <form id="ai-config-form" class="ai-config-form">
         <p id="ai-config-current" class="field-status">Verificando configuração…</p>
         <label>Chave da API (OpenAI)<input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual"></label>
-        <label>Modelo de texto<input id="ai-config-model" name="model" type="text" placeholder="gpt-6-astra"></label>
-        <label>Modelo de imagem<input id="ai-config-image-model" name="imageModel" type="text" placeholder="gpt-image-2.5-flare"></label>
+        <label>Modelo de texto<input id="ai-config-model" name="model" type="text" list="ai-text-models" placeholder="gpt-6-astra" autocomplete="off"></label>
+        <datalist id="ai-text-models"><option value="gpt-6-astra"></option></datalist>
+        <label>Modelo de imagem<input id="ai-config-image-model" name="imageModel" type="text" list="ai-image-models" placeholder="gpt-image-2.5-flare" autocomplete="off"></label>
+        <datalist id="ai-image-models"><option value="gpt-image-2.5-flare"></option></datalist>
         <div class="ai-config-actions">
           <button id="ai-config-clear" type="button">Remover chave</button>
           <button id="ai-config-save" class="primary" type="submit">Salvar configuração</button>
