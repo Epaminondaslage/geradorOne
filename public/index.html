@@ -61,9 +61,9 @@
           <label>Público / faixa etária <span aria-hidden="true">*</span><select name="publico" required><option value="">Selecione</option><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
           <label>Profundidade<select name="profundidade"><option>Introdutório</option><option>Básico</option><option selected>Intermediário</option><option>Avançado</option><option>Completo</option></select></label>
           <label class="full">Objetivo de aprendizagem<textarea name="objetivo" rows="3" placeholder="Ex.: Capacitar professores para ministrar o conteúdo de inglês do 6º ano."></textarea></label>
-          <label>Tipo de material<select name="tipo"><option>Apostila didática</option><option>Resumo visual</option><option>Guia do professor</option><option>Sequência didática</option><option>Caderno de atividades</option><option>Livro visual</option></select></label>
+          <label>Tipo de material<select name="tipo"><option>Apostila didática</option><option>Material de revisão</option><option>Caderno de atividades</option><option>Guia de estudos</option><option>Resumo visual</option><option>Mapa mental</option><option>Material para concurso</option><option>Material profissional</option><option>Guia do professor</option><option>Sequência didática</option></select></label>
           <label>Estilo de escrita<select name="escrita"><option>Didático</option><option>Acadêmico</option><option>Conversacional</option><option>Objetivo</option><option>Lúdico</option><option>Técnico</option></select></label>
-          <label>Extensão do material<select name="extensao"><option>Curto — 2 a 4 páginas</option><option selected>Médio — 5 a 8 páginas</option><option>Longo — 9 a 15 páginas</option><option>Extenso — 16 ou mais páginas, cobertura completa</option></select><small class="field-status">Define o limite de páginas que o prompt vai pedir à IA.</small></label>
+          <label>Número de páginas<select name="paginas"><option value="1" selected>1 página</option><option value="2">2 páginas</option><option value="3">3 páginas</option><option value="4">4 páginas</option><option value="5">5 páginas</option><option value="6">6 páginas</option><option value="8">8 páginas</option><option value="10">10 páginas</option><option value="12">12 páginas</option></select><small class="field-status">Cada página vira uma imagem. Com mais de uma, o prompt traz o plano e pede uma página por vez.</small></label>
         </div>
       </section>
 
@@ -81,7 +81,7 @@
         <fieldset><legend>Estilo das ilustrações</legend><p class="field-help">Escolha o tipo de traço e acabamento. As cores do material são definidas separadamente em “Paleta”.</p><div id="style-options" class="style-grid"></div></fieldset>
         <div class="grid two palette-row">
           <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
-          <label>Formato prioritário<select name="formato"><option>Tela e impressão</option><option>Somente tela</option><option>Impressão A4</option><option>Apresentação 16:9</option></select></label>
+          <label>Formato prioritário<select name="formato"><option selected>Impressão A4</option><option>Tela e impressão</option><option>Somente tela</option><option>Apresentação 16:9</option></select></label>
         </div>
       </section>
 

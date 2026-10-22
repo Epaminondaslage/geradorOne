@@ -136,11 +136,163 @@ const imagePageFormats = {
   'Somente tela': 'página vertical 4:5 (1080x1350 px), otimizada para leitura em tela',
   'Apresentação 16:9': 'página horizontal 16:9 (1920x1080 px), layout de slide',
 };
+const defaultPageFormat = 'página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa';
 
-function generateVisualSummaryPrompt(input) {
-  const data = { ...input, formato: imagePageFormats[input.formato] || 'página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa' };
+const typeProfiles = {
+  'Apostila didática': {
+    apoio: 'Apostila Didática',
+    foco: 'explicar o tema de forma progressiva, do conceito básico à aplicação',
+    microtextos: ['3 frases curtas de abertura explicando o que o aluno vai aprender.', 'Definição principal em uma caixa de destaque.', '5 bullets com ✓ resumindo os pontos-chave.', '2 exemplos práticos curtos iniciados por "Ex.:".'],
+    restricao: 'NÃO inclua exercícios, questões nem gabarito. A página é explicativa.',
+  },
+  'Material de revisão': {
+    apoio: 'Revisão Rápida',
+    foco: 'revisar o essencial do que já foi estudado, destacando erros comuns',
+    microtextos: ['1 frase de abertura dizendo o que será revisado.', '6 bullets com ✓ com os pontos essenciais.', 'Caixa "Erros comuns" com 3 itens curtos.', 'Caixa "Lembre-se" com a regra ou fórmula principal.'],
+    restricao: 'NÃO introduza conteúdo novo: revise apenas o essencial do tema.',
+  },
+  'Caderno de atividades': {
+    apoio: 'Caderno de Atividades',
+    foco: 'praticar o conteúdo com atividades em dificuldade crescente',
+    microtextos: ['Caixa "Relembre" com a regra ou fórmula principal, em no máximo 2 linhas.', '4 a 6 atividades numeradas, em dificuldade crescente, com linhas ou espaço em branco para a resposta.', 'Formatos variados: completar, associar, calcular, verdadeiro ou falso, interpretar figura.', 'Enunciados curtos, claros e sem ambiguidade, com valores numéricos coerentes.'],
+    restricao: 'NÃO mostre as respostas na mesma página das atividades.',
+  },
+  'Guia de estudos': {
+    apoio: 'Guia de Estudos',
+    foco: 'orientar o estudo autônomo do tema em etapas',
+    microtextos: ['Objetivo do estudo em 1 frase.', 'Roteiro de 4 a 5 etapas numeradas: o que estudar e em que ordem.', 'Caixa "Checklist de domínio" com 4 itens marcáveis.', '1 dica de estudo prática.'],
+    restricao: 'NÃO inclua gabarito nem exercícios resolvidos extensos.',
+  },
+  'Resumo visual': {
+    apoio: 'Guia Visual Rápido',
+    foco: 'condensar o tema em uma visão geral rápida e visual',
+    microtextos: ['3 frases curtas de abertura explicando o que o aluno vai entender.', '5 bullets com ✓ resumindo os pontos-chave.', '2 exemplos práticos curtos iniciados por "Ex.:".'],
+    restricao: 'NÃO inclua atividades, exercícios, questões nem gabarito. A página é apenas explicativa/visual.',
+  },
+  'Mapa mental': {
+    apoio: 'Mapa Mental',
+    foco: 'mostrar as relações entre os conceitos do tema',
+    microtextos: ['Conceito central no meio da página, em destaque.', '4 a 7 ramos principais, cada um com palavra-chave curta e ícone.', '2 a 3 sub-ramos por ramo.', 'Conectores com rótulos curtos indicando a relação entre conceitos.'],
+    restricao: 'NÃO use parágrafos: apenas palavras-chave e frases muito curtas. Layout radial, não em lista.',
+  },
+  'Material para concurso': {
+    apoio: 'Preparatório para Concursos',
+    foco: 'condensar o que é mais cobrado em provas, com pegadinhas e macetes',
+    microtextos: ['Caixa "Como costuma ser cobrado" com 2 a 3 itens.', '5 bullets com os pontos mais importantes.', 'Caixa "Pegadinhas" com 3 itens.', '1 macete ou mnemônico, somente se for amplamente conhecido e correto.'],
+    restricao: 'NÃO invente estatísticas de bancas nem cite questões ou bancas reais.',
+  },
+  'Material profissional': {
+    apoio: 'Material Profissional',
+    foco: 'aplicar o tema à prática de trabalho, com procedimento e segurança',
+    microtextos: ['Contexto de aplicação profissional em 1 a 2 frases.', 'Procedimento em 4 a 6 passos numerados.', 'Caixa "Atenção / Segurança" com os cuidados essenciais.', 'Caixa "Na prática" com 1 situação real de trabalho.'],
+    restricao: 'Cite normas técnicas somente com número e conteúdo corretos; se houver dúvida, escreva "consulte a norma vigente".',
+  },
+  'Guia do professor': {
+    apoio: 'Guia do Professor',
+    foco: 'apoiar o professor a conduzir a aula sobre o tema',
+    microtextos: ['Objetivos da aula em 2 a 3 bullets.', 'Sequência da aula em 3 a 4 momentos numerados, com tempo sugerido.', 'Caixa "Dificuldades previstas" com 2 a 3 itens.', 'Caixa "Pergunta disparadora" com 1 pergunta para iniciar a aula.'],
+    restricao: 'Linguagem dirigida ao professor, não ao aluno.',
+  },
+  'Sequência didática': {
+    apoio: 'Sequência Didática',
+    foco: 'organizar o ensino do tema em etapas encadeadas',
+    microtextos: ['Objetivo geral em 1 frase.', '4 a 5 etapas numeradas, cada uma com título, ação principal e resultado esperado.', 'Seta ou linha conectando as etapas na ordem.', 'Caixa "Avaliação" com a forma de verificar a aprendizagem.'],
+    restricao: 'Mantenha cada etapa curta e visual.',
+  },
+};
+
+function pagePlan(total, tipo) {
+  if (total === 1) return [];
+  const plan = [`Página 1: abertura — título, visão geral do tema e conceito central.`];
+  const answerPage = tipo === 'Caderno de atividades';
+  const lastContent = answerPage ? total - 1 : total;
+  for (let page = 2; page < lastContent; page += 1) plan.push(`Página ${page}: desenvolvimento — parte ${page - 1} do tema (divida o conteúdo em subtópicos lógicos, sem repetir páginas anteriores).`);
+  if (lastContent >= 2) plan.push(answerPage ? `Página ${lastContent}: atividades finais de maior dificuldade.` : `Página ${lastContent}: síntese — resumo final, pontos-chave e conexões entre as partes.`);
+  if (answerPage) plan.push(`Página ${total}: gabarito comentado de todas as atividades, com resolução curta.`);
+  return plan;
+}
+
+function generateImagePrompt(data) {
+  const profile = typeProfiles[data.tipo] || typeProfiles['Apostila didática'];
+  const formato = imagePageFormats[data.formato] || defaultPageFormat;
+  const total = Math.max(1, Number.parseInt(data.paginas, 10) || 1);
+  const assunto = text(data.assunto);
+  const disciplina = text(data.disciplina);
   const visualItems = selectedResources(data);
-  return `ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.\nA saída esperada é UMA ÚNICA IMAGEM: uma página visual de "${text(data.tipo)}" sobre "${text(data.assunto)}", em ${text(data.formato)}.\nO estilo visual deve ser OBRIGATORIAMENTE: ${data.estiloVisual}. Não misture com outros estilos.\nO tipo de material representado na imagem deve ser OBRIGATORIAMENTE: ${data.tipo}.\nNão produza texto explicativo em resposta: produza somente a imagem descrita abaixo. NÃO gere páginas adicionais, capítulos ou um documento de múltiplas páginas — apenas esta imagem única.\n\nPAPEL\nAtue como designer instrucional e ilustrador de material didático visual brasileiro.\n\nCONTEXTO\nDisciplina: ${text(data.disciplina)}\nTema geral: ${text(data.assunto)}\nPúblico: ${data.publico}\nNível de profundidade: ${data.profundidade}\nTipo de material: ${data.tipo}\nFormato da página: ${data.formato}\nTotal de páginas: 1 página\nEstilo de escrita: ${data.escrita}\nEstilo visual: ${data.estiloVisual}\nPaleta visual: ${data.paleta}\n\nMISSÃO\nGerar a IMAGEM de uma página completa de ${text(data.tipo).toLowerCase()} sobre ${text(data.assunto)}, no estilo ${data.estiloVisual}, pronta para impressão.\n\n1) DESCRIÇÃO DA IMAGEM (PRINCIPAL)\nCrie uma página de infográfico educacional sobre "${text(data.assunto)}" em ${text(data.disciplina)}.\nEstilo educacional brasileiro. Siga rigorosamente o estilo de ilustração: ${data.estiloVisual}.\nNão use figuras infantis ou imagens de crianças caso o público não seja infantil. Se houver personagens, eles devem ser da faixa etária de ${data.publico}, condizentes com o público-alvo.\nUse elementos visuais com relação direta ao conteúdo, representando cada conceito de forma clara.\nBlocos de texto curtos e mínimos, com rótulos em negrito e legíveis. Priorize a explicação visual em vez do texto corrido.\nLayout limpo, estruturado em grade, com respiro generoso entre os blocos (margens amplas, nada apertado).\nOrganize a página em seções bem delimitadas, com hierarquia tipográfica clara (título grande, subtítulos médios, corpo pequeno) e no máximo 2 famílias tipográficas sem serifa.\nDestaque conceitos-chave em caixas de destaque, com ícone e cor de apoio.\nPaleta: ${data.paleta}. Cores harmoniosas, alto contraste entre texto e fundo.\nGaranta consistência lógica, sem contradições e sem erros factuais ou numéricos em rótulos ou exemplos.\nTodo o conteúdo textual deve estar rigorosamente em português do Brasil, sem termos em inglês ou outras variações do português.\nSem mockup e sem marca d'água.\n\n2) MICROTEXTOS QUE DEVEM APARECER DENTRO DA IMAGEM\nTítulo em caixa alta com o assunto principal.\nLinha de apoio: disciplina | tipo de material | público-alvo.\n2 a 3 frases curtas de abertura explicando o que o leitor vai entender.\n4 a 6 bullets resumindo os pontos-chave.\n1 a 2 exemplos práticos curtos, quando aplicável.\n\n3) ELEMENTOS VISUAIS CONTEXTUALIZADOS\nListe de 4 a 6 elementos visuais${visualItems.length ? ` priorizando: ${visualItems.join(', ')}` : ''}, cada um com: nome do elemento, o que representa e por que ajuda na aprendizagem.\n\n4) DIFICULDADE TÍPICA DOS ALUNOS\nDescreva a principal dificuldade dos alunos de ${data.publico} ao estudar ${text(data.assunto)} e como o visual resolve isso.\n\nRESTRIÇÃO\nNÃO inclua atividades, exercícios, questões nem gabarito na imagem. A página é apenas explicativa/visual.\n\nCRITÉRIOS DE QUALIDADE\n- Progressão lógica e continuidade pedagógica.\n- Linguagem adequada à faixa etária.\n- Não presumir conhecimento ainda não apresentado.\n- Explicar termos técnicos na primeira ocorrência.\n- Evitar redundância e texto decorativo.\n- Não inventar informações factuais, científicas, históricas ou normativas; havendo incerteza, sinalizar a necessidade de validação.\n\nOrientações adicionais: ${text(data.orientacoes)}.`;
+  const plan = pagePlan(total, data.tipo);
+  const extras = [
+    data.objetivo?.trim() && `Objetivo: ${data.objetivo.trim()}`,
+    data.bncc?.trim() && `Habilidades BNCC: ${data.bncc.trim()}`,
+  ].filter(Boolean);
+  const lines = [
+    'ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.',
+    total === 1
+      ? `A saída esperada é UMA IMAGEM ÚNICA: uma página visual de ${data.tipo.toLowerCase()} sobre ${assunto}, em ${formato}.`
+      : `A saída esperada é uma sequência de ${total} IMAGENS, uma por página, de ${data.tipo.toLowerCase()} sobre ${assunto}, em ${formato}. Gere UMA imagem por vez.`,
+    `O estilo visual deve ser OBRIGATORIAMENTE: ${data.estiloVisual}. Não misture com outros estilos.`,
+    `O tipo de material deve ser OBRIGATORIAMENTE: ${data.tipo}.`,
+    'Não responda com texto explicativo: produza a imagem descrita abaixo.',
+    '',
+    'PAPEL',
+    'Atue como designer instrucional e ilustrador de material didático visual brasileiro.',
+    '',
+    'CONTEXTO',
+    `Disciplina: ${disciplina}`,
+    `Tema: ${assunto}`,
+    `Público: ${data.publico}`,
+    `Nível de profundidade: ${data.profundidade}`,
+    `Tipo de material: ${data.tipo}`,
+    `Formato da página: ${formato}`,
+    `Total de páginas: ${total} ${total === 1 ? 'página' : 'páginas'}`,
+    `Estilo de escrita: ${data.escrita}`,
+    `Estilo visual: ${data.estiloVisual}`,
+    `Paleta visual: ${data.paleta}`,
+    ...extras,
+    '',
+    'MISSÃO',
+    `${total === 1 ? 'Gerar a IMAGEM de uma página completa' : `Gerar ${total} páginas`} de ${data.tipo.toLowerCase()} sobre ${assunto}, no estilo ${data.estiloVisual}, ${total === 1 ? 'pronta' : 'prontas'} para impressão. Foco do material: ${profile.foco}.`,
+    '',
+    '1) DESCRIÇÃO DA IMAGEM (PRINCIPAL)',
+    `Página didática de ${data.tipo.toLowerCase()} sobre "${assunto}" em ${disciplina}, no padrão de material educacional brasileiro.`,
+    `Siga RIGOROSAMENTE o estilo de ilustração ${data.estiloVisual}.`,
+    `NÃO use figuras infantis nem imagens de crianças se o público não for infantil. Personagens, se houver, devem ter a faixa etária de ${data.publico}.`,
+    'Cada ilustração deve representar diretamente um conceito do conteúdo; nada decorativo sem função.',
+    'Textos curtos, rótulos em negrito e legíveis. Priorize a explicação visual sobre o texto corrido.',
+    'Layout em grade, fundo claro e espaço generoso entre os blocos; margens amplas e nenhum elemento cortado nas bordas.',
+    'Seções bem delimitadas: cartões de cantos arredondados com sombra suave, faixas de título coloridas, etapas numeradas em círculos e ícones lineares consistentes.',
+    'Hierarquia tipográfica clara (título grande, subtítulos médios, corpo pequeno), no máximo 2 famílias sem serifa.',
+    'Conceitos-chave em caixas de destaque ("Dica", "Atenção", "Resumo") com ícone e cor de apoio.',
+    `Paleta ${data.paleta}: cores harmoniosas, alto contraste entre texto e fundo, tons claros nos blocos.`,
+    'Fórmulas, unidades, símbolos e valores numéricos devem estar corretos e coerentes entre si.',
+    'Todo o texto em português do Brasil, sem termos em inglês. Sem mockup e sem marca d\'água.',
+    '',
+    '2) MICROTEXTOS DENTRO DA IMAGEM',
+    `Título em caixa alta: ${assunto.toUpperCase()}`,
+    `Linha de apoio: ${disciplina} | ${profile.apoio} | ${data.publico}`,
+    ...profile.microtextos,
+    '',
+    '3) ELEMENTOS VISUAIS',
+    `Use de 4 a 6 elementos visuais${visualItems.length ? `, priorizando: ${visualItems.join(', ')}` : ''}. Para cada um, defina o que representa e por que ajuda a aprender.`,
+    'Opções: comparação lado a lado, esquema ou diagrama rotulado, fluxo de etapas com setas, tabela simples, ícones coloridos, caixa "Dica rápida" e mini-glossário ilustrado.',
+    '',
+    '4) DIFICULDADE DOS ALUNOS',
+    `Identifique a principal dificuldade dos alunos de ${data.publico} ao estudar ${assunto} e faça o visual resolvê-la.`,
+  ];
+  if (data.referencias?.trim()) lines.push('', 'CONTEÚDO DE REFERÊNCIA (USE OBRIGATORIAMENTE)', data.referencias.trim());
+  if (plan.length) lines.push('', `PLANO DE PÁGINAS (${total})`, ...plan, '', 'Gere AGORA somente a Página 1. Depois de cada imagem, aguarde eu escrever "próxima" para gerar a página seguinte.', 'Mantenha em todas as páginas exatamente o mesmo estilo, paleta, tipografia e identidade visual, e numere cada página no rodapé (ex.: 1/' + total + ').');
+  lines.push(
+    '',
+    'RESTRIÇÃO',
+    profile.restricao,
+    '',
+    'CRITÉRIOS DE QUALIDADE',
+    '- Progressão lógica e linguagem adequada ao público.',
+    '- Não presumir conhecimento ainda não apresentado; explicar termos técnicos na primeira ocorrência.',
+    '- Evitar redundância e texto decorativo.',
+    '- Não inventar informações factuais, técnicas ou normativas; havendo incerteza, sinalizar a necessidade de validação.',
+  );
+  if (data.orientacoes?.trim()) lines.push('', 'ORIENTAÇÕES ADICIONAIS', data.orientacoes.trim());
+  return lines.join('\n');
 }
 
 function updateCompletion() {
@@ -164,9 +316,10 @@ form.addEventListener('submit', async event => {
   form.querySelectorAll('[required]').forEach(field => { const bad = !field.value.trim(); field.setAttribute('aria-invalid', String(bad)); if (bad) valid = false; });
   if (!valid) { form.querySelector('[aria-invalid=true]').focus(); return; }
   const settings = dataObject();
-  const isSinglePageVisual = settings.tipo === 'Resumo visual';
-  if (isSinglePageVisual) {
-    currentPrompt = generateVisualSummaryPrompt(settings);
+  const pages = Math.max(1, Number.parseInt(settings.paginas, 10) || 1);
+  settings.extensao = `${pages} ${pages === 1 ? 'página' : 'páginas'}, no máximo`;
+  if (settings.modoGeracao !== 'ai') {
+    currentPrompt = generateImagePrompt(settings);
   } else {
   const deliveryInstruction = settings.formatoEntrega === 'pdf'
     ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
