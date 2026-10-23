@@ -6,6 +6,8 @@ const path = require('node:path');
 
 const runtime = fs.mkdtempSync(path.join(os.tmpdir(), 'g1-auth-'));
 process.env.RUNTIME_DIR = runtime;
+// Sem pasta de status do backup, qualquer que seja o ./monitor que exista na máquina (o backup do dev a cria).
+process.env.MONITOR_DIR = path.join(runtime, 'sem-monitor');
 process.env.ADMIN_EMAIL = 'admin@teste.com';
 process.env.ADMIN_PASSWORD = 'AdminSenha1';
 process.env.ADMIN_NAME = 'Administrador do Teste';
