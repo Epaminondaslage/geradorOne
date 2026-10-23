@@ -69,6 +69,10 @@ Todos usam só os tokens, então funcionam em qualquer tema.
 - **Aviso e erro**: texto em `--danger` ou `--accent`, nunca só pela cor (acompanha texto claro).
 - **Logo**: o mesmo desenho (`assets/icons/mapa-mental.png`) pintado por máscara CSS na classe `.logo`, assumindo a cor do tema. Use `<span class="logo">` e defina largura e `aspect-ratio: 897 / 1000`.
 
+## Miniaturas dos estilos de ilustração
+
+Cada um dos 12 estilos do formulário tem uma miniatura em SVG (`public/style-art.js`): a mesma maçã desenhada em Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático e Colorido Infantil. Usar o mesmo objeto nos 12 faz a diferença de traço aparecer sem ruído. O traço usa `currentColor` e acompanha o tema; as cores fixas (vermelho, verde, arco-íris) só aparecem nos estilos que dependem delas. A ordem do array tem que seguir a de `styles` em `app.js`. Gradientes SVG precisam de `id` único (o prefixo vem de `renderStyleOptions`, porque a lista aparece em Apostila e em Capa).
+
 ## Como criar uma página nova
 
 1. Use as classes existentes (`.view`, `.view-head`, `.card`, `.primary`, `.ghost`) antes de inventar CSS.

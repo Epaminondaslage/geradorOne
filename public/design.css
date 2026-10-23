@@ -129,7 +129,6 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
 .option label:hover, .resource label:hover { transform: none; box-shadow: none; border-color: var(--field); }
 .option input:checked + label, .resource input:checked + label { border-color: var(--accent); background: var(--aqua); box-shadow: inset 0 0 0 1px var(--accent); }
 .style-sample, .resource-demo { border-radius: 2px; background: var(--bg); border: 1px solid var(--line); color: var(--ink); box-shadow: none; }
-.sample-1, .sample-4, .sample-5, .sample-8, .sample-9, .sample-10, .sample-11 { background: var(--bg); color: var(--ink); box-shadow: none; transform: none; border-radius: 2px; }
 .resource-icon { color: var(--ink); }
 .improve-chip span { border-radius: 2px; border-color: var(--line); }
 .improve-chip input:checked + span { border-color: var(--accent); background: var(--aqua); color: var(--ink); box-shadow: inset 0 0 0 1px var(--accent); }
@@ -203,3 +202,7 @@ pre, .out-panel .modal-content pre { background: var(--bg); color: var(--ink); b
 .resource-icon { color: var(--ink); opacity: .85; }
 .resource input:checked + label .resource-icon { color: var(--accent); opacity: 1; }
 input, select, textarea { font-weight: 400; font-family: var(--sans); }
+
+/* Miniaturas dos estilos de ilustração */
+.style-sample { display: block; height: auto; padding: 0; margin-bottom: 10px; letter-spacing: 0; }
+.style-art { display: block; width: 100%; height: 84px; }

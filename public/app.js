@@ -45,9 +45,8 @@ themeMenu.addEventListener('click', event => {
 document.addEventListener('click', event => { if (!themeMenu.hidden && !event.target.closest('.theme-wrap')) toggleThemeMenu(false); });
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !themeMenu.hidden) { toggleThemeMenu(false); themeButton.focus(); } });
 
-const styleSamples = ['● ᴗ ●','╱╲〰','✎ ✦ ☁','● ABC ✦','⌬ ⌖ ◌','◈ 01 ◈','▦ ↑ 72','— ○ —','◒ ◉ ◐','▣ ◉ ▣','Aa § 01','★ ● ▲'];
 function renderStyleOptions(container, prefix) {
-  styles.forEach(([name, description], index) => container.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="${prefix}-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="${prefix}-${index}"><span class="style-sample sample-${index}" aria-hidden="true">${styleSamples[index]}</span><strong>${name}</strong><small>${description}</small></label></div>`));
+  styles.forEach(([name, description], index) => container.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="${prefix}-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="${prefix}-${index}"><span class="style-sample">${styleArt(index, prefix)}</span><strong>${name}</strong><small>${description}</small></label></div>`));
 }
 renderStyleOptions(document.querySelector('#style-options'), 'style');
 renderStyleOptions(document.querySelector('#capa-style-options'), 'capa-style');

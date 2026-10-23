@@ -69,6 +69,7 @@ graph TB
 │   ├── app.css               # shell, menu, painel de resultado, login, páginas novas
 │   ├── theme.css             # componentes compartilhados (herança do desenho antigo)
 │   ├── design.css            # identidade: tokens dos 6 temas, fontes, acabamento (ver docs/DESIGN.md)
+│   ├── style-art.js          # miniaturas SVG dos 12 estilos de ilustração (window.styleArt)
 │   ├── fonts/                # Literata e Atkinson Hyperlegible Next (woff2, SIL OFL)
 │   ├── styles.css            # base legada minificada (ainda necessária)
 │   └── assets/icons/         # PNGs dos recursos, logo (mapa-mental.png) e favicon
