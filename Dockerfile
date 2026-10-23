@@ -6,7 +6,7 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 
-RUN apk add --no-cache chromium
+RUN apk add --no-cache chromium font-dejavu
 
 ENV CHROMIUM_PATH=/usr/bin/chromium-browser
 

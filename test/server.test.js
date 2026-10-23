@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, extractOutputText, embedImages } = require('../server');
+const { renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, embedImages } = require('../server');
 
 test('escapa HTML não confiável', () => {
   assert.equal(escapeHtml('<script>"x"</script>'), '&lt;script&gt;&quot;x&quot;&lt;/script&gt;');
@@ -35,4 +35,9 @@ test('incorpora imagens reais ao HTML final', () => {
   assert.match(html, /data:image\/png;base64,aW1hZ2Vt/);
   assert.match(html, /Ilustrações do conteúdo/);
   assert.ok(html.indexOf('geradorone-ai-images') < html.indexOf('</body>'));
+});
+
+test('limpa o prompt melhorado pela IA', () => {
+  assert.equal(cleanImprovedPrompt('```text\nATENÇÃO: prompt\n```'), 'ATENÇÃO: prompt');
+  assert.throws(() => cleanImprovedPrompt('   '), /não devolveu um prompt/);
 });

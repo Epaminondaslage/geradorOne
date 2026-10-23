@@ -107,6 +107,11 @@ function renderDocument(payload) {
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:900px;margin:auto;padding:48px;color:#17212b}h1{color:#087f78}.box{background:#f1faf9;border:1px solid #c5e7e3;border-radius:16px;padding:24px}@media print{body{padding:0}.box{border:0}}</style></head><body><h1>${title}</h1><p>Roteiro estruturado para geração do material.</p><div class="box">${prompt}</div></body></html>`;
 }
 
+const PDF_FONT_DIR = process.env.PDF_FONT_DIR || '/usr/share/fonts/dejavu';
+const pdfFonts = fs.existsSync(path.join(PDF_FONT_DIR, 'DejaVuSans.ttf'))
+  ? { regular: path.join(PDF_FONT_DIR, 'DejaVuSans.ttf'), bold: path.join(PDF_FONT_DIR, 'DejaVuSans-Bold.ttf') }
+  : { regular: 'Helvetica', bold: 'Helvetica-Bold' };
+
 function renderPdf(payload) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margins: { top: 54, bottom: 54, left: 54, right: 54 }, info: { Title: String(payload.title || 'Prompt GeradorOne'), Author: 'GeradorOne' } });
@@ -114,9 +119,11 @@ function renderPdf(payload) {
     doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
-    doc.font('Helvetica-Bold').fontSize(20).fillColor('#08766f').text(String(payload.title || 'Prompt GeradorOne'));
-    doc.moveDown(.5).font('Helvetica').fontSize(10).fillColor('#62717f').text('Prompt estruturado pelo GeradorOne');
-    doc.moveDown(1.2).font('Helvetica').fontSize(9.5).fillColor('#17212b').text(String(payload.prompt || ''), { lineGap: 3, align: 'left' });
+    doc.registerFont('Body', pdfFonts.regular);
+    doc.registerFont('Body-Bold', pdfFonts.bold);
+    doc.font('Body-Bold').fontSize(20).fillColor('#08766f').text(String(payload.title || 'Prompt GeradorOne'));
+    doc.moveDown(.5).font('Body').fontSize(10).fillColor('#62717f').text('Prompt estruturado pelo GeradorOne');
+    doc.moveDown(1.2).font('Body').fontSize(9.5).fillColor('#17212b').text(String(payload.prompt || ''), { lineGap: 3, align: 'left' });
     doc.end();
   });
 }
@@ -147,43 +154,62 @@ function extractGeminiText(response) {
 
 const HTML_INSTRUCTIONS = 'Crie o material completo solicitado como um único HTML autônomo. Retorne somente o HTML, começando por <!doctype html>. Use CSS e SVG inline para todos os elementos visuais. Não use JavaScript, URLs externas, fontes externas, Mermaid, arquivos auxiliares, Markdown ou explicações. Não invente dados, fontes, citações ou códigos curriculares.';
 
-async function requestOpenAiHtml(config, prompt, signal) {
+const IMPROVE_INSTRUCTIONS = 'Você revisa prompts de geração de imagens didáticas em português do Brasil. Reescreva o prompt recebido aplicando os ajustes pedidos. Mantenha a mesma estrutura de seções e títulos, o tipo de material, o estilo visual, o formato da página, o número de páginas, o público e todas as restrições, exceto quando um ajuste pedir explicitamente para mudá-los. Não acrescente dados factuais, normas ou números que não possa garantir. Responda somente com o prompt final completo, sem comentários, sem explicações e sem Markdown.';
+
+async function requestOpenAiText(config, instructions, input, signal) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     signal,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
-    body: JSON.stringify({ model: config.model, instructions: HTML_INSTRUCTIONS, input: prompt })
+    body: JSON.stringify({ model: config.model, instructions, input })
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'O provedor de IA recusou a solicitação.'), { status: response.status >= 500 ? 502 : 400 });
-  return { html: cleanGeneratedHtml(extractOutputText(body)), model: body.model || config.model };
+  return { text: extractOutputText(body), model: body.model || config.model };
 }
 
-async function requestGeminiHtml(config, prompt, signal) {
+async function requestGeminiText(config, instructions, input, signal) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.model)}:generateContent`, {
     method: 'POST',
     signal,
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
-    body: JSON.stringify({ contents: [{ parts: [{ text: `${HTML_INSTRUCTIONS}\n\n${prompt}` }] }] })
+    body: JSON.stringify({ contents: [{ parts: [{ text: `${instructions}\n\n${input}` }] }] })
   });
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'O provedor de IA recusou a solicitação.'), { status: response.status >= 500 ? 502 : 400 });
-  return { html: cleanGeneratedHtml(extractGeminiText(body)), model: config.model };
+  return { text: extractGeminiText(body), model: config.model };
 }
 
-async function requestAiHtml(prompt) {
+async function requestAiText(instructions, input, timeoutMs, timeoutMessage) {
   const config = getAiConfig();
   if (!config.apiKey) throw Object.assign(new Error('A IA ainda não foi configurada no servidor.'), { status: 503 });
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 180_000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await (config.provider === 'gemini' ? requestGeminiHtml(config, prompt, controller.signal) : requestOpenAiHtml(config, prompt, controller.signal));
+    return await (config.provider === 'gemini' ? requestGeminiText : requestOpenAiText)(config, instructions, input, controller.signal);
   } catch (error) {
-    if (error.name === 'AbortError') throw Object.assign(new Error('A geração excedeu o tempo máximo de três minutos.'), { status: 504 });
+    if (error.name === 'AbortError') throw Object.assign(new Error(timeoutMessage), { status: 504 });
     throw error;
   } finally {
     clearTimeout(timer);
   }
+}
+
+async function requestAiHtml(prompt) {
+  const result = await requestAiText(HTML_INSTRUCTIONS, prompt, 180_000, 'A geração excedeu o tempo máximo de três minutos.');
+  return { html: cleanGeneratedHtml(result.text), model: result.model };
+}
+
+function cleanImprovedPrompt(value) {
+  const text = String(value || '').trim().replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
+  if (!text) throw Object.assign(new Error('A IA não devolveu um prompt.'), { status: 502 });
+  return text;
+}
+
+async function improvePrompt(prompt, adjustments, instruction) {
+  const asks = [...adjustments, instruction].filter(Boolean).map(item => `- ${item}`).join('\n');
+  const result = await requestAiText(IMPROVE_INSTRUCTIONS, `PROMPT ATUAL:\n${prompt}\n\nAJUSTES PEDIDOS:\n${asks}`, 90_000, 'A melhoria excedeu o tempo máximo de 90 segundos.');
+  return { prompt: cleanImprovedPrompt(result.text), model: result.model };
 }
 
 function imageBriefing(prompt, position, total) {
@@ -314,6 +340,19 @@ async function handleApi(req, res, pathname) {
       return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'Não foi possível gerar o PDF.' });
     }
   }
+  if (req.method === 'POST' && pathname === '/api/improve') {
+    try {
+      const payload = JSON.parse(await readBody(req) || '{}');
+      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
+      const adjustments = Array.isArray(payload.adjustments) ? payload.adjustments.filter(item => typeof item === 'string' && item.trim()).slice(0, 10).map(item => item.trim().slice(0, 300)) : [];
+      const instruction = typeof payload.instruction === 'string' ? payload.instruction.trim().slice(0, 1000) : '';
+      if (!adjustments.length && !instruction) return json(res, 400, { error: 'Escolha ao menos um ajuste ou escreva uma instrução.' });
+      return json(res, 200, await improvePrompt(payload.prompt, adjustments, instruction));
+    } catch (error) {
+      console.error('Falha ao melhorar prompt:', error.message);
+      return json(res, error.status || 500, { error: error.status ? error.message : 'Não foi possível melhorar o prompt com IA.' });
+    }
+  }
   if (req.method === 'POST' && pathname === '/api/generate') {
     try {
       const raw = await readBody(req);
@@ -365,4 +404,4 @@ const server = http.createServer(async (req, res) => {
 
 if (require.main === module) server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`));
 
-module.exports = { server, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, extractOutputText, htmlToPdf, embedImages };
+module.exports = { server, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages };

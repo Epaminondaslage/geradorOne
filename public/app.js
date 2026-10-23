@@ -52,11 +52,14 @@ function updateGenerationMode() {
   document.querySelector('.generate-label').textContent = ai ? 'Gerar material com IA' : 'Gerar prompt completo';
 }
 
+let aiAvailable = false;
+
 async function checkAiAvailability() {
   const label = document.querySelector('#ai-availability');
   try {
     const response = await fetch('api/ai/status');
     const data = await response.json();
+    aiAvailable = Boolean(data.available);
     label.textContent = data.available ? `IA disponível no servidor · ${data.provider} · ${data.model}` : 'IA não configurada no servidor; o modo prompt continua disponível.';
     label.className = `field-status ${data.available ? 'available' : 'unavailable'}`;
   } catch {
@@ -172,8 +175,8 @@ const typeProfiles = {
   'Mapa mental': {
     apoio: 'Mapa Mental',
     foco: 'mostrar as relações entre os conceitos do tema',
-    microtextos: ['Conceito central no meio da página, em destaque.', '4 a 7 ramos principais, cada um com palavra-chave curta e ícone.', '2 a 3 sub-ramos por ramo.', 'Conectores com rótulos curtos indicando a relação entre conceitos.'],
-    restricao: 'NÃO use parágrafos: apenas palavras-chave e frases muito curtas. Layout radial, não em lista.',
+    microtextos: ['Nó central: o tema em caixa alta.', 'Ramos principais: os grandes conceitos do tema, em palavras-chave.', 'Sub-ramos: definições, fórmulas, exemplos e relações, em frases de no máximo 5 palavras.'],
+    restricao: 'NÃO inclua atividades, exercícios, gabarito, parágrafos ou texto corrido. NÃO gere layout em colunas, de apostila ou de infográfico: apenas mapa mental.',
   },
   'Material para concurso': {
     apoio: 'Preparatório para Concursos',
@@ -201,6 +204,120 @@ const typeProfiles = {
   },
 };
 
+const typeLayouts = {
+  'Mapa mental': [
+    'A saída é EXCLUSIVAMENTE um MAPA MENTAL: não é apostila, não é infográfico em colunas, não é lista de texto.',
+    'Nó central com o tema em destaque, dentro de uma forma marcante (nuvem, balão ou caixa arredondada), no centro da página.',
+    '4 a 7 ramos principais saindo do centro e distribuídos por toda a altura da página; cada ramo com uma cor própria, mantendo a paleta.',
+    'Cada ramo com 2 a 4 sub-ramos; cada nó com no máximo 5 palavras.',
+    'Linhas curvas e orgânicas ligando os nós, mais grossas perto do centro e mais finas nas pontas.',
+    'Um ícone pequeno ao lado de cada ramo principal, ligado ao conceito daquele ramo.',
+    'O mapa ocupa a página inteira, equilibrado, sem áreas vazias grandes e sem nada cortado.',
+  ],
+  'Caderno de atividades': [
+    'Layout de folha de atividades: cabeçalho com título e linha "Nome: ________  Turma: ______  Data: ___/___/___".',
+    'Atividades em blocos separados, numeradas em ordem de dificuldade, cada uma com enunciado em negrito e área de resposta (linhas, quadros ou espaço para cálculo).',
+    'Ilustrações e esquemas servem de base para as questões (ex.: circuito para analisar, figura para completar).',
+  ],
+  'Material profissional': [
+    'Layout de ficha técnica de procedimento: cabeçalho com tema e área de aplicação, passos em fluxo numerado de cima para baixo.',
+    'Caixa de segurança com cor de alerta e ícone de atenção, sempre visível.',
+    'Imagens de equipamentos, ferramentas e situações reais de trabalho, com rótulos.',
+  ],
+  'Guia de estudos': [
+    'Layout de trilha: etapas numeradas ligadas por um caminho ou linha, do início ao fim da página.',
+    'Checklist com caixas de marcação no rodapé.',
+  ],
+  'Sequência didática': [
+    'Layout em linha do tempo vertical ou horizontal com as etapas na ordem de execução, ligadas por setas.',
+  ],
+  'Material para concurso': [
+    'Layout de ficha de revisão densa e organizada: blocos compactos, destaques fortes para pegadinhas e para o que mais cai.',
+  ],
+  'Material de revisão': [
+    'Layout de ficha de revisão: blocos compactos e escaneáveis, com destaque para fórmulas e regras.',
+  ],
+};
+
+const typeElements = {
+  'Mapa mental': 'Use somente elementos de mapa mental: nós, ramos, conectores rotulados, ícones e, se fizer sentido, 1 a 2 balões de reforço ("Dica rápida", "Atenção").',
+};
+
+const styleProfiles = {
+  'Cartoon': {
+    ilustracao: 'ilustrações em cartoon com contorno preto definido, formas arredondadas, expressões claras e cores chapadas',
+    pagina: 'blocos com bordas grossas arredondadas, balões de fala e setas desenhadas com energia',
+    tipografia: 'títulos em fonte display arredondada e encorpada; corpo em sem serifa simples',
+    evitar: 'sombras realistas, texturas fotográficas e traço técnico',
+  },
+  'Hand-drawn': {
+    ilustracao: 'desenhos feitos à mão com traço de caneta e lápis levemente irregular, hachuras e aquarela suave',
+    pagina: 'fundo de papel levemente texturizado, molduras e setas desenhadas à mão, anotações à margem',
+    tipografia: 'títulos em letra manuscrita legível; corpo em sem serifa limpa para garantir leitura',
+    evitar: 'vetores perfeitos, gradientes digitais e aparência 3D',
+  },
+  'Doodle': {
+    ilustracao: 'rabiscos e doodles em traço fino de caneta, ícones simples desenhados, estrelas, setas e sublinhados',
+    pagina: 'composição solta, como página de caderno de anotações visuais (sketchnote), com fundo branco ou pautado',
+    tipografia: 'títulos em letras desenhadas em caixa alta; corpo em manuscrita clara ou sem serifa',
+    evitar: 'excesso de cor, fotografias e blocos rígidos',
+  },
+  'Cartoon Educacional': {
+    ilustracao: 'cartoon didático: personagens simpáticos e objetos do tema com contorno limpo, explicando os conceitos',
+    pagina: 'cartões arredondados, personagem guia com balão de fala, etapas numeradas e caixas de destaque',
+    tipografia: 'títulos encorpados e amigáveis; corpo em sem serifa muito legível',
+    evitar: 'humor que distraia do conteúdo e elementos sem função pedagógica',
+  },
+  'Scientific Illustration': {
+    ilustracao: 'ilustração científica precisa, em corte ou vista técnica, com proporções corretas, linhas de chamada e rótulos',
+    pagina: 'layout de prancha técnica, figuras numeradas (Fig. 1, Fig. 2) com legendas e escala quando aplicável',
+    tipografia: 'títulos sóbrios; rótulos pequenos e nítidos; corpo em sem serifa técnica',
+    evitar: 'personagens, cartoon e simplificações que distorçam o conceito',
+  },
+  'Futuristic Digital': {
+    ilustracao: 'visual digital futurista: linhas de circuito, elementos em neon, interfaces holográficas e ícones vetoriais finos',
+    pagina: 'fundo escuro azul-marinho ou grafite, painéis translúcidos com bordas luminosas e grade sutil',
+    tipografia: 'títulos em sem serifa geométrica larga; corpo claro sobre fundo escuro com contraste alto',
+    evitar: 'texturas de papel, traço manual e excesso de brilho que prejudique a leitura',
+  },
+  'Infográfico Moderno': {
+    ilustracao: 'ícones vetoriais flat, pictogramas, gráficos simples e números em destaque',
+    pagina: 'grade modular rígida, blocos de cor chapada, fluxos com setas e dados visualmente hierarquizados',
+    tipografia: 'títulos em sem serifa bold; números grandes; corpo curto',
+    evitar: 'ilustrações detalhadas, texturas e decoração sem dado',
+  },
+  'Minimalista': {
+    ilustracao: 'ícones e ilustrações de linha fina, poucos elementos, apenas o essencial',
+    pagina: 'muito espaço em branco, no máximo 2 cores de destaque, alinhamento rigoroso e poucos blocos',
+    tipografia: 'uma família sem serifa em pesos diferentes; hierarquia por tamanho e espaço',
+    evitar: 'sombras, molduras, excesso de ícones e caixas coloridas',
+  },
+  '3D Educacional': {
+    ilustracao: 'objetos e esquemas em 3D estilizado, volumes suaves, iluminação macia e materiais foscos',
+    pagina: 'fundo claro, objetos 3D como protagonistas de cada bloco, rótulos com linhas de chamada',
+    tipografia: 'sem serifa arredondada e limpa; rótulos legíveis sobre os objetos',
+    evitar: 'fotorrealismo excessivo e cenas carregadas',
+  },
+  'Realista': {
+    ilustracao: 'imagens com aparência fotográfica realista de objetos, equipamentos e situações reais do tema',
+    pagina: 'fotos recortadas ou em molduras limpas, com rótulos e linhas de chamada sobre as imagens',
+    tipografia: 'sem serifa sóbria e editorial; legendas sob as imagens',
+    evitar: 'cartoon, rabiscos e elementos fantasiosos',
+  },
+  'Livro Didático': {
+    ilustracao: 'ilustrações editoriais limpas de livro didático brasileiro, com contorno suave e cores equilibradas',
+    pagina: 'fundo branco, cartões de cantos arredondados com sombra suave, faixas de título coloridas, etapas numeradas em círculos e ícones lineares consistentes',
+    tipografia: 'títulos grandes, subtítulos médios e corpo pequeno, no máximo 2 famílias sem serifa',
+    evitar: 'estética de pôster publicitário e excesso de efeitos',
+  },
+  'Colorido Infantil': {
+    ilustracao: 'ilustrações alegres com cores vivas, formas simples e arredondadas',
+    pagina: 'blocos coloridos, molduras divertidas, ícones grandes e muitos elementos visuais de apoio',
+    tipografia: 'títulos grandes e arredondados; corpo grande e muito legível',
+    evitar: 'tons escuros, traço técnico e texto denso',
+  },
+};
+
 function pagePlan(total, tipo) {
   if (total === 1) return [];
   const plan = [`Página 1: abertura — título, visão geral do tema e conceito central.`];
@@ -214,12 +331,15 @@ function pagePlan(total, tipo) {
 
 function generateImagePrompt(data) {
   const profile = typeProfiles[data.tipo] || typeProfiles['Apostila didática'];
+  const style = styleProfiles[data.estiloVisual] || styleProfiles['Livro Didático'];
   const formato = imagePageFormats[data.formato] || defaultPageFormat;
   const total = Math.max(1, Number.parseInt(data.paginas, 10) || 1);
   const assunto = text(data.assunto);
   const disciplina = text(data.disciplina);
   const visualItems = selectedResources(data);
   const plan = pagePlan(total, data.tipo);
+  const childAudience = ['Educação Infantil', 'Ensino Fundamental I'].includes(data.publico);
+  const learners = { 'Adulto': 'adultos', 'Outro': 'pessoas do público-alvo' }[data.publico] || `alunos de ${data.publico}`;
   const extras = [
     data.objetivo?.trim() && `Objetivo: ${data.objetivo.trim()}`,
     data.bncc?.trim() && `Habilidades BNCC: ${data.bncc.trim()}`,
@@ -254,17 +374,25 @@ function generateImagePrompt(data) {
     '',
     '1) DESCRIÇÃO DA IMAGEM (PRINCIPAL)',
     `Página didática de ${data.tipo.toLowerCase()} sobre "${assunto}" em ${disciplina}, no padrão de material educacional brasileiro.`,
-    `Siga RIGOROSAMENTE o estilo de ilustração ${data.estiloVisual}.`,
-    `NÃO use figuras infantis nem imagens de crianças se o público não for infantil. Personagens, se houver, devem ter a faixa etária de ${data.publico}.`,
+    `Siga RIGOROSAMENTE o estilo ${data.estiloVisual}:`,
+    `- Ilustração: ${style.ilustracao}.`,
+    `- Página: ${style.pagina}.`,
+    `- Tipografia: ${style.tipografia}.`,
+    `- Evite: ${style.evitar}.`,
+    childAudience
+      ? `Personagens, se houver, devem ser crianças da faixa etária de ${data.publico}.`
+      : `NÃO use figuras infantis nem imagens de crianças. Personagens, se houver, devem ser ${learners}, condizentes com o público-alvo.`,
     'Cada ilustração deve representar diretamente um conceito do conteúdo; nada decorativo sem função.',
     'Textos curtos, rótulos em negrito e legíveis. Priorize a explicação visual sobre o texto corrido.',
-    'Layout em grade, fundo claro e espaço generoso entre os blocos; margens amplas e nenhum elemento cortado nas bordas.',
-    'Seções bem delimitadas: cartões de cantos arredondados com sombra suave, faixas de título coloridas, etapas numeradas em círculos e ícones lineares consistentes.',
-    'Hierarquia tipográfica clara (título grande, subtítulos médios, corpo pequeno), no máximo 2 famílias sem serifa.',
-    'Conceitos-chave em caixas de destaque ("Dica", "Atenção", "Resumo") com ícone e cor de apoio.',
-    `Paleta ${data.paleta}: cores harmoniosas, alto contraste entre texto e fundo, tons claros nos blocos.`,
+    'Seções bem delimitadas, espaço generoso entre os blocos, margens amplas e nenhum elemento cortado nas bordas.',
+    'Conceitos-chave em caixas de destaque ("Dica", "Atenção", "Resumo") no visual do estilo escolhido.',
+    data.paleta === 'Automática'
+      ? 'Paleta automática: escolha cores que combinem com o estilo e o tema, com alto contraste entre texto e fundo.'
+      : `Paleta ${data.paleta}: aplique-a em todo o material, com alto contraste entre texto e fundo.`,
     'Fórmulas, unidades, símbolos e valores numéricos devem estar corretos e coerentes entre si.',
+    'Os textos de ensino são a prioridade: conteúdo correto, legível e focado no aprendizado.',
     'Todo o texto em português do Brasil, sem termos em inglês. Sem mockup e sem marca d\'água.',
+    ...(typeLayouts[data.tipo] ? ['', `REGRA DE LAYOUT — ${data.tipo.toUpperCase()} (prevalece sobre qualquer outra instrução de layout)`, ...typeLayouts[data.tipo].map(rule => `- ${rule}`)] : []),
     '',
     '2) MICROTEXTOS DENTRO DA IMAGEM',
     `Título em caixa alta: ${assunto.toUpperCase()}`,
@@ -272,14 +400,16 @@ function generateImagePrompt(data) {
     ...profile.microtextos,
     '',
     '3) ELEMENTOS VISUAIS',
-    `Use de 4 a 6 elementos visuais${visualItems.length ? `, priorizando: ${visualItems.join(', ')}` : ''}. Para cada um, defina o que representa e por que ajuda a aprender.`,
-    'Opções: comparação lado a lado, esquema ou diagrama rotulado, fluxo de etapas com setas, tabela simples, ícones coloridos, caixa "Dica rápida" e mini-glossário ilustrado.',
+    ...(typeElements[data.tipo] ? [typeElements[data.tipo]] : [
+      `Use de 4 a 6 elementos visuais${visualItems.length ? `, priorizando: ${visualItems.join(', ')}` : ''}. Para cada um, defina o que representa e por que ajuda a aprender.`,
+      'Opções: comparação lado a lado, esquema ou diagrama rotulado, fluxo de etapas com setas, tabela simples, ícones coloridos, caixa "Dica rápida" e mini-glossário ilustrado.',
+    ]),
     '',
     '4) DIFICULDADE DOS ALUNOS',
-    `Identifique a principal dificuldade dos alunos de ${data.publico} ao estudar ${assunto} e faça o visual resolvê-la.`,
+    `Identifique a principal dificuldade de ${learners} ao estudar ${assunto} e faça o visual resolvê-la.`,
   ];
   if (data.referencias?.trim()) lines.push('', 'CONTEÚDO DE REFERÊNCIA (USE OBRIGATORIAMENTE)', data.referencias.trim());
-  if (plan.length) lines.push('', `PLANO DE PÁGINAS (${total})`, ...plan, '', 'Gere AGORA somente a Página 1. Depois de cada imagem, aguarde eu escrever "próxima" para gerar a página seguinte.', 'Mantenha em todas as páginas exatamente o mesmo estilo, paleta, tipografia e identidade visual, e numere cada página no rodapé (ex.: 1/' + total + ').');
+  if (plan.length) lines.push('', `PLANO DE PÁGINAS (${total})`, ...plan, 'Distribua os microtextos e elementos visuais entre as páginas conforme o plano: título e abertura na Página 1, resumo final na última.', '', 'Gere AGORA somente a Página 1. Depois de cada imagem, aguarde eu escrever "próxima" para gerar a página seguinte.', 'Mantenha em todas as páginas exatamente o mesmo estilo, paleta, tipografia e identidade visual, e numere cada página no rodapé (ex.: 1/' + total + ').');
   lines.push(
     '',
     'RESTRIÇÃO',
@@ -544,6 +674,68 @@ document.querySelector('#ai-config-clear').addEventListener('click', async () =>
     checkAiAvailability();
   } catch (error) {
     aiConfigStatus.textContent = error.message;
+  }
+});
+
+const improveAdjustments = [
+  ['Mais detalhado', 'Aumente o detalhamento: mais subtópicos, exemplos e rótulos explicativos, sem ultrapassar o número de páginas.'],
+  ['Mais simples', 'Simplifique: menos blocos, frases mais curtas e vocabulário mais acessível.'],
+  ['Mais visual', 'Torne mais visual: mais esquemas, ícones e ilustrações, e menos texto.'],
+  ['Mais didático', 'Reforce o caráter didático: progressão passo a passo, analogias do cotidiano e destaque para os conceitos-chave.'],
+  ['Mais profissional', 'Dê um tom mais técnico e profissional, com termos da área e aplicação prática.'],
+  ['Adaptar para crianças', 'Adapte para crianças: linguagem simples, exemplos do dia a dia e visual acolhedor.'],
+  ['Aumentar dificuldade', 'Aumente a dificuldade: conceitos mais aprofundados e exemplos mais desafiadores.'],
+  ['Diminuir dificuldade', 'Diminua a dificuldade: foque no essencial, com exemplos básicos.'],
+];
+const improveModal = document.querySelector('#improve-modal');
+const improveForm = document.querySelector('#improve-form');
+const improveStatus = document.querySelector('#improve-status');
+document.querySelector('#improve-options').innerHTML = improveAdjustments.map(([label], index) => `<label class="improve-chip"><input type="checkbox" name="adjust" value="${index}"><span>${label}</span></label>`).join('');
+
+document.querySelector('#improve-open').addEventListener('click', () => {
+  improveForm.reset();
+  improveStatus.textContent = '';
+  document.querySelector('#improve-mode').textContent = aiAvailable
+    ? 'A IA configurada no servidor vai reescrever o prompt aplicando os ajustes.'
+    : 'IA não configurada: os ajustes serão anexados ao fim do prompt. Configure a chave em "Config API IA" para a IA reescrever o prompt.';
+  improveModal.showModal();
+});
+['#improve-close', '#improve-cancel'].forEach(selector => document.querySelector(selector).addEventListener('click', () => improveModal.close()));
+
+function showPrompt(prompt) {
+  currentPrompt = prompt;
+  currentPreviewHtml = '';
+  output.textContent = prompt;
+  output.hidden = false;
+  previewFrame.hidden = true;
+}
+
+improveForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const adjustments = [...improveForm.querySelectorAll('[name=adjust]:checked')].map(box => improveAdjustments[Number(box.value)][1]);
+  const instruction = document.querySelector('#improve-instruction').value.trim();
+  if (!adjustments.length && !instruction) { improveStatus.textContent = 'Escolha ao menos um ajuste ou escreva uma instrução.'; return; }
+  if (!aiAvailable) {
+    showPrompt(`${currentPrompt}\n\nAJUSTES SOLICITADOS\n${[...adjustments, instruction].filter(Boolean).map(item => `- ${item}`).join('\n')}`);
+    improveModal.close();
+    notify('Ajustes anexados ao prompt');
+    return;
+  }
+  const apply = document.querySelector('#improve-apply');
+  apply.disabled = true;
+  improveStatus.textContent = 'A IA está reescrevendo o prompt…';
+  try {
+    const response = await fetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível melhorar o prompt.');
+    showPrompt(result.prompt);
+    improveModal.close();
+    status.textContent = `Prompt melhorado com ${result.model}.`;
+    notify('Prompt melhorado com IA');
+  } catch (error) {
+    improveStatus.textContent = error.message;
+  } finally {
+    apply.disabled = false;
   }
 });
 
