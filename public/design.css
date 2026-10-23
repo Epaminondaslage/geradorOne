@@ -422,3 +422,19 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .ai-config-form input { border-radius: 2px; font-weight: 400; height: 40px; padding: 0 12px; margin: 0; }
 .ai-config-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
 .ai-config-actions button { border-radius: 2px; }
+
+/* Linha de caminho do projeto, no topo da Apostila e da Capa */
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 32px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.crumbs[hidden] { display: none; }
+.crumb-path { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 0; min-width: 0; }
+.crumb-link { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.crumb-link:hover { color: var(--ink); }
+.crumb-path strong { overflow-wrap: anywhere; }
+.crumb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.crumb-rename { display: block; }
+.crumb-rename input { width: min(320px, 70vw); height: 34px; padding: 0 10px; margin: 0; font-size: 14px; }
+.textbtn.small { height: 34px; font-size: 13.5px; }
+.crumbs .outline { height: 34px; }
+@media (max-width: 900px) { .crumbs { padding: 10px 16px; } }
+.sidebar .menu-toggle { border-color: transparent; }
+.sidebar .menu-toggle:hover { border-color: var(--ink); }

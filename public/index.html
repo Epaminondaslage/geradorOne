@@ -94,6 +94,15 @@
         <button id="menu-open-mobile" class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="sidebar"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
         <strong>GeradorOne</strong>
       </header>
+      <div class="crumbs" id="crumbs" hidden>
+            <p class="crumb-path"><button class="crumb-link" type="button" id="crumb-projects">Meus projetos</button><span class="help" aria-hidden="true">/</span><strong id="crumb-name">Novo projeto</strong><span class="help num" id="crumb-state">não salvo</span></p>
+            <div class="crumb-actions">
+              <label class="crumb-rename" id="crumb-rename-box" hidden><span class="sr-only">Nome do projeto</span><input id="project-name" maxlength="120" placeholder="Ex.: Lei de Ohm — 2º ano"></label>
+              <button class="textbtn small" type="button" id="rename-project">Renomear</button>
+              <button class="outline" type="button" id="save-project"><span class="save-label">Salvar projeto</span></button>
+              <button class="textbtn small" type="button" id="save-project-new" hidden>Salvar como novo</button>
+            </div>
+          </div>
       <main id="conteudo" class="workspace" data-view="inicio">
         <div class="pane" id="pane">
           <section class="view home" data-view="inicio" aria-label="Início">
@@ -356,11 +365,6 @@
               <pre id="prompt-output" tabindex="0"></pre>
               <iframe id="preview-frame" title="Prévia HTML do prompt" sandbox hidden></iframe>
               <section id="generated-files" class="generated-files" aria-label="Arquivos gerados" hidden></section>
-            </div>
-            <div class="save-row" id="save-row">
-              <label class="save-name">Nome do projeto<input id="project-name" maxlength="120" placeholder="Ex.: Lei de Ohm — 2º ano"></label>
-              <button id="save-project" class="primary" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg><span class="save-label">Salvar em Meus projetos</span></button>
-              <button id="save-project-new" class="ghost" type="button" hidden>Salvar como novo</button>
             </div>
             <p id="status" class="status" role="status"></p>
           </div>

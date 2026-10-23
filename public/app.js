@@ -662,9 +662,29 @@ function validateRequired(target) {
   return valid;
 }
 
+let savedAtLabel = '';
+const clockLabel = value => new Date(value || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+function updateCrumbs() {
+  document.querySelector('#crumb-name').textContent = projectName.value.trim() || 'Novo projeto';
+  document.querySelector('#crumb-state').textContent = currentProjectId ? (savedAtLabel ? `salvo às ${savedAtLabel}` : 'salvo') : 'não salvo';
+}
+function setProjectName(value) {
+  projectName.value = value;
+  updateCrumbs();
+}
+function toggleRename(open) {
+  const box = document.querySelector('#crumb-rename-box');
+  box.hidden = !open;
+  if (open) { projectName.focus(); projectName.select(); }
+  updateCrumbs();
+}
+
 function syncSaveButtons() {
-  saveProjectButton.querySelector('.save-label').textContent = currentProjectId ? 'Atualizar projeto' : 'Salvar em Meus projetos';
+  saveProjectButton.querySelector('.save-label').textContent = currentProjectId ? 'Atualizar projeto' : 'Salvar projeto';
   saveProjectNewButton.hidden = !currentProjectId;
+  if (!currentProjectId) savedAtLabel = '';
+  updateCrumbs();
 }
 
 function setResultTab(tab) {
@@ -729,7 +749,7 @@ form.addEventListener('submit', async event => {
     if (settings.modoImagem === 'gerar') prompt += '\n\n11. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final, se a plataforma usada tiver ferramenta própria de geração de imagem.\n- Se a plataforma não tiver ferramenta de geração de imagem raster, produza ilustrações vetoriais em SVG acessível e renderizadas no próprio arquivo, seguindo a mesma especificação do briefing.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se nenhum visual estiver de fato renderizado (raster ou vetorial) no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
   }
   showResult({ prompt, kind: 'apostila', badge: aiMode ? 'Material gerado com IA' : RESULT_BADGE.apostila, files: aiMode });
-  if (!currentProjectId) projectName.value = settings.assunto;
+  if (!currentProjectId) setProjectName(settings.assunto);
   if (!aiMode) {
     status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao pedir a prévia, o PDF ou melhorar com IA.';
     return;
@@ -764,12 +784,13 @@ capaForm.addEventListener('submit', event => {
   if (!validateRequired(capaForm)) return;
   const settings = dataObject(capaForm);
   showResult({ prompt: generateCoverPrompt(settings), kind: 'capa', badge: RESULT_BADGE.capa });
-  if (!currentProjectId) projectName.value = `Capa — ${settings.titulo}`;
+  if (!currentProjectId) setProjectName(`Capa — ${settings.titulo}`);
   status.textContent = 'Prompt da capa montado no navegador.';
 });
 
 [form, capaForm].forEach(target => target.addEventListener('reset', () => {
   currentProjectId = null;
+  setProjectName('');
   syncSaveButtons();
   setTimeout(() => { updateCompletion(); updateGenerationMode(); });
 }));
@@ -934,8 +955,9 @@ document.querySelector('#improve-apply').addEventListener('click', async () => {
 });
 
 async function saveProject(asNew) {
+  if (!currentPrompt) { notify('Gere o prompt antes de salvar o projeto.'); return; }
   const name = projectName.value.trim();
-  if (!name) { projectName.focus(); notify('Dê um nome ao projeto'); return; }
+  if (!name) { toggleRename(true); notify('Dê um nome ao projeto'); return; }
   try {
     const response = await apiFetch('api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: asNew ? undefined : currentProjectId || undefined, name, kind: currentKind, settings: dataObject(formFor(currentKind)), prompt: currentPrompt }) });
     const result = await response.json();
@@ -943,6 +965,8 @@ async function saveProject(asNew) {
     currentProjectId = result.project.id;
     currentProjectKind = result.project.kind;
     syncSaveButtons();
+    savedAtLabel = clockLabel(result.project.updatedAt);
+    updateCrumbs();
     status.textContent = `Projeto "${result.project.name}" salvo em Meus projetos.`;
     notify('Projeto salvo em Meus projetos');
   } catch (error) {
@@ -952,6 +976,16 @@ async function saveProject(asNew) {
 }
 saveProjectButton.addEventListener('click', () => saveProject(false));
 saveProjectNewButton.addEventListener('click', () => saveProject(true));
+document.querySelector('#rename-project').addEventListener('click', () => toggleRename(document.querySelector('#crumb-rename-box').hidden));
+projectName.addEventListener('input', updateCrumbs);
+projectName.addEventListener('keydown', event => {
+  if (event.key === 'Escape') { toggleRename(false); return; }
+  if (event.key !== 'Enter') return;
+  event.preventDefault();
+  toggleRename(false);
+  if (currentProjectId && currentPrompt) saveProject(false);
+});
+document.querySelector('#crumb-projects').addEventListener('click', () => showView('projetos'));
 
 const projectsList = document.querySelector('#projects-list');
 
@@ -984,7 +1018,9 @@ async function openProject(id) {
     currentProjectKind = project.kind;
     showView(project.kind);
     showResult({ prompt: project.prompt, kind: project.kind, badge: RESULT_BADGE[project.kind] || 'Projeto' });
-    projectName.value = project.name;
+    setProjectName(project.name);
+    savedAtLabel = project.updatedAt ? clockLabel(project.updatedAt) : '';
+    updateCrumbs();
     status.textContent = `Projeto "${project.name}" aberto.`;
     notify('Projeto aberto');
   } catch (error) {
@@ -1033,7 +1069,7 @@ projectFile.addEventListener('change', async () => {
     showView(kind);
     if (typeof project.prompt === 'string' && project.prompt) {
       showResult({ prompt: project.prompt, kind, badge: RESULT_BADGE[kind] });
-      projectName.value = '';
+      setProjectName('');
     }
     notify('Projeto importado. Revise antes de gerar');
   } catch { notify('Projeto inválido. Use um JSON exportado pela plataforma'); }
@@ -1154,6 +1190,7 @@ const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 
 function showView(name) {
   if (!VIEWS.includes(name) || (name === 'usuarios' && currentUser?.role !== 'admin')) name = 'inicio';
   workspace.dataset.view = name;
+  document.querySelector('#crumbs').hidden = name !== 'apostila' && name !== 'capa';
   document.querySelectorAll('.view').forEach(view => { view.hidden = view.dataset.view !== name; });
   document.querySelectorAll('.nav-item[data-view]').forEach(item => {
     if (item.dataset.view === name) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');

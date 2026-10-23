@@ -66,6 +66,7 @@ Todos usam só os tokens, então funcionam em qualquer tema.
 - **Campo** (`input`, `select`, `textarea`): borda `--field`, canto de 2 px, texto `--ink` em peso 400; foco com contorno de 2 px em `--accent`. Rótulo em negrito acima.
 - **Cartão** (`.card`): fundo `--paper`, borda `--line`, sem sombra. Título de seção em serifa 20 px.
 - **Escolha** (`.option`, `.resource`): retângulo com borda `--line`; selecionado com borda e filete interno em `--accent` e fundo `--aqua` (acento a 11% sobre `--paper`).
+- **Linha de caminho do projeto** (`.crumbs`, só na Apostila e na Capa): "Meus projetos / nome do projeto · salvo às HH:MM" à esquerda; Renomear, Salvar projeto (ou Atualizar projeto) e Salvar como novo à direita. Substituiu a linha de salvar que ficava dentro do painel de resultado. O botão avisa se ainda não há prompt gerado.
 - **Menu lateral**: fundo `--bg`; item ativo com fundo `--paper` e contorno fino de `--line`, sem barra colorida.
 - **Painel de resultado**: o prompt em serifa 15 px com entrelinha 1,7, dentro de uma folha com borda.
 - **Aviso e erro**: texto em `--danger` ou `--accent`, nunca só pela cor (acompanha texto claro).
@@ -86,7 +87,7 @@ As telas seguem as pranchas de `docs/design/`. Os blocos reutilizáveis:
 
 ## Miniaturas dos estilos de ilustração
 
-Cada um dos 12 estilos do formulário tem uma miniatura em SVG (`public/style-art.js`): a mesma maçã desenhada em Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático e Colorido Infantil. Usar o mesmo objeto nos 12 faz a diferença de traço aparecer sem ruído. O traço usa `currentColor` e acompanha o tema; as cores fixas (vermelho, verde, arco-íris) só aparecem nos estilos que dependem delas. A ordem do array tem que seguir a de `styles` em `app.js`. Gradientes SVG precisam de `id` único (o prefixo vem de `renderStyleOptions`, porque a lista aparece em Apostila e em Capa).
+Cada um dos 12 estilos do formulário tem uma miniatura em SVG (`public/style-art.js`): a mesma maçã desenhada em Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático e Colorido Infantil. Usar o mesmo objeto nos 12 faz a diferença de traço aparecer sem ruído. As miniaturas são monocromáticas: só `currentColor` (a tinta do tema) e `var(--paper)`, com opacidade para criar tons. O que muda entre os estilos é o traço, o preenchimento e os detalhes, nunca a cor. Não use cores fixas nelas. A ordem do array tem que seguir a de `styles` em `app.js`. Gradientes SVG precisam de `id` único (o prefixo vem de `renderStyleOptions`, porque a lista aparece em Apostila e em Capa).
 
 ## Como criar uma página nova
 
