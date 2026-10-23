@@ -11,6 +11,7 @@ const { createUserStore, publicUser, normalizeEmail, normalizePhone } = require(
 const { createProjectStore, validateProject } = require('./lib/projects');
 const { createLimiter } = require('./lib/rate-limit');
 const { createMailer } = require('./lib/mailer');
+const { checkMasterSecret } = require('./lib/secret-check');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -637,6 +638,15 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-if (require.main === module) ensureAdmin().then(() => server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`)));
+if (require.main === module) {
+  Promise.resolve()
+    .then(() => {
+      const outcome = checkMasterSecret(RUNTIME_DIR, masterSecret, { allowNew: process.env.ALLOW_NEW_SECRET === 'true' });
+      if (outcome === 'replaced') console.warn('[aviso] Chave mestra nova aceita (ALLOW_NEW_SECRET=true). Chaves de IA antigas ficaram ilegíveis e as sessões foram encerradas; remova ALLOW_NEW_SECRET do .env.');
+    })
+    .then(ensureAdmin)
+    .then(() => server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`)))
+    .catch(error => { console.error(`[erro] ${error.message}`); process.exit(1); });
+}
 
 module.exports = { server, ensureAdmin, userStore, projectStore, mailer, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, createProjectStore, validateProject };
