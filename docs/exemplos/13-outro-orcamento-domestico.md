@@ -13,9 +13,9 @@ Prompt gerado pelo GeradorOne:
 
 ```text
 ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.
-A saída esperada é UMA IMAGEM ÚNICA: uma página visual de outro sobre Orçamento doméstico, em página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa.
+A saída esperada é UMA IMAGEM ÚNICA: uma página visual de material didático sobre Orçamento doméstico, em página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa.
 O estilo visual deve ser OBRIGATORIAMENTE: Cartoon. Não misture com outros estilos.
-O tipo de material deve ser OBRIGATORIAMENTE: Outro.
+O tipo de material deve ser OBRIGATORIAMENTE: Material didático.
 Não responda com texto explicativo: produza a imagem descrita abaixo.
 
 PAPEL
@@ -26,7 +26,7 @@ Disciplina: Educação financeira
 Tema: Orçamento doméstico
 Público: Adulto
 Nível de profundidade: Intermediário
-Tipo de material: Outro
+Tipo de material: Material didático
 Formato da página: página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa
 Total de páginas: 1 página
 Estilo de escrita: Didático
@@ -34,10 +34,10 @@ Estilo visual: Cartoon
 Paleta visual: Automática
 
 MISSÃO
-Gerar a IMAGEM de uma página completa de outro sobre Orçamento doméstico, no estilo Cartoon, pronta para impressão. Foco do material: apresentar o tema conforme as orientações adicionais indicadas.
+Gerar a IMAGEM de uma página completa de material didático sobre Orçamento doméstico, no estilo Cartoon, pronta para impressão. Foco do material: apresentar o tema conforme as orientações adicionais indicadas.
 
 1) DESCRIÇÃO DA IMAGEM (PRINCIPAL)
-Página didática de outro sobre "Orçamento doméstico" em Educação financeira, no padrão de material educacional brasileiro.
+Página didática de material didático sobre "Orçamento doméstico" em Educação financeira, no padrão de material educacional brasileiro.
 Siga RIGOROSAMENTE o estilo Cartoon:
 - Ilustração: ilustrações em cartoon com contorno preto definido, formas arredondadas, expressões claras e cores chapadas.
 - Página: blocos com bordas grossas arredondadas, balões de fala e setas desenhadas com energia.

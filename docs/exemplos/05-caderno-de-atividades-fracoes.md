@@ -56,7 +56,7 @@ Todo o texto em português do Brasil, sem termos em inglês. Sem mockup e sem ma
 REGRA DE LAYOUT — CADERNO DE ATIVIDADES (prevalece sobre qualquer outra instrução de layout)
 - Layout de folha de atividades: cabeçalho com título e linha "Nome: ________  Turma: ______  Data: ___/___/___".
 - Atividades em blocos separados, numeradas em ordem de dificuldade, cada uma com enunciado em negrito e área de resposta (linhas, quadros ou espaço para cálculo).
-- Ilustrações e esquemas servem de base para as questões (ex.: circuito para analisar, figura para completar).
+- Ilustrações e esquemas servem de base para as questões (ex.: figura para completar, esquema para analisar, tabela para preencher).
 
 2) MICROTEXTOS DENTRO DA IMAGEM
 Título em caixa alta: FRAÇÕES

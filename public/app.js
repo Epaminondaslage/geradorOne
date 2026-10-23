@@ -257,7 +257,7 @@ const typeLayouts = {
   'Caderno de atividades': [
     'Layout de folha de atividades: cabeçalho com título e linha "Nome: ________  Turma: ______  Data: ___/___/___".',
     'Atividades em blocos separados, numeradas em ordem de dificuldade, cada uma com enunciado em negrito e área de resposta (linhas, quadros ou espaço para cálculo).',
-    'Ilustrações e esquemas servem de base para as questões (ex.: circuito para analisar, figura para completar).',
+    'Ilustrações e esquemas servem de base para as questões (ex.: figura para completar, esquema para analisar, tabela para preencher).',
   ],
   'Material profissional': [
     'Layout de ficha técnica de procedimento: cabeçalho com tema e área de aplicação, passos em fluxo numerado de cima para baixo.',
@@ -378,6 +378,7 @@ function pagePlan(total, tipo) {
 
 function generateImagePrompt(data) {
   const profile = typeProfiles[data.tipo] || typeProfiles['Apostila didática'];
+  const tipoNome = data.tipo === 'Outro' ? 'Material didático' : data.tipo;
   const style = styleProfiles[data.estiloVisual] || styleProfiles['Livro Didático'];
   const formato = imagePageFormats[data.formato] || defaultPageFormat;
   const total = Math.max(1, Number.parseInt(data.paginas, 10) || 1);
@@ -394,10 +395,10 @@ function generateImagePrompt(data) {
   const lines = [
     'ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.',
     total === 1
-      ? `A saída esperada é UMA IMAGEM ÚNICA: uma página visual de ${data.tipo.toLowerCase()} sobre ${assunto}, em ${formato}.`
-      : `A saída esperada é uma sequência de ${total} IMAGENS, uma por página, de ${data.tipo.toLowerCase()} sobre ${assunto}, em ${formato}. Gere UMA imagem por vez.`,
+      ? `A saída esperada é UMA IMAGEM ÚNICA: uma página visual de ${tipoNome.toLowerCase()} sobre ${assunto}, em ${formato}.`
+      : `A saída esperada é uma sequência de ${total} IMAGENS, uma por página, de ${tipoNome.toLowerCase()} sobre ${assunto}, em ${formato}. Gere UMA imagem por vez.`,
     `O estilo visual deve ser OBRIGATORIAMENTE: ${data.estiloVisual}. Não misture com outros estilos.`,
-    `O tipo de material deve ser OBRIGATORIAMENTE: ${data.tipo}.`,
+    `O tipo de material deve ser OBRIGATORIAMENTE: ${tipoNome}.`,
     'Não responda com texto explicativo: produza a imagem descrita abaixo.',
     '',
     'PAPEL',
@@ -408,7 +409,7 @@ function generateImagePrompt(data) {
     `Tema: ${assunto}`,
     `Público: ${data.publico}`,
     `Nível de profundidade: ${data.profundidade}`,
-    `Tipo de material: ${data.tipo}`,
+    `Tipo de material: ${tipoNome}`,
     `Formato da página: ${formato}`,
     `Total de páginas: ${total} ${total === 1 ? 'página' : 'páginas'}`,
     `Estilo de escrita: ${data.escrita}`,
@@ -417,10 +418,10 @@ function generateImagePrompt(data) {
     ...extras,
     '',
     'MISSÃO',
-    `${total === 1 ? 'Gerar a IMAGEM de uma página completa' : `Gerar ${total} páginas`} de ${data.tipo.toLowerCase()} sobre ${assunto}, no estilo ${data.estiloVisual}, ${total === 1 ? 'pronta' : 'prontas'} para impressão. Foco do material: ${profile.foco}.`,
+    `${total === 1 ? 'Gerar a IMAGEM de uma página completa' : `Gerar ${total} páginas`} de ${tipoNome.toLowerCase()} sobre ${assunto}, no estilo ${data.estiloVisual}, ${total === 1 ? 'pronta' : 'prontas'} para impressão. Foco do material: ${profile.foco}.`,
     '',
     '1) DESCRIÇÃO DA IMAGEM (PRINCIPAL)',
-    `Página didática de ${data.tipo.toLowerCase()} sobre "${assunto}" em ${disciplina}, no padrão de material educacional brasileiro.`,
+    `Página didática de ${tipoNome.toLowerCase()} sobre "${assunto}" em ${disciplina}, no padrão de material educacional brasileiro.`,
     `Siga RIGOROSAMENTE o estilo ${data.estiloVisual}:`,
     `- Ilustração: ${style.ilustracao}.`,
     `- Página: ${style.pagina}.`,
