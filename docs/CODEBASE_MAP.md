@@ -57,6 +57,7 @@ graph TB
 │   ├── crypto.js             # scrypt, AES-256-GCM, HKDF, token de sessão, códigos
 │   ├── secret-check.js       # impressão digital da chave mestra (recusa iniciar se mudar)
 │   ├── mailer.js             # nodemailer: envio dos e-mails; setConfig troca o SMTP sem reiniciar e setBrand define endereço e contato do rodapé
+│   ├── visuals.js            # desenha <pre class="mermaid"> e <pre class="chartjs"> do HTML gerado pela IA no Chromium (vendor/), devolvendo SVG e PNG embutidos
 │   ├── backup.js             # lê o status do backup em MONITOR_DIR (backup-db.json, pbs.json, backup.log); só leitura
 │   ├── legal.js              # LEGAL_VERSION: versão vigente dos Termos e da Política (mudar a data exige novo aceite de todos)
 │   ├── support.js            # validação da mensagem e dos anexos, protocolo e tabela support_messages
@@ -156,6 +157,7 @@ Migração 1 (`usuarios-e-projetos`), aplicada sozinha na inicialização:
 | `users.js` | Normaliza e-mail e telefone (10 a 13 dígitos). `update` roda em transação com `FOR UPDATE` e soma 1 em `pwd_version` quando muda senha, e-mail, perfil ou situação (derruba as sessões). `publicUser` esconde o hash e a chave. |
 | `projects.js` | `save` usa trava consultiva por dono, atualiza só se o projeto for do usuário, e limita 500 projetos por pessoa. `validateProject` filtra campos e tamanhos. |
 | `crypto.js` | scrypt (N=16384, r=8, p=1) com comparação em tempo constante e `verifyDummy` para e-mails inexistentes; AES-256-GCM; `loadMasterSecret` (APP_SECRET, ou `runtime/secret.key`); HKDF; token HMAC. |
+| `visuals.js` | A IA escreve só texto declarativo; `extractVisuals` troca os blocos por marcadores (máximo 12, código até 20 mil caracteres, gráfico só dos tipos bar, line, pie, doughnut, radar, polarArea e scatter, até 8 séries e 200 pontos). `drawInBrowser` abre uma página própria no Chromium sem rede com `vendor/mermaid.min.js` e `vendor/chart.umd.min.js` e lê o resultado com `--dump-dom`. O SVG passa por `cleanDiagramSvg` e o gráfico volta como PNG base64. Falha em um item vira aviso com o código; sem nenhum bloco, o navegador nem abre. Chamado por `requestAiHtml`. |
 | `secret-check.js` | Guarda uma impressão digital da chave mestra em `runtime/secret.check`; se ela mudar, o servidor recusa iniciar, a menos que `ALLOW_NEW_SECRET=true`. |
 | `legacy-import.js` | Importa `runtime/users.json` e `projects.json` quando o banco está vazio e renomeia os arquivos para `*.migrado-AAAAMMDD`. |
 | `mailer.js` | Transporte criado sob demanda; `enabled` só com `SMTP_HOST` e `SMTP_FROM`; `setTransport` para testes. |

@@ -12,6 +12,7 @@ ENV CHROMIUM_PATH=/usr/bin/chromium-browser
 
 COPY --chown=node:node package.json package-lock.json server.js ./
 COPY --chown=node:node lib ./lib
+COPY --chown=node:node vendor ./vendor
 COPY --chown=node:node scripts ./scripts
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --chown=node:node public ./public

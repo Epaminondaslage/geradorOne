@@ -16,6 +16,7 @@ const { createDb } = require('./lib/db');
 const { importLegacyJson } = require('./lib/legacy-import');
 const { createMailer } = require('./lib/mailer');
 const backup = require('./lib/backup');
+const { renderVisuals } = require('./lib/visuals');
 const { DEFAULT_CONTACT } = require('./lib/email-template');
 const CONTACT_PAGES = new Set(['termos.html', 'privacidade.html', 'faq-data.js']);
 const { createSettingsStore } = require('./lib/settings');
@@ -301,6 +302,11 @@ function cleanGeneratedHtml(value) {
   const first = html.search(/<!doctype html|<html/i);
   if (first > 0) html = html.slice(first);
   if (!/<html[\s>]/i.test(html)) throw Object.assign(new Error('A IA não devolveu um documento HTML válido.'), { status: 502 });
+  return stripUnsafeMarkup(html);
+}
+
+// Remove script, quadros, manipuladores de evento e qualquer URL que não seja âncora ou imagem embutida.
+function stripUnsafeMarkup(html) {
   return html
     .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
     .replace(/<\/?script\b[^>]*>/gi, '')
@@ -313,11 +319,16 @@ function cleanGeneratedHtml(value) {
     .replace(/@import\s+[^;]+;/gi, '');
 }
 
+// O SVG do Mermaid vem do nosso navegador, mas passa pela mesma limpeza do resto do HTML, mais <foreignObject>.
+function cleanDiagramSvg(svg) {
+  return stripUnsafeMarkup(svg.replace(/<foreignObject\b[\s\S]*?<\/foreignObject\s*>/gi, ''));
+}
+
 function extractGeminiText(response) {
   return (response?.candidates || []).flatMap(c => c?.content?.parts || []).filter(p => typeof p.text === 'string').map(p => p.text).join('\n');
 }
 
-const HTML_INSTRUCTIONS = 'Crie o material completo solicitado como um único HTML autônomo. Retorne somente o HTML, começando por <!doctype html>. Use CSS e SVG inline para todos os elementos visuais. Não use JavaScript, URLs externas, fontes externas, Mermaid, arquivos auxiliares, Markdown ou explicações. Não invente dados, fontes, citações ou códigos curriculares.';
+const HTML_INSTRUCTIONS = 'Crie o material completo solicitado como um único HTML autônomo. Retorne somente o HTML, começando por <!doctype html>. Use CSS e SVG inline para todos os elementos visuais. Não use JavaScript, URLs externas, fontes externas, arquivos auxiliares, Markdown ou explicações. Para fluxos, processos e relações pode usar um bloco <pre class="mermaid"> com código Mermaid válido, sem estilos externos. Para gráficos de dados pode usar um bloco <pre class="chartjs"> contendo só o JSON de configuração do Chart.js (type bar, line, pie, doughnut, radar, polarArea ou scatter, data e options simples, sem funções). O servidor desenha os dois; use no máximo seis por documento e nunca invente os números de um gráfico: só use dados informados no pedido, senão não faça o gráfico. Não invente dados, fontes, citações ou códigos curriculares.';
 
 const IMPROVE_INSTRUCTIONS = 'Você revisa prompts de geração de imagens didáticas em português do Brasil. Reescreva o prompt recebido aplicando os ajustes pedidos. Mantenha a mesma estrutura de seções e títulos, o tipo de material, o estilo visual, o formato da página, o número de páginas, o público e todas as restrições, exceto quando um ajuste pedir explicitamente para mudá-los. Não acrescente dados factuais, normas ou números que não possa garantir. Responda somente com o prompt final completo, sem comentários, sem explicações e sem Markdown.';
 
@@ -380,7 +391,7 @@ async function requestAiText(config, instructions, input, timeoutMs, timeoutMess
 
 async function requestAiHtml(config, prompt) {
   const result = await requestAiText(config, HTML_INSTRUCTIONS, prompt, 180_000, 'A geração excedeu o tempo máximo de três minutos.');
-  return { html: cleanGeneratedHtml(result.text), model: result.model };
+  return { html: await renderVisuals(cleanGeneratedHtml(result.text), { sanitizeSvg: cleanDiagramSvg }), model: result.model };
 }
 
 function cleanImprovedPrompt(value) {

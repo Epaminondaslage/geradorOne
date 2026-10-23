@@ -27,6 +27,11 @@ const FAQ_ITEMS = [
     pergunta: 'Qual a diferença entre gerar só o prompt e gerar o material com IA?',
     resposta: '- Só o prompt: o app monta o briefing e você o usa onde quiser. Funciona sem chave de IA e sem custo adicional.\n- Material com IA: o servidor usa a sua chave para produzir o material pronto (PDF ou HTML), com as imagens. Exige chave cadastrada em "Minha chave de IA" e é cobrado pelo provedor.\n\nO bloco "Gerar o material com IA" aparece na tela de Apostila.'
   },
+  {
+    categoria: 'Primeiros passos',
+    pergunta: 'O material com IA traz diagramas e gráficos de verdade?',
+    resposta: 'Sim. Quando o conteúdo pede um fluxo, um processo ou uma relação, a IA descreve o diagrama e o servidor o desenha (Mermaid). Quando o pedido traz números, ela descreve o gráfico (barras, linhas, pizza, rosca, radar, área polar ou dispersão) e o servidor o desenha (Chart.js). O PDF e o HTML já saem com as figuras prontas.\n\nO desenho não depende da internet nem roda código da IA. Se um diagrama ou gráfico não puder ser desenhado, o material mostra um aviso com o código dele no lugar da figura. A IA só deve montar gráficos com os números que você informou no pedido.'
+  },
 
   // ---------- Conta e acesso ----------
   {

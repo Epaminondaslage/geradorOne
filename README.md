@@ -51,6 +51,7 @@ O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produ
 - Saída de diagramas em Mermaid, SVG editável ou especificação visual.
 - Políticas para uso opcional de imagens geradas por IA.
 - Geração de imagens reais pela mesma integração de IA, incorporadas ao HTML/PDF e também disponibilizadas como arquivos PNG separados.
+- Diagramas Mermaid e gráficos Chart.js na apostila final: a IA descreve, o servidor desenha com as bibliotecas locais de `vendor/` (sem rede) e o HTML ou PDF recebe SVG e imagem prontos, sem script.
 
 Cada recurso tem uma miniatura que representa sua estrutura visual, além de instruções para objetivo pedagógico, conteúdo, legenda, produção gráfica e texto alternativo.
 
@@ -230,7 +231,6 @@ O backup do banco é uma rotina agendada, não um passo do deploy: `scripts/back
 
 ## Limitações e próximas integrações
 
-- Renderização real de Mermaid e Chart.js na apostila final.
 - Autenticação, limites por usuário e histórico persistente de projetos.
 - Proxy HTTPS e domínio definitivo para acesso fora da rede local.
 
