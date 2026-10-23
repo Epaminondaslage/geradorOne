@@ -77,7 +77,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Conta e acesso',
     pergunta: 'Como excluo minha conta?',
-    resposta: 'Ainda não existe um botão para isso. Peça ao administrador: ao excluir um usuário, os projetos dele também são removidos.'
+    resposta: '1. Se quiser guardar algum projeto, exporte-o antes com o botão "JSON" do painel "Resultado".\n2. Abra "Minha conta" e vá até "Excluir minha conta".\n3. Digite a sua senha atual e clique em "Excluir minha conta". O botão muda para "Confirmar exclusão": clique de novo em até 5 segundos.\n\nA exclusão apaga a conta, todos os seus projetos e a sua chave de IA salva, e não dá para desfazer. Você sai do app na hora.\n\nSe você é o único administrador ativo, o app não deixa excluir: antes, em "Usuários", torne outro usuário administrador. Se esqueceu a senha, use "Esqueci a senha" ou peça ao administrador para excluir a conta.'
   },
 
   // ---------- Apostila ----------

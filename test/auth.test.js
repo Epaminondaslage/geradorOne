@@ -293,6 +293,25 @@ test('configuração de SMTP: só administrador, senha cifrada e aplicada na hor
   assert.notEqual(back.data.source, 'painel');
 });
 
+test('excluir a própria conta: exige sessão e senha, protege o último administrador e apaga os projetos', async () => {
+  assert.equal((await client()('POST', '/api/auth/delete-account', { password: 'qualquer123' })).status, 401);
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  const lastAdmin = await admin('POST', '/api/auth/delete-account', { password: 'NovaSenha12' });
+  assert.equal(lastAdmin.status, 409);
+  assert.equal((await admin('GET', '/api/auth/me')).status, 200);
+  const novo = await loginAs('novo@teste.com', 'SenhaNova123');
+  assert.equal((await novo('POST', '/api/projects', { name: 'Para apagar', kind: 'capa', settings: {}, prompt: 'P' })).status, 200);
+  const wrong = await novo('POST', '/api/auth/delete-account', { password: 'SenhaErrada99' });
+  assert.equal(wrong.status, 400);
+  assert.equal((await novo('GET', '/api/auth/me')).status, 200);
+  const done = await novo('POST', '/api/auth/delete-account', { password: 'SenhaNova123' });
+  assert.equal(done.status, 200);
+  assert.equal(done.data.removedProjects, 1);
+  assert.equal((await novo('GET', '/api/auth/me')).status, 401);
+  assert.equal((await client()('POST', '/api/auth/login', { email: 'novo@teste.com', password: 'SenhaNova123' })).status, 401);
+  assert.equal(await app.userStore.getByEmail('novo@teste.com'), null);
+});
+
 test('rejeita requisições de outra origem e corpo inválido', async () => {
   const admin = await loginAs('admin@teste.com', 'NovaSenha12');
   const cross = await admin('POST', '/api/projects', { name: 'x', kind: 'capa', settings: {} }, { Origin: 'http://evil.example' });

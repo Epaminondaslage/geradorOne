@@ -552,6 +552,21 @@ async function handleAuthApi(req, res, pathname, user) {
     const updated = await userStore.update(user.id, { passwordHash: await appCrypto.hashPassword(body.password), mustChangePassword: false });
     return json(res, 200, { user: userView(updated) }, issueSession(req, updated));
   }
+  if (method === 'POST' && pathname === '/api/auth/delete-account') {
+    const body = await readJson(req);
+    const keys = [`email:${user.email}`, `ip:${clientIp(req)}:${user.email}`];
+    if (keys.some(key => loginLimiter.blocked(key))) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
+    const password = typeof body.password === 'string' ? body.password.slice(0, MAX_PASSWORD) : '';
+    if (!(await appCrypto.verifyPassword(password, user.passwordHash))) {
+      keys.forEach(key => loginLimiter.hit(key));
+      return json(res, 400, { error: 'A senha está incorreta.' });
+    }
+    keys.forEach(key => loginLimiter.reset(key));
+    if (user.role === 'admin' && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'Você é o único administrador ativo. Torne outro usuário administrador antes de excluir a sua conta.' });
+    const removedProjects = await projectStore.countFor(user.id);
+    await userStore.remove(user.id);
+    return json(res, 200, { ok: true, removedProjects }, { 'Set-Cookie': sessionCookie(req, '', 0) });
+  }
   if (method === 'POST' && pathname === '/api/auth/profile') {
     const body = await readJson(req);
     if (!normalizePhone(body.phone)) throw fail('Informe o telefone.');

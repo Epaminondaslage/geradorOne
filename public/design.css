@@ -534,3 +534,11 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 
 /* Rodapé "O gerador não valida..." : maior e centralizado */
 .legal { margin: 24px 0 0; font-size: 15px; line-height: 1.5; text-align: center; }
+
+/* Excluir minha conta: cartão com borda de perigo; o botão só muda de cor (sem mover) */
+.danger-zone { border-color: var(--danger); }
+.danger-zone h2 { color: var(--danger); }
+.danger-zone .field-help { margin: 0; }
+.danger-zone .danger { padding: 12px 16px; border: 1px solid var(--danger); border-radius: 2px; background: transparent; color: var(--danger); font: inherit; font-weight: 700; cursor: pointer; }
+.danger-zone .danger:hover:not(:disabled), .danger-zone .danger.armed { background: var(--danger); color: var(--bg); }
+.danger-zone .danger:disabled { opacity: .6; cursor: progress; }

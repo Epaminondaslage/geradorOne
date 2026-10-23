@@ -65,7 +65,7 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 - [ ] Política de senha mais forte e verificação de senhas vazadas.
 - [ ] Verificação em duas etapas (opcional para o usuário).
 - [ ] Termos de uso e política de privacidade, com aceite registrado no cadastro.
-- [ ] LGPD: exportar os dados da conta, excluir a conta, prazo de retenção, canal do encarregado de dados. Avisar que os textos vão ao provedor de IA escolhido pelo usuário.
+- [ ] LGPD: exportar os dados da conta (hoje só projeto a projeto, em JSON), prazo de retenção, canal do encarregado de dados. A exclusão da conta pelo próprio usuário já existe (23/10/2026). Avisar que os textos vão ao provedor de IA escolhido pelo usuário.
 - [ ] Registro de auditoria das ações de administrador (criar, desativar, redefinir senha, excluir).
 - [ ] Modelos de e-mail transacional (boas-vindas, verificação, recuperação) com a identidade do GeradorOne.
 - [ ] Página de suporte e de status.

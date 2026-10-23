@@ -1622,6 +1622,37 @@ document.querySelector('#password-form').addEventListener('submit', async event 
   notify('Senha alterada');
 });
 
+// Excluir a própria conta: pede a senha e exige um segundo clique em "Confirmar exclusão" (o botão volta ao normal em 5 s).
+const GONE_KEY = 'g1-conta-excluida';
+let deleteArmTimer;
+document.querySelector('#delete-account-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const button = document.querySelector('#delete-account-button');
+  const status = document.querySelector('#delete-account-status');
+  if (!formEl.password.value) { status.textContent = 'Informe a sua senha atual para continuar.'; return; }
+  if (!button.classList.contains('armed')) {
+    button.classList.add('armed');
+    button.textContent = 'Confirmar exclusão';
+    status.textContent = 'Clique de novo para excluir de vez. Seus projetos e sua chave de IA serão apagados.';
+    clearTimeout(deleteArmTimer);
+    deleteArmTimer = setTimeout(() => { button.classList.remove('armed'); button.textContent = 'Excluir minha conta'; status.textContent = ''; }, 5000);
+    return;
+  }
+  clearTimeout(deleteArmTimer);
+  button.disabled = true;
+  status.textContent = 'Excluindo…';
+  const result = await postJson('api/auth/delete-account', { password: formEl.password.value });
+  button.disabled = false;
+  button.classList.remove('armed');
+  button.textContent = 'Excluir minha conta';
+  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível excluir a conta.'; return; }
+  formEl.reset();
+  try { sessionStorage.setItem(GONE_KEY, '1'); } catch {}
+  location.hash = '';
+  location.reload();
+});
+
 const usersList = document.querySelector('#users-list');
 const tempBox = document.querySelector('#temp-password-box');
 
@@ -1795,5 +1826,11 @@ async function bootstrapAuth() {
     }
   } catch {}
   showAuth('login');
+  try {
+    if (sessionStorage.getItem(GONE_KEY)) {
+      sessionStorage.removeItem(GONE_KEY);
+      setError(authScreen.querySelector('#login-form'), 'Conta excluída. Seus projetos e sua chave de IA foram apagados.', true);
+    }
+  } catch {}
 }
 bootstrapAuth();
