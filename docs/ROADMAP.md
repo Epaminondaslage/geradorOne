@@ -51,7 +51,7 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 
 ### E-mail
 
-- [ ] Criar a caixa `geradorone@dominio.com.br` (prevista para 23/10/2026) e trocar `SMTP_USER`, `SMTP_PASS` e `SMTP_FROM` no `.env`. Hoje o envio usa a caixa de desenvolvimento do outro produto, e respostas caem na caixa que ele lê para abrir chamados.
+- [x] Criar a caixa `geradorone@dominio.com.br` e usá-la no envio (feito em 23/10/2026). A senha pode ser trocada na tela **E-mail (SMTP)** do administrador, sem mexer no `.env`. Falta a Luiza trocar a senha que foi enviada por e-mail em texto aberto.
 - [ ] Configurar SPF, DKIM e DMARC do domínio, para os e-mails não caírem no spam.
 
 **Pronto quando:** o app abre em `https://` no domínio, a 8123 está fechada, há backup diário com cópia externa, alertas funcionando e a geração de PDF tem limites.
@@ -60,7 +60,8 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 
 ## Fase 2: abrir para qualquer pessoa (cadastro e conformidade)
 
-- [ ] Cadastro público com verificação de e-mail e proteção contra robôs (captcha ou equivalente).
+- [x] Cadastro público com verificação de e-mail por código de 6 dígitos (23/10/2026). Os cadastros pendentes ficam na memória do processo.
+- [ ] Proteção contra robôs no cadastro (captcha ou equivalente). Hoje só há limite de tentativas por e-mail e por IP; o uso é dentro de rede protegida por firewall.
 - [ ] Política de senha mais forte e verificação de senhas vazadas.
 - [ ] Verificação em duas etapas (opcional para o usuário).
 - [ ] Termos de uso e política de privacidade, com aceite registrado no cadastro.
