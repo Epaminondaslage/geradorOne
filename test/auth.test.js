@@ -273,24 +273,34 @@ test('configuração de SMTP: só administrador, senha cifrada e aplicada na hor
   assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 99999, from: 'GeradorOne <a@b.com>' })).status, 400);
   assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, from: 'sem-email' })).status, 400);
   assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, from: 'GeradorOne <a@b.com>', user: 'a@b.com' })).status, 400);
-  const saved = await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, requireTLS: true, user: 'a@b.com', pass: 'SenhaSecreta1', from: 'GeradorOne <a@b.com>' });
+  const base = { host: 'smtp.exemplo.com', port: 587, requireTLS: true, user: 'a@b.com', pass: 'SenhaSecreta1', from: 'GeradorOne <a@b.com>' };
+  assert.equal((await admin('PUT', '/api/settings/smtp', { ...base, appUrl: 'javascript:alert(1)' })).status, 400);
+  assert.equal((await admin('PUT', '/api/settings/smtp', { ...base, appUrl: 'nao-e-url' })).status, 400);
+  assert.equal((await admin('PUT', '/api/settings/smtp', { ...base, appUrl: 'https://user:senha@app.exemplo.com' })).status, 400);
+  assert.equal((await admin('PUT', '/api/settings/smtp', { ...base, contactEmail: 'sem-arroba' })).status, 400);
+  const saved = await admin('PUT', '/api/settings/smtp', { ...base, appUrl: 'https://app.exemplo.com.br', contactEmail: 'Contato@Exemplo.com' });
   assert.equal(saved.status, 200);
   assert.equal(saved.data.source, 'painel');
   assert.equal(saved.data.hasPass, true);
+  assert.equal(saved.data.appUrl, 'https://app.exemplo.com.br');
+  assert.equal(saved.data.contactEmail, 'contato@exemplo.com');
+  assert.deepEqual(app.mailer.brand, { appUrl: 'https://app.exemplo.com.br', contactEmail: 'contato@exemplo.com' });
   assert.ok(!JSON.stringify(saved.data).includes('SenhaSecreta1'));
   const stored = (await app.db.query("SELECT value FROM settings WHERE key = 'smtp'")).rows[0].value;
   assert.ok(stored.passEnc && !JSON.stringify(stored).includes('SenhaSecreta1'));
-  const kept = await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, requireTLS: true, user: 'a@b.com', pass: '', from: 'GeradorOne <a@b.com>' });
+  const kept = await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, requireTLS: true, user: 'a@b.com', pass: '', from: 'GeradorOne <a@b.com>', appUrl: 'https://app.exemplo.com.br', contactEmail: 'contato@exemplo.com' });
   assert.equal(kept.data.hasPass, true);
   sent.length = 0;
   const tested = await admin('POST', '/api/settings/smtp/test', { to: 'destino@teste.com' });
   assert.equal(tested.status, 200);
   assert.equal(sent.length, 1);
   assert.equal(sent[0].to, 'destino@teste.com');
+  assert.ok(sent[0].html.includes('https://app.exemplo.com.br'));
   assert.equal((await admin('POST', '/api/settings/smtp/test', { to: 'invalido' })).status, 400);
   const back = await admin('DELETE', '/api/settings/smtp');
   assert.equal(back.status, 200);
   assert.notEqual(back.data.source, 'painel');
+  assert.deepEqual(app.mailer.brand, { appUrl: '', contactEmail: '' });
 });
 
 test('exportar a conta: exige sessão, traz conta e projetos e não vaza senha nem chave', async () => {

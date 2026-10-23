@@ -56,7 +56,8 @@ graph TB
 │   ├── legacy-import.js      # importa os JSONs antigos uma única vez
 │   ├── crypto.js             # scrypt, AES-256-GCM, HKDF, token de sessão, códigos
 │   ├── secret-check.js       # impressão digital da chave mestra (recusa iniciar se mudar)
-│   ├── mailer.js             # nodemailer: códigos de recuperação de senha e de cadastro; setConfig troca o SMTP sem reiniciar
+│   ├── mailer.js             # nodemailer: envio dos e-mails; setConfig troca o SMTP sem reiniciar e setBrand define endereço e contato do rodapé
+│   ├── email-template.js     # modelo HTML (tabelas e estilos inline) e texto puro dos e-mails; logotipo embutido por cid
 │   └── rate-limit.js         # limitador em memória (janela deslizante)
 ├── scripts/
 │   ├── reset-password.js     # senha temporária de emergência (docker exec)

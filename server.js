@@ -158,19 +158,20 @@ async function readJson(req) {
 // O SMTP salvo pelo administrador tem prioridade sobre as variáveis SMTP_* do .env.
 async function loadSmtpSettings() {
   const stored = await settingsStore.get(SMTP_KEY);
-  if (!stored || !stored.host) { mailer.setConfig(envSmtp); return null; }
+  if (!stored || !stored.host) { mailer.setConfig(envSmtp); mailer.setBrand({}); return null; }
   let pass = '';
   try { pass = stored.passEnc ? appCrypto.decrypt(stored.passEnc, keyEncKey) : ''; } catch { pass = ''; }
   mailer.setConfig({ host: stored.host, port: stored.port, secure: String(Boolean(stored.secure)), requireTLS: String(Boolean(stored.requireTLS)), user: stored.user, pass, from: stored.from });
+  mailer.setBrand({ appUrl: stored.appUrl, contactEmail: stored.contactEmail });
   return stored;
 }
 
 async function smtpView() {
   const stored = await settingsStore.get(SMTP_KEY);
   if (stored && stored.host) {
-    return { source: 'painel', host: stored.host, port: stored.port, secure: Boolean(stored.secure), requireTLS: Boolean(stored.requireTLS), user: stored.user || '', from: stored.from || '', hasPass: Boolean(stored.passEnc), enabled: mailer.enabled };
+    return { source: 'painel', host: stored.host, port: stored.port, secure: Boolean(stored.secure), requireTLS: Boolean(stored.requireTLS), user: stored.user || '', from: stored.from || '', appUrl: stored.appUrl || '', contactEmail: stored.contactEmail || '', hasPass: Boolean(stored.passEnc), enabled: mailer.enabled };
   }
-  return { source: envSmtp.host ? 'env' : 'nenhum', host: envSmtp.host || '', port: Number(envSmtp.port) || 587, secure: String(envSmtp.secure) === 'true', requireTLS: String(envSmtp.requireTLS) === 'true', user: envSmtp.user || '', from: envSmtp.from || '', hasPass: Boolean(envSmtp.pass), enabled: mailer.enabled };
+  return { source: envSmtp.host ? 'env' : 'nenhum', host: envSmtp.host || '', port: Number(envSmtp.port) || 587, secure: String(envSmtp.secure) === 'true', requireTLS: String(envSmtp.requireTLS) === 'true', user: envSmtp.user || '', from: envSmtp.from || '', appUrl: '', contactEmail: '', hasPass: Boolean(envSmtp.pass), enabled: mailer.enabled };
 }
 
 async function prepare() {
@@ -678,6 +679,14 @@ async function handleSettingsApi(req, res, pathname, user) {
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw fail('Porta inválida. Use um número de 1 a 65535.');
     if (!/[^\s@<]+@[^\s@>]+\.[^\s@>]{2,}/.test(from)) throw fail('Informe o remetente com um e-mail válido, por exemplo: GeradorOne <contato@exemplo.com>.');
     if (/[\r\n]/.test(from + smtpUser)) throw fail('Remetente ou usuário inválido.');
+    const appUrl = String(body.appUrl || '').trim().slice(0, 200);
+    if (appUrl) {
+      let parsed;
+      try { parsed = new URL(appUrl); } catch { parsed = null; }
+      if (!parsed || !['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) throw fail('Endereço do app inválido. Use um endereço completo, como https://app.exemplo.com.br.');
+    }
+    const contactEmail = normalizeEmail(body.contactEmail).slice(0, 200);
+    if (contactEmail && !EMAIL_RE.test(contactEmail)) throw fail('E-mail de contato inválido.');
     const previous = await settingsStore.get(SMTP_KEY);
     const newPass = typeof body.pass === 'string' ? body.pass.slice(0, MAX_PASSWORD) : '';
     let passEnc = '';
@@ -685,7 +694,7 @@ async function handleSettingsApi(req, res, pathname, user) {
     else if (previous?.passEnc) passEnc = previous.passEnc;
     else if (envSmtp.pass && envSmtp.host === host && envSmtp.user === smtpUser && !previous) passEnc = appCrypto.encrypt(envSmtp.pass, keyEncKey);
     if (smtpUser && !passEnc) throw fail('Informe a senha do e-mail.');
-    await settingsStore.set(SMTP_KEY, { host, port, secure: Boolean(body.secure), requireTLS: Boolean(body.requireTLS), user: smtpUser, from, passEnc });
+    await settingsStore.set(SMTP_KEY, { host, port, secure: Boolean(body.secure), requireTLS: Boolean(body.requireTLS), user: smtpUser, from, appUrl, contactEmail, passEnc });
     await loadSmtpSettings();
     return json(res, 200, await smtpView());
   }

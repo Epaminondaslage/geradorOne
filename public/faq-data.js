@@ -381,7 +381,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Administração',
     pergunta: 'Como configuro o e-mail que envia os códigos? (administradores)',
-    resposta: '1. Abra "E-mail (SMTP)" no menu.\n2. Informe servidor, porta, tipo de conexão (STARTTLS, TLS direto ou sem criptografia), usuário, senha e remetente.\n3. Clique em "Salvar". A mudança vale na hora, sem reiniciar.\n4. Use "Enviar teste" para conferir: o e-mail chega no endereço que você digitar (em branco, no seu).\n\nA senha fica cifrada e nunca volta para a tela; deixar o campo em branco mantém a atual. "Voltar ao .env" apaga a configuração do painel e volta ao que está no arquivo de configuração do servidor.'
+    resposta: '1. Abra "E-mail (SMTP)" no menu.\n2. Informe servidor, porta, tipo de conexão (STARTTLS, TLS direto ou sem criptografia), usuário, senha e remetente. Se quiser, preencha também "Endereço do app nos e-mails" e "E-mail de contato no rodapé": os dois aparecem no rodapé dos e-mails de cadastro e de redefinição de senha.\n3. Clique em "Salvar". A mudança vale na hora, sem reiniciar.\n4. Use "Enviar teste" para conferir: o e-mail chega no endereço que você digitar (em branco, no seu).\n\nA senha fica cifrada e nunca volta para a tela; deixar o campo em branco mantém a atual. "Voltar ao .env" apaga a configuração do painel e volta ao que está no arquivo de configuração do servidor.'
   },
   {
     categoria: 'Administração',

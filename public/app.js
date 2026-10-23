@@ -1453,6 +1453,8 @@ function fillSmtp(data) {
   smtpForm.user.value = data.user || '';
   smtpForm.pass.value = '';
   smtpForm.from.value = data.from || '';
+  smtpForm.appUrl.value = data.appUrl || '';
+  smtpForm.contactEmail.value = data.contactEmail || '';
   smtpCurrent.textContent = data.enabled ? `Envio de e-mail ativo · configuração ${SMTP_SOURCES[data.source]}${data.hasPass ? ' · senha salva' : ''}` : 'Envio de e-mail desligado: sem ele, "Criar conta" e "Esqueci a senha" ficam escondidos.';
   smtpCurrent.className = `field-status ${data.enabled ? 'available' : 'unavailable'}`;
 }
@@ -1472,7 +1474,7 @@ smtpForm.addEventListener('submit', async event => {
   smtpStatus.textContent = 'Salvando…';
   try {
     const mode = smtpForm.mode.value;
-    const data = await smtpRequest('PUT', 'api/settings/smtp', { host: smtpForm.host.value, port: smtpForm.port.value, secure: mode === 'tls', requireTLS: mode === 'starttls', user: smtpForm.user.value, pass: smtpForm.pass.value, from: smtpForm.from.value });
+    const data = await smtpRequest('PUT', 'api/settings/smtp', { host: smtpForm.host.value, port: smtpForm.port.value, secure: mode === 'tls', requireTLS: mode === 'starttls', user: smtpForm.user.value, pass: smtpForm.pass.value, from: smtpForm.from.value, appUrl: smtpForm.appUrl.value, contactEmail: smtpForm.contactEmail.value });
     fillSmtp(data);
     smtpStatus.textContent = 'Configuração salva e aplicada. Use o teste abaixo para conferir.';
     notify('Configuração de e-mail salva');
