@@ -481,7 +481,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Administração',
     pergunta: 'Como vejo se o backup está funcionando? (administradores)',
-    resposta: 'Abra "Configurações" no menu e escolha a aba "Backup". No alto aparece "Protegido" quando o banco e a cópia externa rodaram dentro de 26 horas, ou "Atenção" com o motivo (cópia atrasada, falha ou sem registro).\n\nA aba mostra:\n- a data da última cópia do banco e do servidor inteiro (cópia externa);\n- a lista de cópias guardadas, com tamanho;\n- o log das execuções e as falhas recentes.\n\nO banco é copiado todo dia às 03:15 e as cópias ficam por 14 dias. A cópia externa do servidor inteiro roda às 03:30 e também guarda 14 dias. A aba só mostra a situação: ela não faz nem restaura cópias, isso é feito no servidor. Na instalação de desenvolvimento a aba avisa que não há registro de backup.'
+    resposta: 'Abra "Configurações" no menu e escolha a aba "Backup". No alto aparece "Protegido" quando o banco e a cópia externa rodaram dentro de 26 horas, ou "Atenção" com o motivo (cópia atrasada, falha ou sem registro).\n\nA aba mostra:\n- a data da última cópia do banco e do servidor inteiro (cópia externa);\n- a lista de cópias guardadas, com tamanho;\n- o log das execuções e as falhas recentes.\n\nO banco é copiado todo dia às 03:15 para o disco de backup do servidor, e as cópias ficam por 14 dias. O servidor inteiro também é copiado às 03:30, em outro armazenamento, por 14 dias. A aba só mostra a situação: ela não faz nem restaura cópias, isso é feito no servidor. Na instalação de desenvolvimento a aba avisa que não há registro de backup.'
   }
 ];
 

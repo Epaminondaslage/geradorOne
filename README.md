@@ -202,7 +202,7 @@ docker compose -f compose.prod.yaml up -d --build
 
 A porta 8123 também fica publicada na rede local (`http://IP-DO-CONTÊINER:8123`, HTTP sem criptografia) para acesso interno; o roteador não deve encaminhá-la para a internet.
 
-O backup diário do banco (`scripts/backup-db.sh`, 14 dias de retenção) roda pelo cron do contêiner às 03:15.
+O backup do banco é uma rotina agendada, não um passo do deploy: `scripts/backup-db.sh` roda todo dia às 03:15 (horário de Brasília) pelo cron do contêiner e grava num disco de backup montado no contêiner (`BACKUP_DIR` e `BACKUP_MOUNT`; aborta se o disco não estiver montado), com 14 dias de retenção, `status.json` da rotina e cópia do `.env` em modo 600. Sem essas variáveis, grava em `./backups`.
 
 ## Estrutura do projeto
 
