@@ -76,8 +76,13 @@ const FAQ_ITEMS = [
   },
   {
     categoria: 'Conta e acesso',
+    pergunta: 'Como baixo todos os meus dados?',
+    resposta: '1. Abra "Minha conta".\n2. No bloco "Exportar meus dados", clique em "Baixar meus dados (JSON)".\n\nO arquivo traz os dados da sua conta (nome, e-mail, telefone, perfil e tema), as suas preferências de IA (provedor, modelos e se há chave salva) e todos os seus projetos, com configurações e prompts. A senha e o valor da chave de IA não entram no arquivo.\n\nO app não importa esse arquivo inteiro de volta. O botão "Importar arquivo JSON", em "Meus projetos", aceita um projeto por arquivo, exportado pelo botão "JSON" do painel "Resultado".'
+  },
+  {
+    categoria: 'Conta e acesso',
     pergunta: 'Como excluo minha conta?',
-    resposta: '1. Se quiser guardar algum projeto, exporte-o antes com o botão "JSON" do painel "Resultado".\n2. Abra "Minha conta" e vá até "Excluir minha conta".\n3. Digite a sua senha atual e clique em "Excluir minha conta". O botão muda para "Confirmar exclusão": clique de novo em até 5 segundos.\n\nA exclusão apaga a conta, todos os seus projetos e a sua chave de IA salva, e não dá para desfazer. Você sai do app na hora.\n\nSe você é o único administrador ativo, o app não deixa excluir: antes, em "Usuários", torne outro usuário administrador. Se esqueceu a senha, use "Esqueci a senha" ou peça ao administrador para excluir a conta.'
+    resposta: '1. Se quiser guardar os seus dados, baixe-os antes em "Minha conta", no bloco "Exportar meus dados".\n2. No mesmo lugar, vá até "Excluir minha conta".\n3. Digite a sua senha atual e clique em "Excluir minha conta". O botão muda para "Confirmar exclusão": clique de novo em até 5 segundos.\n\nA exclusão apaga a conta, todos os seus projetos e a sua chave de IA salva, e não dá para desfazer. Você sai do app na hora. Os dados saem do banco imediatamente; as cópias de segurança do banco são apagadas depois de 14 dias, e só então a sua conta some delas também.\n\nSe você é o único administrador ativo, o app não deixa excluir: antes, em "Usuários", torne outro usuário administrador. Se esqueceu a senha, use "Esqueci a senha" ou peça ao administrador para excluir a conta.'
   },
 
   // ---------- Apostila ----------
@@ -345,6 +350,16 @@ const FAQ_ITEMS = [
     categoria: 'Segurança e privacidade',
     pergunta: 'Outras pessoas veem meus projetos?',
     resposta: 'Não. Cada usuário vê somente os próprios projetos, e a sua chave de IA não é visível para ninguém. O que você envia ao provedor de IA só sai do servidor quando você usa um recurso de IA.'
+  },
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'Por quanto tempo meus dados ficam guardados?',
+    resposta: 'Enquanto a sua conta existir. Ao excluí-la, em "Minha conta", a conta, os projetos e a chave de IA saem do banco na hora.\n\nAs cópias de segurança do banco são mantidas por 14 dias (2 semanas) e depois apagadas. Por isso, os dados de uma conta excluída ainda podem constar nessas cópias por até 14 dias. Elas servem só para recuperar o servidor e não ficam acessíveis pelo app.'
+  },
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'Com quem falo sobre meus dados pessoais?',
+    resposta: 'O contato oficial para dúvidas e pedidos sobre dados pessoais (acesso, correção, exclusão, privacidade) é Fulano, pelo e-mail fulano@dominio.com.br.\n\nVocê mesmo baixa os seus dados e exclui a conta em "Minha conta". O e-mail serve para o que a tela não resolve.'
   },
   {
     categoria: 'Segurança e privacidade',

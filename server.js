@@ -552,6 +552,23 @@ async function handleAuthApi(req, res, pathname, user) {
     const updated = await userStore.update(user.id, { passwordHash: await appCrypto.hashPassword(body.password), mustChangePassword: false });
     return json(res, 200, { user: userView(updated) }, issueSession(req, updated));
   }
+  if (method === 'GET' && pathname === '/api/auth/export') {
+    const ai = aiConfigFor(user);
+    const exportedAt = new Date().toISOString();
+    const body = {
+      format: 'geradorone-account',
+      version: 1,
+      exportedAt,
+      account: { id: user.id, name: user.name, email: user.email, phone: user.phone || '', role: user.role, active: user.active, theme: user.theme || '', createdAt: user.createdAt, updatedAt: user.updatedAt },
+      ai: { provider: ai.provider, hasApiKey: Boolean(ai.apiKey), model: ai.model, imageModel: ai.imageModel },
+      projects: await projectStore.listAll(user.id),
+      notes: [
+        'A senha (guardada só como hash) e o valor da chave de IA (guardada cifrada) não entram neste arquivo.',
+        'Cada item de "projects" traz as configurações e o prompt do projeto. A importação de projetos do app aceita um projeto por arquivo, exportado pelo botão "JSON" do painel de resultado.'
+      ]
+    };
+    return json(res, 200, body, { 'Content-Disposition': `attachment; filename="geradorone-conta-${exportedAt.slice(0, 10)}.json"` });
+  }
   if (method === 'POST' && pathname === '/api/auth/delete-account') {
     const body = await readJson(req);
     const keys = [`email:${user.email}`, `ip:${clientIp(req)}:${user.email}`];

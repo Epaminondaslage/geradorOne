@@ -65,7 +65,8 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 - [ ] Política de senha mais forte e verificação de senhas vazadas.
 - [ ] Verificação em duas etapas (opcional para o usuário).
 - [ ] Termos de uso e política de privacidade, com aceite registrado no cadastro.
-- [ ] LGPD: exportar os dados da conta (hoje só projeto a projeto, em JSON), prazo de retenção, canal do encarregado de dados. A exclusão da conta pelo próprio usuário já existe (23/10/2026). Avisar que os textos vão ao provedor de IA escolhido pelo usuário.
+- [x] LGPD, parte técnica (23/10/2026): exportar os dados da conta (`GET /api/auth/export`, botão "Baixar meus dados (JSON)" em Minha conta), excluir a conta, prazo de retenção (a conta sai do banco na hora; as cópias de segurança são mantidas por 14 dias e depois apagadas) e canal do responsável (Fulano, fulano@dominio.com.br). Os textos vão ao provedor de IA escolhido, e o app avisa isso.
+- [ ] LGPD, parte jurídica: revisar o texto da política de privacidade e dos termos com quem entende da lei, antes de abrir ao público em geral.
 - [ ] Registro de auditoria das ações de administrador (criar, desativar, redefinir senha, excluir).
 - [ ] Modelos de e-mail transacional (boas-vindas, verificação, recuperação) com a identidade do GeradorOne.
 - [ ] Página de suporte e de status.
@@ -106,7 +107,7 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 | Provedor de pagamento | Define a integração e as taxas |
 | Onde guardar a cópia externa do backup | Define o custo e o prazo de retenção |
 | Hospedar no servidor atual ou em nuvem | Afeta disponibilidade, firewall e custo |
-| Prazo de retenção de dados e responsável pela LGPD | Necessário para os termos de uso |
+| Revisão jurídica dos termos de uso e da política de privacidade | Necessário antes de abrir ao público em geral |
 
 ## Riscos conhecidos hoje
 

@@ -1622,6 +1622,27 @@ document.querySelector('#password-form').addEventListener('submit', async event 
   notify('Senha alterada');
 });
 
+// Exportar meus dados: baixa um JSON com a conta, as preferências de IA e todos os projetos.
+document.querySelector('#export-account-button').addEventListener('click', async event => {
+  const button = event.currentTarget;
+  const status = document.querySelector('#export-account-status');
+  button.disabled = true;
+  status.textContent = 'Preparando o arquivo…';
+  try {
+    const response = await apiFetch('api/auth/export');
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Não foi possível exportar os dados.');
+    download(`geradorone-conta-${data.exportedAt.slice(0, 10)}.json`, JSON.stringify(data, null, 2), 'application/json');
+    const total = data.projects.length;
+    status.textContent = `Arquivo baixado, com ${total} ${total === 1 ? 'projeto' : 'projetos'}.`;
+    notify('Dados exportados');
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
 // Excluir a própria conta: pede a senha e exige um segundo clique em "Confirmar exclusão" (o botão volta ao normal em 5 s).
 const GONE_KEY = 'g1-conta-excluida';
 let deleteArmTimer;

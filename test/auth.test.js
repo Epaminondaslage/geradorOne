@@ -293,6 +293,31 @@ test('configuração de SMTP: só administrador, senha cifrada e aplicada na hor
   assert.notEqual(back.data.source, 'painel');
 });
 
+test('exportar a conta: exige sessão, traz conta e projetos e não vaza senha nem chave', async () => {
+  assert.equal((await client()('GET', '/api/auth/export')).status, 401);
+  const ana = await loginAs('ana@teste.com', 'OutraSenha123');
+  assert.equal((await ana('POST', '/api/projects', { name: 'Para exportar', kind: 'capa', settings: { titulo: 'Lei de Ohm' }, prompt: 'PROMPT-EXPORTADO' })).status, 200);
+  await app.db.query("UPDATE users SET ai = $2 WHERE email = $1", ['ana@teste.com', JSON.stringify({ provider: 'gemini', keyEnc: 'SEGREDO-CIFRADO-XYZ', model: '', imageModel: '' })]);
+  const exported = await ana('GET', '/api/auth/export');
+  assert.equal(exported.status, 200);
+  assert.equal(exported.data.format, 'geradorone-account');
+  assert.equal(exported.data.account.email, 'ana@teste.com');
+  assert.equal(exported.data.ai.provider, 'gemini');
+  assert.equal(exported.data.ai.hasApiKey, false);
+  const mine = exported.data.projects.find(project => project.name === 'Para exportar');
+  assert.ok(mine);
+  assert.equal(mine.prompt, 'PROMPT-EXPORTADO');
+  assert.equal(mine.settings.titulo, 'Lei de Ohm');
+  assert.ok(!('ownerId' in mine));
+  const texto = JSON.stringify(exported.data);
+  assert.ok(!/passwordHash|password_hash|keyEnc|SEGREDO-CIFRADO-XYZ|scrypt/i.test(texto), 'vazou segredo');
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  const doAdmin = await admin('GET', '/api/auth/export');
+  assert.equal(doAdmin.status, 200);
+  assert.ok(!doAdmin.data.projects.some(project => project.name === 'Para exportar'));
+  assert.equal(doAdmin.data.account.email, 'admin@teste.com');
+});
+
 test('excluir a própria conta: exige sessão e senha, protege o último administrador e apaga os projetos', async () => {
   assert.equal((await client()('POST', '/api/auth/delete-account', { password: 'qualquer123' })).status, 401);
   const admin = await loginAs('admin@teste.com', 'NovaSenha12');

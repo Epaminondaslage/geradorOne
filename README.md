@@ -82,6 +82,12 @@ Em resumo: você pode ler, usar, modificar e distribuir o código. Quem oferecer
 
 Copyright (C) 2026 Fulano.
 
+## Proteção de dados e contato
+
+- **Retenção:** os dados ficam enquanto a conta existir. Ao excluir a conta, ela sai do banco na hora. As cópias de segurança do banco (`scripts/backup-db.sh`) são mantidas por 14 dias e depois apagadas; uma conta excluída pode constar nelas por até 14 dias.
+- **Contato oficial** para dúvidas e pedidos sobre dados pessoais: Fulano, <fulano@dominio.com.br>.
+- Os textos enviados a um recurso de IA vão ao provedor escolhido pelo usuário (OpenAI ou Google Gemini), com a chave dele.
+
 ## Arquitetura
 
 ### Navegador
@@ -133,6 +139,7 @@ Todo o app exige login por e-mail e senha. Cada usuário tem os próprios projet
 
 - **Primeiro administrador:** criado na primeira inicialização, com `ADMIN_NAME`, `ADMIN_EMAIL` e (opcional) `ADMIN_PHONE`. Sem telefone, o app pede para completá-lo em Minha conta. Sem `ADMIN_PASSWORD`, uma senha temporária aleatória é impressa uma vez no log do contêiner (`docker logs gerador-one | grep setup`). A troca da senha é exigida no primeiro acesso. Projetos criados antes do login passam para esse administrador.
 - **Usuários:** cada cadastro tem nome completo, telefone, e-mail e senha temporária (com botão para gerar). O administrador cria, edita, ativa/desativa, redefine a senha (temporária, com troca obrigatória) e exclui usuários na página **Usuários**. Sempre sobra ao menos um administrador ativo.
+- **Exportar os próprios dados:** em **Minha conta**, "Baixar meus dados (JSON)" gera um arquivo com a conta, as preferências de IA e todos os projetos (`GET /api/auth/export`). A senha e o valor da chave de IA não entram no arquivo.
 - **Excluir a própria conta:** em **Minha conta**, pede a senha atual e um segundo clique em "Confirmar exclusão". Apaga a conta, os projetos e a chave de IA salva, e encerra a sessão. O único administrador ativo não pode se excluir.
 - **Recuperar senha por e-mail:** código de 6 dígitos, válido por 10 minutos, com limite de tentativas. Só fica disponível com SMTP configurado; sem SMTP, o administrador redefine a senha.
 - **BYOK:** cada pessoa cadastra a própria chave na página **Minha chave de IA**. A chave é cifrada (AES-256-GCM), nunca volta ao navegador (só os 4 últimos caracteres) e não é visível nem para administradores. Não há chave global do servidor.

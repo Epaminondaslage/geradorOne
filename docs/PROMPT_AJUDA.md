@@ -21,6 +21,7 @@ Aplicativo web que gera prompts de imagem para apostilas e capas didáticas. Voc
 3. Você recebe um código de 6 dígitos por e-mail, válido por 10 minutos (até 5 tentativas). Digite o código. A conta é criada e você já entra no app.
 4. Se o administrador criou seu usuário, ele define uma senha temporária; o app exige trocá-la no primeiro acesso.
 5. Se o app levar você para "Minha conta" pedindo telefone, complete o telefone.
+5a. Para baixar todos os seus dados, abra "Minha conta" e clique em "Baixar meus dados (JSON)", no bloco "Exportar meus dados" (conta, preferências de IA e todos os projetos; sem senha nem chave).
 5b. Para excluir a própria conta, abra "Minha conta", vá a "Excluir minha conta", digite a senha atual e clique duas vezes ("Excluir minha conta" e depois "Confirmar exclusão", em até 5 segundos). Isso apaga a conta, os projetos e a chave de IA salva, e não dá para desfazer.
 6. Esqueceu a senha? Use "Esqueci a senha" (também depende do envio de e-mail): informe e-mail e a nova senha, e confirme com o código de 6 dígitos.
 

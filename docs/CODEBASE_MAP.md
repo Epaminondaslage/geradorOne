@@ -115,6 +115,7 @@ graph TB
 | GET | `/api/auth/me` | sessão | Usuário atual |
 | POST | `/api/auth/change-password` | sessão | Troca a senha e emite sessão nova |
 | POST | `/api/auth/profile` | sessão | Nome e telefone (telefone obrigatório) |
+| GET | `/api/auth/export` | sessão | Baixa um JSON (`Content-Disposition: attachment`) com a conta, as preferências de IA (sem o valor da chave) e todos os projetos do usuário; nunca inclui hash de senha |
 | POST | `/api/auth/delete-account` | sessão | Exclui a própria conta. Exige a senha atual (erros contam no limite de login); 409 se for o único administrador ativo; apaga os projetos em cascata, devolve `removedProjects` e limpa o cookie |
 | POST | `/api/auth/theme` | sessão | Tema de cores da conta (`papel`, `grafite`, `lousa`, `azul-tinta`, `sepia`, `alto-contraste`; vazio = seguir o sistema) |
 | GET/POST | `/api/users` | admin | Listar e criar (senha e telefone obrigatórios) |
@@ -185,7 +186,7 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 | `capa` | Prompt da arte frontal (`form#form-capa`) | nenhuma |
 | `projetos` | Listar, abrir, excluir e importar | `/api/projects` |
 | `ia` | BYOK: provedor, chave e modelos | `/api/ai/config` |
-| `conta` | Perfil, troca de senha e exclusão da conta (senha atual + segundo clique em "Confirmar exclusão") | `/api/auth/profile`, `change-password`, `delete-account` |
+| `conta` | Perfil, troca de senha, exportação dos dados (JSON) e exclusão da conta (senha atual + segundo clique em "Confirmar exclusão") | `/api/auth/profile`, `change-password`, `export`, `delete-account` |
 | `tema` | Galeria de temas e "Seguir o sistema" | `/api/auth/theme` |
 | `faq` | Perguntas e respostas (dados em `public/faq-data.js`), com busca, filtro por categoria e resposta aberta na linha | nenhuma |
 | `usuarios` | Gestão de usuários em tabela, com busca, filtro e edição por linha (admin) | `/api/users*` |

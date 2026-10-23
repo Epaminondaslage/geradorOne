@@ -327,9 +327,15 @@
               <p id="password-status" class="status" role="status"></p>
               <div class="ai-config-actions"><button class="primary" type="submit">Trocar senha</button></div>
             </form>
+            <section id="export-account" class="card account-form" aria-labelledby="export-account-title">
+              <h2 id="export-account-title">Exportar meus dados</h2>
+              <p class="field-help">Baixa um arquivo JSON com os dados da sua conta (nome, e-mail, telefone, perfil e tema), as suas preferências de IA e todos os seus projetos, com configurações e prompts. A senha e o valor da chave de IA não entram no arquivo.</p>
+              <p id="export-account-status" class="status" role="status"></p>
+              <div class="ai-config-actions"><button class="outline" type="button" id="export-account-button">Baixar meus dados (JSON)</button></div>
+            </section>
             <form id="delete-account-form" class="card account-form danger-zone" novalidate>
               <h2>Excluir minha conta</h2>
-              <p class="field-help">Apaga a sua conta, todos os seus projetos e a sua chave de IA salva. Não dá para desfazer. Antes, exporte os projetos que quiser guardar (botão "JSON", no painel de resultado).</p>
+              <p class="field-help">Apaga a sua conta, todos os seus projetos e a sua chave de IA salva. Não dá para desfazer. Os dados saem do banco na hora; as cópias de segurança são apagadas em 14 dias. Antes, baixe os seus dados no bloco "Exportar meus dados", logo acima.</p>
               <label>Senha atual<input name="password" type="password" autocomplete="current-password" required></label>
               <p id="delete-account-status" class="status" role="status"></p>
               <div class="ai-config-actions"><button class="danger" type="submit" id="delete-account-button">Excluir minha conta</button></div>
