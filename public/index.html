@@ -230,7 +230,8 @@
             <div class="view-head"><h1>Minha conta</h1><p id="account-summary">Dados de acesso e senha.</p></div>
             <form id="profile-form" class="card account-form" novalidate>
               <h2>Perfil</h2>
-              <label>Nome<input name="name" maxlength="120" required></label>
+              <label>Nome completo<input name="name" maxlength="120" autocomplete="name" required></label>
+              <label>Telefone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(35) 99999-8888" maxlength="22" required></label>
               <label>E-mail<input name="email" type="email" disabled></label>
               <p id="profile-status" class="status" role="status"></p>
               <div class="ai-config-actions"><button class="primary" type="submit">Salvar perfil</button></div>
@@ -250,10 +251,14 @@
             <form id="user-create-form" class="card account-form" novalidate>
               <h2>Novo usuário</h2>
               <div class="grid two">
-                <label>Nome<input name="name" maxlength="120" required></label>
-                <label>E-mail<input name="email" type="email" required></label>
+                <label>Nome completo<input name="name" maxlength="120" autocomplete="off" required></label>
+                <label>Telefone<input name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="(35) 99999-8888" maxlength="22" required></label>
+                <label>E-mail<input name="email" type="email" autocomplete="off" required></label>
                 <label>Perfil<select name="role"><option value="user">Usuário</option><option value="admin">Administrador</option></select></label>
-                <label>Senha temporária (opcional)<input name="password" type="text" autocomplete="off" minlength="8" placeholder="Deixe em branco para gerar"></label>
+                <label class="full">Senha temporária
+                  <span class="input-action"><input name="password" type="text" autocomplete="off" minlength="8" maxlength="200" placeholder="Mínimo de 8 caracteres" required><button type="button" id="generate-password" class="ghost">Gerar senha</button></span>
+                  <small class="field-status">O usuário será obrigado a trocar a senha no primeiro acesso.</small>
+                </label>
               </div>
               <p id="user-create-status" class="status" role="status"></p>
               <div class="ai-config-actions"><button class="primary" type="submit">Criar usuário</button></div>

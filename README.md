@@ -100,8 +100,8 @@ A aplicação será publicada na porta `8123` do servidor. O contêiner executa 
 
 Todo o app exige login por e-mail e senha. Cada usuário tem os próprios projetos e a própria chave de IA.
 
-- **Primeiro administrador:** criado na primeira inicialização, com o e-mail de `ADMIN_EMAIL`. Sem `ADMIN_PASSWORD`, uma senha temporária aleatória é impressa uma vez no log do contêiner (`docker logs gerador-one | grep setup`). A troca da senha é exigida no primeiro acesso. Projetos criados antes do login passam para esse administrador.
-- **Usuários:** o administrador cria, edita, ativa/desativa, redefine a senha (temporária, com troca obrigatória) e exclui usuários na página **Usuários**. Sempre sobra ao menos um administrador ativo.
+- **Primeiro administrador:** criado na primeira inicialização, com `ADMIN_NAME`, `ADMIN_EMAIL` e (opcional) `ADMIN_PHONE`. Sem telefone, o app pede para completá-lo em Minha conta. Sem `ADMIN_PASSWORD`, uma senha temporária aleatória é impressa uma vez no log do contêiner (`docker logs gerador-one | grep setup`). A troca da senha é exigida no primeiro acesso. Projetos criados antes do login passam para esse administrador.
+- **Usuários:** cada cadastro tem nome completo, telefone, e-mail e senha temporária (com botão para gerar). O administrador cria, edita, ativa/desativa, redefine a senha (temporária, com troca obrigatória) e exclui usuários na página **Usuários**. Sempre sobra ao menos um administrador ativo.
 - **Recuperar senha por e-mail:** código de 6 dígitos, válido por 10 minutos, com limite de tentativas. Só fica disponível com SMTP configurado; sem SMTP, o administrador redefine a senha.
 - **BYOK:** cada pessoa cadastra a própria chave na página **Minha chave de IA**. A chave é cifrada (AES-256-GCM), nunca volta ao navegador (só os 4 últimos caracteres) e não é visível nem para administradores. Não há chave global do servidor.
 - **Sessão:** cookie `HttpOnly` e `SameSite=Lax`, válido por 7 dias; trocar a senha, mudar o perfil ou desativar a conta encerra as sessões antigas. Login com limite de tentativas por e-mail e por IP.
@@ -109,7 +109,9 @@ Todo o app exige login por e-mail e senha. Cada usuário tem os próprios projet
 Variáveis em um arquivo `.env` ao lado do `compose.yaml` (não versionado):
 
 ```env
+ADMIN_NAME=Seu Nome Completo
 ADMIN_EMAIL=voce@exemplo.com
+# ADMIN_PHONE=35999998888
 # ADMIN_PASSWORD=          opcional; mínimo de 8 caracteres
 # APP_SECRET=              opcional; 32+ caracteres. Sem ele, uma chave é gerada em runtime/secret.key
 # SMTP_HOST=smtp.exemplo.com

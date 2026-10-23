@@ -60,6 +60,21 @@ async function apiFetch(url, options = {}) {
   return response;
 }
 
+function formatPhone(digits = '') {
+  const d = String(digits).replace(/\D/g, '');
+  const local = d.length > 11 && d.startsWith('55') ? d.slice(2) : d;
+  const prefix = local.length !== d.length ? '+55 ' : '';
+  if (local.length === 11) return `${prefix}(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
+  if (local.length === 10) return `${prefix}(${local.slice(0, 2)}) ${local.slice(2, 6)}-${local.slice(6)}`;
+  return d;
+}
+
+function randomPassword(length = 14) {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, byte => alphabet[byte % alphabet.length]).join('');
+}
+
 async function postJson(url, body) {
   const response = await apiFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const data = await response.json().catch(() => ({}));
@@ -1071,6 +1086,11 @@ function startApp(user) {
   updateCompletion();
   updateGenerationMode();
   checkAiAvailability();
+  if (!user.phone) {
+    showView('conta');
+    notify('Informe seu telefone para completar o cadastro');
+    return;
+  }
   showView(location.hash.slice(1));
 }
 
@@ -1152,6 +1172,7 @@ function fillAccount() {
   if (!currentUser) return;
   const profile = document.querySelector('#profile-form');
   profile.name.value = currentUser.name;
+  profile.phone.value = formatPhone(currentUser.phone);
   profile.email.value = currentUser.email;
   document.querySelector('#account-summary').textContent = `${currentUser.role === 'admin' ? 'Administrador' : 'Usuário'} · ${currentUser.email}`;
   document.querySelector('#profile-status').textContent = '';
@@ -1161,9 +1182,11 @@ function fillAccount() {
 document.querySelector('#profile-form').addEventListener('submit', async event => {
   event.preventDefault();
   const status = document.querySelector('#profile-status');
-  const result = await postJson('api/auth/profile', { name: event.currentTarget.name.value });
+  const formEl = event.currentTarget;
+  const result = await postJson('api/auth/profile', { name: formEl.name.value, phone: formEl.phone.value });
   if (!result.ok) { status.textContent = result.data.error || 'Não foi possível salvar.'; return; }
   currentUser = result.data.user;
+  formEl.phone.value = formatPhone(currentUser.phone);
   document.querySelector('#user-name').textContent = currentUser.name;
   status.textContent = 'Perfil salvo.';
   notify('Perfil salvo');
@@ -1190,7 +1213,8 @@ function showTempPassword(name, password) {
   tempBox.hidden = false;
   tempBox.innerHTML = `<p><strong>Senha temporária de ${escapeUi(name)}:</strong></p><code>${escapeUi(password)}</code><p>Copie e entregue com segurança. Ela não será exibida de novo e precisa ser trocada no primeiro acesso.</p><button type="button" class="ghost" id="copy-temp">Copiar senha</button>`;
   tempBox.querySelector('#copy-temp').addEventListener('click', async event => {
-    try { await navigator.clipboard.writeText(password); event.currentTarget.textContent = 'Copiada'; } catch { event.currentTarget.textContent = 'Selecione e copie manualmente'; }
+    const button = event.currentTarget;
+    try { await navigator.clipboard.writeText(password); button.textContent = 'Copiada'; } catch { button.textContent = 'Selecione e copie manualmente'; }
   });
 }
 
@@ -1203,6 +1227,7 @@ async function loadUsers() {
     usersList.innerHTML = data.users.map(user => `<form class="user-card" data-user-id="${escapeUi(user.id)}" novalidate>
       <div class="user-fields">
         <label>Nome<input name="name" value="${escapeUi(user.name)}" maxlength="120" required></label>
+        <label>Telefone<input name="phone" type="tel" value="${escapeUi(formatPhone(user.phone))}" placeholder="(35) 99999-8888" maxlength="22"></label>
         <label>E-mail<input name="email" type="email" value="${escapeUi(user.email)}" required></label>
         <label>Perfil<select name="role"><option value="user"${user.role === 'user' ? ' selected' : ''}>Usuário</option><option value="admin"${user.role === 'admin' ? ' selected' : ''}>Administrador</option></select></label>
         <label class="user-active"><input name="active" type="checkbox"${user.active ? ' checked' : ''}>Ativo</label>
@@ -1220,15 +1245,21 @@ async function loadUsers() {
   }
 }
 
+document.querySelector('#generate-password').addEventListener('click', () => {
+  document.querySelector('#user-create-form').password.value = randomPassword();
+});
+
 document.querySelector('#user-create-form').addEventListener('submit', async event => {
   event.preventDefault();
   const formEl = event.currentTarget;
   const status = document.querySelector('#user-create-status');
-  const body = { name: formEl.name.value, email: formEl.email.value, role: formEl.role.value, password: formEl.password.value || undefined };
+  const body = { name: formEl.name.value, phone: formEl.phone.value, email: formEl.email.value, role: formEl.role.value, password: formEl.password.value };
+  if (!body.name.trim() || !body.phone.trim() || !body.email.trim() || !body.password) { status.textContent = 'Preencha nome, telefone, e-mail e senha.'; return; }
+  if (body.password.length < 8) { status.textContent = 'A senha precisa ter ao menos 8 caracteres.'; return; }
   const result = await postJson('api/users', body);
   if (!result.ok) { status.textContent = result.data.error || 'Não foi possível criar o usuário.'; return; }
-  status.textContent = `Usuário ${result.data.user.email} criado.`;
-  if (result.data.temporaryPassword) showTempPassword(result.data.user.name, result.data.temporaryPassword); else tempBox.hidden = true;
+  status.textContent = `Usuário ${result.data.user.email} criado. Entregue a senha temporária com segurança: ela será trocada no primeiro acesso.`;
+  tempBox.hidden = true;
   formEl.reset();
   loadUsers();
 });
@@ -1237,7 +1268,7 @@ usersList.addEventListener('submit', async event => {
   event.preventDefault();
   const card = event.target.closest('.user-card');
   const status = card.querySelector('.status');
-  const response = await apiFetch(`api/users/${encodeURIComponent(card.dataset.userId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: card.name.value, email: card.email.value, role: card.role.value, active: card.active.checked }) });
+  const response = await apiFetch(`api/users/${encodeURIComponent(card.dataset.userId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: card.name.value, phone: card.phone.value, email: card.email.value, role: card.role.value, active: card.active.checked }) });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { status.textContent = data.error || 'Não foi possível salvar.'; return; }
   status.textContent = 'Salvo.';

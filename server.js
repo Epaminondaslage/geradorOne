@@ -7,7 +7,7 @@ const { promisify } = require('node:util');
 const { URL } = require('node:url');
 const PDFDocument = require('pdfkit');
 const appCrypto = require('./lib/crypto');
-const { createUserStore, publicUser, normalizeEmail } = require('./lib/users');
+const { createUserStore, publicUser, normalizeEmail, normalizePhone } = require('./lib/users');
 const { createProjectStore, validateProject } = require('./lib/projects');
 const { createLimiter } = require('./lib/rate-limit');
 const { createMailer } = require('./lib/mailer');
@@ -139,7 +139,7 @@ async function ensureAdmin() {
   const email = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@geradorone.local');
   const given = process.env.ADMIN_PASSWORD;
   const password = given && given.length >= MIN_PASSWORD ? given : appCrypto.randomPassword();
-  const admin = await userStore.create({ name: 'Administrador', email, role: 'admin', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
+  const admin = await userStore.create({ name: (process.env.ADMIN_NAME || '').trim() || 'Administrador', email, phone: process.env.ADMIN_PHONE || '', role: 'admin', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true, bootstrap: true });
   const adopted = await projectStore.adoptOrphans(admin.id);
   if (adopted) console.log(`[setup] ${adopted} projeto(s) anterior(es) ao login passaram para o administrador.`);
   console.log(`[setup] Administrador criado: ${email}${password === given ? ' (senha definida em ADMIN_PASSWORD)' : ` · senha temporária: ${password}`} — a troca é exigida no primeiro acesso.`);
@@ -446,7 +446,8 @@ async function handleAuthApi(req, res, pathname, user) {
   }
   if (method === 'POST' && pathname === '/api/auth/profile') {
     const body = await readJson(req);
-    const updated = await userStore.update(user.id, { name: body.name, keepSessions: true });
+    if (!normalizePhone(body.phone)) throw fail('Informe o telefone.');
+    const updated = await userStore.update(user.id, { name: body.name, phone: body.phone, keepSessions: true });
     return json(res, 200, { user: publicUser(updated) });
   }
   return false;
@@ -459,17 +460,17 @@ async function handleUsersApi(req, res, pathname, user) {
   if (method === 'GET' && !id) return json(res, 200, { users: (await userStore.list()).map(publicUser) });
   if (method === 'POST' && !id) {
     const body = await readJson(req);
-    const generated = !body.password;
-    const password = generated ? appCrypto.randomPassword() : checkPassword(body.password);
-    const created = await userStore.create({ name: body.name, email: body.email, role: body.role || 'user', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
-    return json(res, 200, { user: publicUser(created), temporaryPassword: generated ? password : undefined });
+    if (!body.password) throw fail('Informe a senha temporária do usuário.');
+    const password = checkPassword(body.password);
+    const created = await userStore.create({ name: body.name, email: body.email, phone: body.phone, role: body.role || 'user', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
+    return json(res, 200, { user: publicUser(created) });
   }
   const target = id ? await userStore.getById(id) : null;
   if (!target) return json(res, 404, { error: 'Usuário não encontrado.' });
   if (method === 'PUT' && !action) {
     const body = await readJson(req);
     const patch = {};
-    ['name', 'email'].forEach(key => { if (body[key] !== undefined) patch[key] = body[key]; });
+    ['name', 'email', 'phone'].forEach(key => { if (body[key] !== undefined) patch[key] = body[key]; });
     const losesAdmin = target.role === 'admin' && target.active && ((body.role !== undefined && body.role !== 'admin') || body.active === false);
     if (target.id === user.id && (body.role !== undefined && body.role !== target.role || body.active === false)) return json(res, 409, { error: 'Você não pode alterar o próprio perfil ou desativar a própria conta.' });
     if (losesAdmin && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'É preciso manter ao menos um administrador ativo.' });

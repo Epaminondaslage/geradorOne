@@ -9,7 +9,9 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3000
+      ADMIN_NAME: ${ADMIN_NAME:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PHONE: ${ADMIN_PHONE:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       APP_SECRET: ${APP_SECRET:-}
       SMTP_HOST: ${SMTP_HOST:-}

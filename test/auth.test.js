@@ -8,6 +8,7 @@ const runtime = fs.mkdtempSync(path.join(os.tmpdir(), 'g1-auth-'));
 process.env.RUNTIME_DIR = runtime;
 process.env.ADMIN_EMAIL = 'admin@teste.com';
 process.env.ADMIN_PASSWORD = 'AdminSenha1';
+process.env.ADMIN_NAME = 'Administrador do Teste';
 const app = require('../server');
 
 let base;
@@ -84,14 +85,22 @@ test('primeiro acesso: troca de senha é obrigatória antes de usar o app', asyn
 
 test('admin gerencia usuários; usuário comum não', async () => {
   const admin = await loginAs('admin@teste.com', 'NovaSenha12');
-  const created = await admin('POST', '/api/users', { name: 'Ana', email: 'ana@teste.com', role: 'user' });
+  const base = { name: 'Ana', email: 'ana@teste.com', phone: '(35) 99999-8888', role: 'user', password: 'TempDaAna123' };
+  assert.equal((await admin('POST', '/api/users', { ...base, password: undefined })).status, 400);
+  assert.equal((await admin('POST', '/api/users', { ...base, password: 'curta' })).status, 400);
+  assert.equal((await admin('POST', '/api/users', { ...base, phone: undefined })).status, 400);
+  assert.equal((await admin('POST', '/api/users', { ...base, phone: '12345' })).status, 400);
+  assert.equal((await admin('POST', '/api/users', { ...base, name: '' })).status, 400);
+  assert.equal((await admin('POST', '/api/users', { ...base, email: 'sem-arroba' })).status, 400);
+  const created = await admin('POST', '/api/users', base);
   assert.equal(created.status, 200);
-  assert.equal(created.data.temporaryPassword.length, 16);
-  assert.equal((await admin('POST', '/api/users', { name: 'Ana 2', email: 'ANA@teste.com', role: 'user' })).status, 409);
+  assert.equal(created.data.user.phone, '35999998888');
+  assert.equal(created.data.temporaryPassword, undefined);
+  assert.equal((await admin('POST', '/api/users', { ...base, email: 'ANA@teste.com' })).status, 409);
   const ana = client();
-  assert.equal((await ana('POST', '/api/auth/login', { email: 'ana@teste.com', password: created.data.temporaryPassword })).status, 200);
+  assert.equal((await ana('POST', '/api/auth/login', { email: 'ana@teste.com', password: 'TempDaAna123' })).status, 200);
   assert.equal((await ana('GET', '/api/projects')).status, 403);
-  assert.equal((await ana('POST', '/api/auth/change-password', { current: created.data.temporaryPassword, password: 'SenhaDaAna12' })).status, 200);
+  assert.equal((await ana('POST', '/api/auth/change-password', { current: 'TempDaAna123', password: 'SenhaDaAna12' })).status, 200);
   assert.equal((await ana('GET', '/api/users')).status, 403);
   assert.equal((await ana('POST', '/api/users', { name: 'X', email: 'x@teste.com' })).status, 403);
 
@@ -120,7 +129,7 @@ test('desativar ou redefinir a senha derruba as sessões do usuário', async () 
 
 test('projetos e chaves de API são isolados por usuário', async () => {
   const admin = await loginAs('admin@teste.com', 'NovaSenha12');
-  const created = await admin('POST', '/api/users', { name: 'Bia', email: 'bia@teste.com', role: 'user', password: 'SenhaDaBia12' });
+  const created = await admin('POST', '/api/users', { name: 'Bia', email: 'bia@teste.com', phone: '11 98888-7777', role: 'user', password: 'SenhaDaBia12' });
   assert.equal(created.status, 200);
   assert.equal(created.data.temporaryPassword, undefined);
   const bia = client();
@@ -215,6 +224,30 @@ test('chave mestra fica fora do repositório e com permissão restrita', () => {
   const mode = fs.statSync(path.join(runtime, 'secret.key')).mode & 0o777;
   assert.equal(mode, 0o600);
   assert.equal(fs.statSync(path.join(runtime, 'users.json')).mode & 0o777, 0o600);
+});
+
+test('perfil exige telefone válido e o admin edita o telefone de outros usuários', async () => {
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  const ana = await loginAs('ana@teste.com', 'OutraSenha123');
+  assert.equal((await ana('POST', '/api/auth/profile', { name: 'Ana Souza', phone: '' })).status, 400);
+  assert.equal((await ana('POST', '/api/auth/profile', { name: 'Ana Souza', phone: '123' })).status, 400);
+  const saved = await ana('POST', '/api/auth/profile', { name: 'Ana Souza', phone: '+55 (35) 3333-4444' });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.data.user.phone, '553533334444');
+  assert.equal(saved.data.user.name, 'Ana Souza');
+  const anaId = (await admin('GET', '/api/users')).data.users.find(user => user.email === 'ana@teste.com').id;
+  assert.equal((await admin('PUT', `/api/users/${anaId}`, { phone: '' })).status, 400);
+  assert.equal((await admin('PUT', `/api/users/${anaId}`, { phone: '35 98888-1111' })).data.user.phone, '35988881111');
+  assert.equal((await ana('GET', '/api/projects')).status, 200);
+});
+
+test('administrador inicial nasce sem telefone e é obrigado a informá-lo no perfil', async () => {
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  const me = (await admin('GET', '/api/auth/me')).data.user;
+  assert.equal(me.name, 'Administrador do Teste');
+  assert.equal(me.phone, '');
+  assert.equal((await admin('POST', '/api/auth/profile', { name: me.name })).status, 400);
+  assert.equal((await admin('POST', '/api/auth/profile', { name: 'Fulano', phone: '(35) 99999-0000' })).data.user.phone, '35999990000');
 });
 
 test('script de emergência redefine a senha e exige troca', async () => {
