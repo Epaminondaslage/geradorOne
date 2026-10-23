@@ -229,6 +229,12 @@ function applyData(target, data) {
       fields.checked = Boolean(value);
     } else if (typeof value === 'string') {
       fields.value = value;
+      // Projetos salvos antes de 23/10/2026 guardam "Intensa — 4 ou mais por seção": escolhe a opção que começa com a mesma palavra.
+      if (fields.tagName === 'SELECT' && fields.selectedIndex === -1 && name === 'frequencia') {
+        const first = value.split(/\s/)[0];
+        const match = [...fields.options].find(option => option.value.startsWith(first));
+        if (match) fields.value = match.value;
+      }
     }
   });
   updateCompletion();
