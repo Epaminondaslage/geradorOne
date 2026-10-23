@@ -27,6 +27,7 @@ O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produ
 - Paleta visual configurada separadamente do estilo das ilustrações.
 - Formatos para tela, impressão A4 e apresentação 16:9.
 - Seis temas de cores (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste), com detecção do sistema e preferência persistente. Veja [docs/DESIGN.md](docs/DESIGN.md).
+- Logotipo vetorial animado: os pictogramas dos recursos visuais alternam com fade e acompanham as cores do tema; com redução de movimento, o símbolo permanece estático.
 - Interface responsiva para computadores, tablets e celulares.
 - Linha de progresso numerada que avança entre configuração, revisão e exportação.
 

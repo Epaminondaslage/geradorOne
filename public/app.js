@@ -92,6 +92,37 @@ const visualSamples = {
 };
 resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><span class="resource-text"><strong>${title}</strong><small>${description}</small></span></label></div>`));
 
+// Reaproveita os SVGs dos recursos visuais dentro do cérebro da marca.
+// O contorno permanece fixo; somente o pictograma troca com fade suave.
+const logoResourceSequence = ['infograficos', 'diagramas', 'ilustracoes', 'graficos', 'quadros', 'linhas', 'mapasMentais', 'icones'];
+const animatedLogos = [...document.querySelectorAll('.logo')].map(logo => {
+  const glyph = document.createElement('span');
+  glyph.className = 'logo-glyph';
+  glyph.setAttribute('aria-hidden', 'true');
+  logo.append(glyph);
+  return { logo, glyph };
+});
+let logoResourceIndex = 0;
+
+function renderLogoGlyph(index) {
+  const svg = visualSamples[logoResourceSequence[index]];
+  animatedLogos.forEach(({ glyph }) => { glyph.innerHTML = svg; });
+}
+
+renderLogoGlyph(logoResourceIndex);
+const reducedLogoMotion = matchMedia('(prefers-reduced-motion: reduce)');
+if (!reducedLogoMotion.matches) {
+  setInterval(() => {
+    if (document.hidden) return;
+    animatedLogos.forEach(({ logo }) => logo.classList.add('is-changing'));
+    setTimeout(() => {
+      logoResourceIndex = (logoResourceIndex + 1) % logoResourceSequence.length;
+      renderLogoGlyph(logoResourceIndex);
+      requestAnimationFrame(() => animatedLogos.forEach(({ logo }) => logo.classList.remove('is-changing')));
+    }, 320);
+  }, 2200);
+}
+
 const form = document.querySelector('#formulario');
 const capaForm = document.querySelector('#form-capa');
 const output = document.querySelector('#prompt-output');
