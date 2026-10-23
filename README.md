@@ -120,6 +120,7 @@ ADMIN_EMAIL=voce@exemplo.com
 # ADMIN_PHONE=35999998888
 # ADMIN_PASSWORD=          opcional; mínimo de 8 caracteres
 APP_SECRET=                # recomendado; 32+ caracteres (gere com: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+POSTGRES_PASSWORD=         # obrigatória; gere com: node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 # SMTP_HOST=smtp.exemplo.com
 # SMTP_PORT=587
 # SMTP_SECURE=false        true para TLS direto (porta 465)
@@ -131,7 +132,14 @@ APP_SECRET=                # recomendado; 32+ caracteres (gere com: node -e "con
 
 Para conferir o SMTP sem esperar um pedido de recuperação, envie um e-mail de teste: `docker exec gerador-one node scripts/test-smtp.js destino@exemplo.com`.
 
-Os dados ficam em `runtime/` (volume do contêiner, fora do Git): `users.json` e `projects.json`. A chave mestra, que cifra as chaves de IA e assina as sessões, deve ficar em `APP_SECRET` no `.env`, **fora** da pasta `runtime/`: assim uma cópia dos dados não leva a chave junto. Faça o backup do `.env` separado do backup de `runtime/`. Sem `APP_SECRET`, o app gera `runtime/secret.key` como alternativa (menos seguro, pois fica ao lado dos dados). Perder a chave mestra torna as chaves de IA salvas ilegíveis e encerra todas as sessões; cada pessoa precisa cadastrar a sua chave de novo. Por isso o app **recusa iniciar** se a chave mestra for diferente da usada antes (por exemplo, `.env` apagado ou `APP_SECRET` trocado): ele guarda só uma impressão digital da chave em `runtime/secret.check` e mostra o motivo no log do contêiner. Restaure o `APP_SECRET` original; para aceitar uma chave nova de propósito, inicie uma vez com `ALLOW_NEW_SECRET=true` e depois remova a variável.
+## Banco de dados (Postgres)
+
+Usuários e projetos ficam em um Postgres 17 (serviço `db` no `compose.yaml`), com volume nomeado `pgdata`. O banco só existe na rede interna do Docker: não publica porta no servidor. A conexão usa `DATABASE_URL`, montada a partir de `POSTGRES_PASSWORD` (obrigatória no `.env`; sem ela o `docker compose` recusa subir).
+
+- **Esquema:** criado e atualizado sozinho na inicialização (migrações versionadas em `lib/db.js`, com trava para não rodarem em duplicidade). Excluir um usuário apaga os projetos dele na mesma transação.
+- **Dados antigos:** se existirem `runtime/users.json` e `runtime/projects.json` e o banco estiver vazio, são importados uma única vez e renomeados para `*.migrado-AAAAMMDD` (nada é apagado).
+- **Backup:** `scripts/backup-db.sh` gera `backups/geradorone-AAAAMMDD-HHMM.sql.gz` (permissão 600, rotação de 14 dias). Agende no cron, por exemplo `0 3 * * * /opt/geradorOne/scripts/backup-db.sh`. Restaurar: `zcat backups/ARQUIVO.sql.gz | docker exec -i gerador-one-db psql -U geradorone geradorone` (em um banco vazio).
+- **Chave mestra:** `APP_SECRET` fica no `.env`, **fora** do banco e de `runtime/`. O app **recusa iniciar** se a chave for diferente da usada antes (`.env` apagado ou `APP_SECRET` trocado), pois as chaves de IA salvas ficariam ilegíveis e as sessões cairiam: ele guarda só uma impressão digital em `runtime/secret.check` e explica o motivo no log do contêiner. Para aceitar uma chave nova de propósito, inicie uma vez com `ALLOW_NEW_SECRET=true` e depois remova a variável. Sem `APP_SECRET`, o app gera `runtime/secret.key` (alternativa menos segura). Guarde o backup do `.env` separado do backup do banco: o banco sozinho não revela as chaves de IA cifradas.
 
 ## Implantação atual
 
@@ -149,15 +157,15 @@ Os dados ficam em `runtime/` (volume do contêiner, fora do Git): `users.json` e
 ├── compose.yaml
 ├── package.json
 ├── server.js
-├── lib/                 # criptografia, usuários, projetos, limitador e e-mail
+├── lib/                 # banco (Postgres), usuários, projetos, criptografia, limitador e e-mail
+├── scripts/             # reset de senha, teste de SMTP, backup do banco, executor de testes
 ├── docs/branding/       # foto original do logotipo
 ├── public/
 │   ├── index.html
 │   ├── app.js
 │   ├── styles.css
 │   └── theme.css
-└── test/
-    └── server.test.js
+└── test/                # rodam contra um Postgres descartável (npm test)
 ```
 
 ## Limitações e próximas integrações

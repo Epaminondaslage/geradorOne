@@ -10,6 +10,8 @@ const appCrypto = require('./lib/crypto');
 const { createUserStore, publicUser, normalizeEmail, normalizePhone } = require('./lib/users');
 const { createProjectStore, validateProject } = require('./lib/projects');
 const { createLimiter } = require('./lib/rate-limit');
+const { createDb } = require('./lib/db');
+const { importLegacyJson } = require('./lib/legacy-import');
 const { createMailer } = require('./lib/mailer');
 const { checkMasterSecret } = require('./lib/secret-check');
 
@@ -68,8 +70,9 @@ const masterSecret = appCrypto.loadMasterSecret(RUNTIME_DIR);
 const sessionKey = appCrypto.deriveKey(masterSecret, 'session');
 const keyEncKey = appCrypto.deriveKey(masterSecret, 'byok');
 const resetKey = appCrypto.deriveKey(masterSecret, 'reset');
-const userStore = createUserStore(path.join(RUNTIME_DIR, 'users.json'));
-const projectStore = createProjectStore(path.join(RUNTIME_DIR, 'projects.json'));
+const db = createDb(process.env.DATABASE_URL);
+const userStore = createUserStore(db);
+const projectStore = createProjectStore(db);
 const mailer = createMailer({ host: process.env.SMTP_HOST, port: process.env.SMTP_PORT, secure: process.env.SMTP_SECURE, requireTLS: process.env.SMTP_REQUIRE_TLS, user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, from: process.env.SMTP_FROM });
 const loginLimiter = createLimiter({ max: 8, windowMs: 15 * 60_000 });
 const resetLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
@@ -135,14 +138,18 @@ async function readJson(req) {
   }
 }
 
+async function prepare() {
+  const applied = await db.migrate();
+  if (applied.length) console.log(`[db] migrações aplicadas: ${applied.join(', ')}`);
+  await importLegacyJson(db, RUNTIME_DIR);
+}
+
 async function ensureAdmin() {
   if (await userStore.count()) return null;
   const email = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@geradorone.local');
   const given = process.env.ADMIN_PASSWORD;
   const password = given && given.length >= MIN_PASSWORD ? given : appCrypto.randomPassword();
   const admin = await userStore.create({ name: (process.env.ADMIN_NAME || '').trim() || 'Administrador', email, phone: process.env.ADMIN_PHONE || '', role: 'admin', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true, bootstrap: true });
-  const adopted = await projectStore.adoptOrphans(admin.id);
-  if (adopted) console.log(`[setup] ${adopted} projeto(s) anterior(es) ao login passaram para o administrador.`);
   console.log(`[setup] Administrador criado: ${email}${password === given ? ' (senha definida em ADMIN_PASSWORD)' : ` · senha temporária: ${password}`} — a troca é exigida no primeiro acesso.`);
   return { email, password };
 }
@@ -489,8 +496,8 @@ async function handleUsersApi(req, res, pathname, user) {
   if (method === 'DELETE' && !action) {
     if (target.id === user.id) return json(res, 409, { error: 'Você não pode excluir a própria conta.' });
     if (target.role === 'admin' && target.active && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'É preciso manter ao menos um administrador ativo.' });
+    const removedProjects = await projectStore.countFor(target.id);
     await userStore.remove(target.id);
-    const removedProjects = await projectStore.removeAllFrom(target.id);
     return json(res, 200, { ok: true, removedProjects });
   }
   return json(res, 405, { error: 'Método não permitido.' });
@@ -498,7 +505,10 @@ async function handleUsersApi(req, res, pathname, user) {
 
 async function handleApi(req, res, pathname) {
   try {
-    if (req.method === 'GET' && pathname === '/api/health') return json(res, 200, { ok: true, service: 'gerador-one' });
+    if (req.method === 'GET' && pathname === '/api/health') {
+      try { await db.ping(); } catch { return json(res, 503, { ok: false, service: 'gerador-one', db: false }); }
+      return json(res, 200, { ok: true, service: 'gerador-one', db: true });
+    }
     if (req.method !== 'GET' && !sameOrigin(req)) return json(res, 403, { error: 'Origem não permitida.' });
     const isPublicAuth = ['/api/auth/login', '/api/auth/logout', '/api/auth/config', '/api/auth/forgot', '/api/auth/confirm'].includes(pathname);
     if (isPublicAuth) return await handleAuthApi(req, res, pathname, null);
@@ -641,12 +651,17 @@ const server = http.createServer(async (req, res) => {
 if (require.main === module) {
   Promise.resolve()
     .then(() => {
+      if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL não definida. Configure a conexão com o Postgres (veja o compose.yaml e o README).');
       const outcome = checkMasterSecret(RUNTIME_DIR, masterSecret, { allowNew: process.env.ALLOW_NEW_SECRET === 'true' });
       if (outcome === 'replaced') console.warn('[aviso] Chave mestra nova aceita (ALLOW_NEW_SECRET=true). Chaves de IA antigas ficaram ilegíveis e as sessões foram encerradas; remova ALLOW_NEW_SECRET do .env.');
     })
+    .then(prepare)
     .then(ensureAdmin)
     .then(() => server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`)))
     .catch(error => { console.error(`[erro] ${error.message}`); process.exit(1); });
+  const shutdown = () => { server.close(() => db.close().finally(() => process.exit(0))); setTimeout(() => process.exit(0), 5000).unref(); };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
-module.exports = { server, ensureAdmin, userStore, projectStore, mailer, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, createProjectStore, validateProject };
+module.exports = { server, prepare, ensureAdmin, db, userStore, projectStore, mailer, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, createProjectStore, validateProject };

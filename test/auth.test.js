@@ -9,11 +9,17 @@ process.env.RUNTIME_DIR = runtime;
 process.env.ADMIN_EMAIL = 'admin@teste.com';
 process.env.ADMIN_PASSWORD = 'AdminSenha1';
 process.env.ADMIN_NAME = 'Administrador do Teste';
-const app = require('../server');
+const { createTestDatabase } = require('./helpers/db');
 
+let app;
+let testDb;
 let base;
 const sent = [];
 test.before(async () => {
+  testDb = await createTestDatabase();
+  process.env.DATABASE_URL = testDb.url;
+  app = require('../server');
+  await app.prepare();
   app.mailer.setTransport({ sendMail: async message => { sent.push(message); } });
   await app.ensureAdmin();
   await new Promise(resolve => app.server.listen(0, '127.0.0.1', resolve));
@@ -21,6 +27,8 @@ test.before(async () => {
 });
 test.after(async () => {
   await new Promise(resolve => app.server.close(resolve));
+  await app.db.close();
+  await testDb.drop();
   fs.rmSync(runtime, { recursive: true, force: true });
 });
 
@@ -155,8 +163,9 @@ test('projetos e chaves de API são isolados por usuário', async () => {
   assert.equal((await admin('GET', '/api/ai/status')).data.available, true);
   assert.equal((await bia('POST', '/api/improve', { prompt: 'x', adjustments: ['y'] })).status, 503);
 
-  const onDisk = fs.readFileSync(path.join(runtime, 'users.json'), 'utf8');
-  assert.equal(onDisk.includes(secret), false);
+  const stored = JSON.stringify((await app.db.query('SELECT ai FROM users')).rows);
+  assert.equal(stored.includes(secret), false);
+  assert.match(stored, /"keyEnc":"v1\./);
   assert.equal((await admin('POST', '/api/ai/config', { apiKey: 'curta' })).status, 400);
   assert.equal((await admin('POST', '/api/ai/config', { apiKey: 'tem espaco e\nnova linha' })).status, 400);
   assert.equal((await admin('POST', '/api/ai/config', { clearApiKey: true })).data.hasApiKey, false);
@@ -220,9 +229,19 @@ test('sessão adulterada é rejeitada', async () => {
   assert.equal(response.status, 401);
 });
 
-test('dados ficam com permissão restrita, e a chave mestra também quando está em arquivo', () => {
-  assert.equal(fs.statSync(path.join(runtime, 'users.json')).mode & 0o777, 0o600);
+test('a chave mestra, quando fica em arquivo, tem permissão restrita', () => {
   if (!process.env.APP_SECRET) assert.equal(fs.statSync(path.join(runtime, 'secret.key')).mode & 0o777, 0o600);
+});
+
+test('a saúde do serviço inclui o banco e a senha do banco não aparece em nenhuma resposta', async () => {
+  const anon = client();
+  const health = await anon('GET', '/api/health');
+  assert.deepEqual(health.data, { ok: true, service: 'gerador-one', db: true });
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  const everything = JSON.stringify([(await admin('GET', '/api/auth/me')).data, (await admin('GET', '/api/users')).data]);
+  assert.equal(everything.includes(new URL(testDb.url).password), false);
+  assert.equal(everything.includes('passwordHash'), false);
+  assert.equal(everything.includes('password_hash'), false);
 });
 
 test('perfil exige telefone válido e o admin edita o telefone de outros usuários', async () => {
@@ -251,7 +270,7 @@ test('administrador inicial nasce sem telefone e é obrigado a informá-lo no pe
 
 test('script de emergência redefine a senha e exige troca', async () => {
   const { execFileSync } = require('node:child_process');
-  const output = execFileSync('node', [path.join(__dirname, '..', 'scripts', 'reset-password.js'), 'ADMIN@teste.com'], { env: { ...process.env, RUNTIME_DIR: runtime } }).toString();
+  const output = execFileSync('node', [path.join(__dirname, '..', 'scripts', 'reset-password.js'), 'ADMIN@teste.com'], { env: { ...process.env, RUNTIME_DIR: runtime, DATABASE_URL: testDb.url } }).toString();
   const password = /: (\S+)\s*$/.exec(output)[1];
   const call = client();
   const login = await call('POST', '/api/auth/login', { email: 'admin@teste.com', password });

@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { checkMasterSecret } = require('../lib/secret-check');
+const { createTestDatabase } = require('./helpers/db');
 
 const A = Buffer.alloc(48, 1);
 const B = Buffer.alloc(48, 2);
@@ -22,7 +23,7 @@ test('primeira execução grava a impressão digital; mesma chave passa; outra c
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-function run(env) {
+function runServer(env) {
   return new Promise(resolve => {
     const child = spawn('node', [path.join(__dirname, '..', 'server.js')], { env: { ...process.env, HOST: '127.0.0.1', PORT: '0', ADMIN_EMAIL: 'a@teste.com', ADMIN_PASSWORD: 'AdminSenha1', ALLOW_NEW_SECRET: '', APP_SECRET: '', ...env } });
     let out = '';
@@ -36,6 +37,8 @@ function run(env) {
 
 test('o servidor recusa subir com a chave mestra errada ou ausente, e sobe com a original', async () => {
   const runtime = fs.mkdtempSync(path.join(os.tmpdir(), 'g1-boot-'));
+  const testDb = await createTestDatabase();
+  const run = (env) => runServer({ DATABASE_URL: testDb.url, ...env });
   const original = 'a'.repeat(40);
   const first = await run({ RUNTIME_DIR: runtime, APP_SECRET: original });
   assert.equal(first.listening, true, first.out);
@@ -52,4 +55,5 @@ test('o servidor recusa subir com a chave mestra errada ou ausente, e sobe com a
   assert.equal(accepted.listening, true, accepted.out);
   assert.match(accepted.out, /Chave mestra nova aceita/);
   fs.rmSync(runtime, { recursive: true, force: true });
+  await testDb.drop();
 });

@@ -9,6 +9,7 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3000
+      DATABASE_URL: postgres://geradorone:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/geradorone
       ADMIN_NAME: ${ADMIN_NAME:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PHONE: ${ADMIN_PHONE:-}
@@ -22,6 +23,9 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8123:3000"
     volumes:
@@ -41,6 +45,7 @@ services:
       start_period: 5s
     networks:
       - coolify
+      - internal
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=coolify"
@@ -52,6 +57,32 @@ services:
       - "traefik.http.middlewares.geradorone-strip.stripprefix.prefixes=/geradorone"
       - "traefik.http.services.geradorone.loadbalancer.server.port=3000"
 
+  db:
+    image: postgres:17-alpine
+    container_name: gerador-one-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: geradorone
+      POSTGRES_DB: geradorone
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geradorone -d geradorone"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+
+volumes:
+  pgdata:
+
 networks:
   coolify:
     external: true
+  internal:
+    internal: true

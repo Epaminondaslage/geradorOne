@@ -5,7 +5,7 @@ process.env.RUNTIME_DIR = _fs.mkdtempSync(_path.join(_os.tmpdir(), 'g1-server-te
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, embedImages } = require('../server');
-const { createProjectStore, validateProject } = require('../lib/projects');
+const { validateProject } = require('../lib/projects');
 
 test('escapa HTML não confiável', () => {
   assert.equal(escapeHtml('<script>"x"</script>'), '&lt;script&gt;&quot;x&quot;&lt;/script&gt;');
@@ -47,33 +47,6 @@ test('limpa o prompt melhorado pela IA', () => {
   assert.throws(() => cleanImprovedPrompt('   '), /não devolveu um prompt/);
 });
 
-test('salva, lista, atualiza e exclui projetos por dono', async () => {
-  const fs = require('node:fs');
-  const os = require('node:os');
-  const path = require('node:path');
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'g1-projects-'));
-  const store = createProjectStore(path.join(dir, 'projects.json'));
-  const created = await store.save('u1', { name: 'Lei de Ohm', kind: 'apostila', settings: { assunto: 'Lei de Ohm' }, prompt: 'P1' });
-  assert.match(created.id, /^[0-9a-f-]{36}$/);
-  const updated = await store.save('u1', { id: created.id, name: 'Lei de Ohm v2', kind: 'apostila', settings: {}, prompt: 'P2' });
-  assert.equal(updated.createdAt, created.createdAt);
-  const list = await store.list('u1');
-  assert.equal(list.length, 1);
-  assert.equal(list[0].name, 'Lei de Ohm v2');
-  assert.equal(list[0].prompt, undefined);
-  assert.equal((await store.get('u1', created.id)).prompt, 'P2');
-  assert.equal(await store.get('u2', created.id), null);
-  assert.deepEqual(await store.list('u2'), []);
-  assert.equal(await store.remove('u2', created.id), false);
-  const hijack = await store.save('u2', { id: created.id, name: 'Roubado', kind: 'apostila', settings: {}, prompt: 'X' });
-  assert.notEqual(hijack.id, created.id);
-  assert.equal((await store.get('u1', created.id)).name, 'Lei de Ohm v2');
-  assert.equal(await store.remove('u1', created.id), true);
-  assert.equal(await store.removeAllFrom('u2'), 1);
-  assert.deepEqual(await store.list('u1'), []);
-  fs.rmSync(dir, { recursive: true, force: true });
-});
-
 test('valida projetos recebidos', () => {
   assert.throws(() => validateProject({ name: '', kind: 'apostila', settings: {} }), /nome/);
   assert.throws(() => validateProject({ name: 'X', kind: 'outro', settings: {} }), /Tipo/);
@@ -81,19 +54,4 @@ test('valida projetos recebidos', () => {
   assert.equal(clean.id, undefined);
   assert.equal(clean.name, 'Capa');
   assert.deepEqual(clean.settings, { titulo: 'A' });
-});
-
-test('projetos criados antes do login passam para o primeiro administrador', async () => {
-  const fs = require('node:fs');
-  const os = require('node:os');
-  const path = require('node:path');
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'g1-orphans-'));
-  const file = path.join(dir, 'projects.json');
-  fs.writeFileSync(file, JSON.stringify([{ id: '11111111-1111-1111-1111-111111111111', name: 'Antigo', kind: 'capa', settings: {}, prompt: 'P', createdAt: 'a', updatedAt: 'a' }]));
-  const store = createProjectStore(file);
-  assert.deepEqual(await store.list('admin'), []);
-  assert.equal(await store.adoptOrphans('admin'), 1);
-  assert.equal((await store.list('admin'))[0].name, 'Antigo');
-  assert.equal(await store.adoptOrphans('outro'), 0);
-  fs.rmSync(dir, { recursive: true, force: true });
 });

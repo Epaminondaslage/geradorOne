@@ -5,13 +5,15 @@
   "description": "Gerador de prompts pedagógicos e base para renderização HTML/PDF.",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/*.test.js"
+    "test": "node scripts/run-tests.js",
+    "test:node": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "nodemailer": "10.2.1",
-    "pdfkit": "^0.17.2"
+    "pdfkit": "^0.17.2",
+    "pg": "8.23.1"
   }
 }
