@@ -56,7 +56,7 @@ graph TB
 │   ├── legacy-import.js      # importa os JSONs antigos uma única vez
 │   ├── crypto.js             # scrypt, AES-256-GCM, HKDF, token de sessão, códigos
 │   ├── secret-check.js       # impressão digital da chave mestra (recusa iniciar se mudar)
-│   ├── mailer.js             # nodemailer: códigos de recuperação de senha e de cadastro
+│   ├── mailer.js             # nodemailer: códigos de recuperação de senha e de cadastro; setConfig troca o SMTP sem reiniciar
 │   └── rate-limit.js         # limitador em memória (janela deslizante)
 ├── scripts/
 │   ├── reset-password.js     # senha temporária de emergência (docker exec)
@@ -110,6 +110,8 @@ graph TB
 | POST | `/api/auth/confirm` | público | Confere o código (5 tentativas, 10 min) e aplica a senha |
 | POST | `/api/auth/signup` | público | Autocadastro: valida nome, e-mail e senha, guarda o pedido na memória e envia código de 6 dígitos; resposta sempre genérica (e-mail já cadastrado não recebe código); 503 sem SMTP |
 | POST | `/api/auth/signup/confirm` | público | Confere o código (5 tentativas, 10 min), cria o usuário com perfil `user` sem troca obrigatória de senha e abre a sessão |
+| GET/PUT/DELETE | `/api/settings/smtp` | admin | Ler, salvar (senha cifrada com a chave BYOK; em branco mantém a atual) e remover a configuração de SMTP do painel; vale na hora e tem prioridade sobre o `.env`; DELETE volta ao `.env` |
+| POST | `/api/settings/smtp/test` | admin | Verifica a conexão e envia e-mail de teste |
 | GET | `/api/auth/me` | sessão | Usuário atual |
 | POST | `/api/auth/change-password` | sessão | Troca a senha e emite sessão nova |
 | POST | `/api/auth/profile` | sessão | Nome e telefone (telefone obrigatório) |

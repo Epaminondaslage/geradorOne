@@ -132,6 +132,8 @@ POSTGRES_PASSWORD=         # obrigatória; gere com: node -e "console.log(requir
 # SMTP_FROM="GeradorOne <no-reply@exemplo.com>"
 ```
 
+O administrador também pode configurar o SMTP na tela **E-mail (SMTP)** do menu, com botão de teste. O que for salvo ali tem prioridade sobre o `.env`; **Voltar ao .env** remove a configuração do painel. A senha fica cifrada no banco.
+
 Para conferir o SMTP sem esperar um pedido de recuperação, envie um e-mail de teste: `docker exec gerador-one node scripts/test-smtp.js destino@exemplo.com`.
 
 ## Banco de dados (Postgres)

@@ -263,6 +263,36 @@ test('autocadastro: código trava após 5 tentativas erradas', async () => {
   assert.equal((await anon('POST', '/api/auth/login', { email: 'trava@teste.com', password: 'SenhaNova123' })).status, 401);
 });
 
+test('configuração de SMTP: só administrador, senha cifrada e aplicada na hora', async () => {
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  const ana = await loginAs('ana@teste.com', 'OutraSenha123');
+  assert.equal((await ana('GET', '/api/settings/smtp')).status, 403);
+  assert.equal((await ana('PUT', '/api/settings/smtp', { host: 'x.com', port: 587, from: 'a@b.com' })).status, 403);
+  assert.equal((await client()('GET', '/api/settings/smtp')).status, 401);
+  assert.equal((await admin('PUT', '/api/settings/smtp', { host: '', port: 587, from: 'GeradorOne <a@b.com>' })).status, 400);
+  assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 99999, from: 'GeradorOne <a@b.com>' })).status, 400);
+  assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, from: 'sem-email' })).status, 400);
+  assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, from: 'GeradorOne <a@b.com>', user: 'a@b.com' })).status, 400);
+  const saved = await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, requireTLS: true, user: 'a@b.com', pass: 'SenhaSecreta1', from: 'GeradorOne <a@b.com>' });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.data.source, 'painel');
+  assert.equal(saved.data.hasPass, true);
+  assert.ok(!JSON.stringify(saved.data).includes('SenhaSecreta1'));
+  const stored = (await app.db.query("SELECT value FROM settings WHERE key = 'smtp'")).rows[0].value;
+  assert.ok(stored.passEnc && !JSON.stringify(stored).includes('SenhaSecreta1'));
+  const kept = await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, requireTLS: true, user: 'a@b.com', pass: '', from: 'GeradorOne <a@b.com>' });
+  assert.equal(kept.data.hasPass, true);
+  sent.length = 0;
+  const tested = await admin('POST', '/api/settings/smtp/test', { to: 'destino@teste.com' });
+  assert.equal(tested.status, 200);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].to, 'destino@teste.com');
+  assert.equal((await admin('POST', '/api/settings/smtp/test', { to: 'invalido' })).status, 400);
+  const back = await admin('DELETE', '/api/settings/smtp');
+  assert.equal(back.status, 200);
+  assert.notEqual(back.data.source, 'painel');
+});
+
 test('rejeita requisições de outra origem e corpo inválido', async () => {
   const admin = await loginAs('admin@teste.com', 'NovaSenha12');
   const cross = await admin('POST', '/api/projects', { name: 'x', kind: 'capa', settings: {} }, { Origin: 'http://evil.example' });

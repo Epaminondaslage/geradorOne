@@ -1199,10 +1199,10 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios', 'smtp'];
 
 function showView(name) {
-  if (!VIEWS.includes(name) || (name === 'usuarios' && currentUser?.role !== 'admin')) name = 'inicio';
+  if (!VIEWS.includes(name) || (['usuarios', 'smtp'].includes(name) && currentUser?.role !== 'admin')) name = 'inicio';
   workspace.dataset.view = name;
   document.querySelector('#crumbs').hidden = name !== 'apostila' && name !== 'capa';
   document.querySelector('#mobile-steps').hidden = name !== 'apostila' && name !== 'capa';
@@ -1216,6 +1216,7 @@ function showView(name) {
   if (name === 'conta') fillAccount();
   if (name === 'tema') renderThemeView();
   if (name === 'usuarios') loadUsers();
+  if (name === 'smtp') loadSmtp();
   setMobileMenu(false);
   try { history.replaceState(null, '', `#${name}`); } catch {}
   window.scrollTo({ top: 0 });
@@ -1300,6 +1301,78 @@ document.querySelector('#login-form').addEventListener('submit', async event => 
     }
   } finally {
     submit.disabled = false;
+  }
+});
+
+const smtpForm = document.querySelector('#smtp-form');
+const smtpCurrent = document.querySelector('#smtp-current');
+const smtpStatus = document.querySelector('#smtp-status');
+const SMTP_SOURCES = { painel: 'salvo neste painel', env: 'vindo do arquivo .env', nenhum: 'não configurado' };
+
+async function smtpRequest(method, url, body) {
+  const response = await apiFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Não foi possível concluir.');
+  return data;
+}
+
+function fillSmtp(data) {
+  smtpForm.host.value = data.host || '';
+  smtpForm.port.value = data.port || 587;
+  smtpForm.mode.value = data.secure ? 'tls' : data.requireTLS ? 'starttls' : 'none';
+  smtpForm.user.value = data.user || '';
+  smtpForm.pass.value = '';
+  smtpForm.from.value = data.from || '';
+  smtpCurrent.textContent = data.enabled ? `Envio de e-mail ativo · configuração ${SMTP_SOURCES[data.source]}${data.hasPass ? ' · senha salva' : ''}` : 'Envio de e-mail desligado: sem ele, "Criar conta" e "Esqueci a senha" ficam escondidos.';
+  smtpCurrent.className = `field-status ${data.enabled ? 'available' : 'unavailable'}`;
+}
+
+async function loadSmtp() {
+  smtpStatus.textContent = '';
+  try {
+    fillSmtp(await smtpRequest('GET', 'api/settings/smtp'));
+  } catch (error) {
+    smtpCurrent.textContent = error.message;
+    smtpCurrent.className = 'field-status unavailable';
+  }
+}
+
+smtpForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  smtpStatus.textContent = 'Salvando…';
+  try {
+    const mode = smtpForm.mode.value;
+    const data = await smtpRequest('PUT', 'api/settings/smtp', { host: smtpForm.host.value, port: smtpForm.port.value, secure: mode === 'tls', requireTLS: mode === 'starttls', user: smtpForm.user.value, pass: smtpForm.pass.value, from: smtpForm.from.value });
+    fillSmtp(data);
+    smtpStatus.textContent = 'Configuração salva e aplicada. Use o teste abaixo para conferir.';
+    notify('Configuração de e-mail salva');
+    loadAuthConfig();
+  } catch (error) {
+    smtpStatus.textContent = error.message;
+  }
+});
+
+document.querySelector('#smtp-reset').addEventListener('click', async () => {
+  smtpStatus.textContent = 'Voltando ao .env…';
+  try {
+    fillSmtp(await smtpRequest('DELETE', 'api/settings/smtp'));
+    smtpStatus.textContent = 'Configuração do painel removida; vale o que está no .env.';
+    loadAuthConfig();
+  } catch (error) {
+    smtpStatus.textContent = error.message;
+  }
+});
+
+document.querySelector('#smtp-test-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const status = document.querySelector('#smtp-test-status');
+  status.textContent = 'Enviando…';
+  try {
+    const data = await smtpRequest('POST', 'api/settings/smtp/test', { to: formEl.to.value.trim() });
+    status.textContent = data.message;
+  } catch (error) {
+    status.textContent = error.message;
   }
 });
 
@@ -1572,13 +1645,17 @@ document.querySelector('#toggle-password').addEventListener('click', event => {
   button.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
 });
 
-async function bootstrapAuth() {
+async function loadAuthConfig() {
   try {
     const config = await (await fetch('api/auth/config')).json();
     authScreen.querySelector('[data-auth-go="forgot"]').hidden = !config.emailReset;
     authScreen.querySelector('#signup-link').hidden = !config.signup;
     authScreen.querySelector('#signup-off').hidden = Boolean(config.signup);
   } catch {}
+}
+
+async function bootstrapAuth() {
+  await loadAuthConfig();
   try {
     const response = await fetch('api/auth/me', { credentials: 'same-origin' });
     if (response.ok) {

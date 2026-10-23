@@ -13,6 +13,7 @@ const { createLimiter } = require('./lib/rate-limit');
 const { createDb } = require('./lib/db');
 const { importLegacyJson } = require('./lib/legacy-import');
 const { createMailer } = require('./lib/mailer');
+const { createSettingsStore } = require('./lib/settings');
 const { checkMasterSecret } = require('./lib/secret-check');
 
 const PORT = Number(process.env.PORT || 3000);
@@ -77,7 +78,10 @@ const resetKey = appCrypto.deriveKey(masterSecret, 'reset');
 const db = createDb(process.env.DATABASE_URL);
 const userStore = createUserStore(db);
 const projectStore = createProjectStore(db);
-const mailer = createMailer({ host: process.env.SMTP_HOST, port: process.env.SMTP_PORT, secure: process.env.SMTP_SECURE, requireTLS: process.env.SMTP_REQUIRE_TLS, user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, from: process.env.SMTP_FROM });
+const settingsStore = createSettingsStore(db);
+const envSmtp = { host: process.env.SMTP_HOST, port: process.env.SMTP_PORT, secure: process.env.SMTP_SECURE, requireTLS: process.env.SMTP_REQUIRE_TLS, user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, from: process.env.SMTP_FROM };
+const mailer = createMailer(envSmtp);
+const SMTP_KEY = 'smtp';
 const loginLimiter = createLimiter({ max: 8, windowMs: 15 * 60_000 });
 const resetLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
 const signupEmailLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
@@ -151,10 +155,29 @@ async function readJson(req) {
   }
 }
 
+// O SMTP salvo pelo administrador tem prioridade sobre as variáveis SMTP_* do .env.
+async function loadSmtpSettings() {
+  const stored = await settingsStore.get(SMTP_KEY);
+  if (!stored || !stored.host) { mailer.setConfig(envSmtp); return null; }
+  let pass = '';
+  try { pass = stored.passEnc ? appCrypto.decrypt(stored.passEnc, keyEncKey) : ''; } catch { pass = ''; }
+  mailer.setConfig({ host: stored.host, port: stored.port, secure: String(Boolean(stored.secure)), requireTLS: String(Boolean(stored.requireTLS)), user: stored.user, pass, from: stored.from });
+  return stored;
+}
+
+async function smtpView() {
+  const stored = await settingsStore.get(SMTP_KEY);
+  if (stored && stored.host) {
+    return { source: 'painel', host: stored.host, port: stored.port, secure: Boolean(stored.secure), requireTLS: Boolean(stored.requireTLS), user: stored.user || '', from: stored.from || '', hasPass: Boolean(stored.passEnc), enabled: mailer.enabled };
+  }
+  return { source: envSmtp.host ? 'env' : 'nenhum', host: envSmtp.host || '', port: Number(envSmtp.port) || 587, secure: String(envSmtp.secure) === 'true', requireTLS: String(envSmtp.requireTLS) === 'true', user: envSmtp.user || '', from: envSmtp.from || '', hasPass: Boolean(envSmtp.pass), enabled: mailer.enabled };
+}
+
 async function prepare() {
   const applied = await db.migrate();
   if (applied.length) console.log(`[db] migrações aplicadas: ${applied.join(', ')}`);
   await importLegacyJson(db, RUNTIME_DIR);
+  await loadSmtpSettings();
 }
 
 async function ensureAdmin() {
@@ -601,11 +624,59 @@ async function handleApi(req, res, pathname) {
     if (user.mustChangePassword && !PASSWORD_CHANGE_ALLOWED.includes(pathname)) return json(res, 403, { error: 'Troque a senha para continuar.', code: 'PASSWORD_CHANGE_REQUIRED' });
     if (pathname.startsWith('/api/auth/')) return await handleAuthApi(req, res, pathname, user);
     if (pathname === '/api/users' || pathname.startsWith('/api/users/')) return await handleUsersApi(req, res, pathname, user);
+    if (pathname.startsWith('/api/settings/')) return await handleSettingsApi(req, res, pathname, user);
     return await handleAppApi(req, res, pathname, user);
   } catch (error) {
     if (!error.status) console.error('Falha na API:', error.message);
     return json(res, error.status || 500, { error: error.status ? error.message : 'Erro interno. Tente novamente.' });
   }
+}
+
+async function handleSettingsApi(req, res, pathname, user) {
+  if (user.role !== 'admin') return json(res, 403, { error: 'Apenas administradores podem alterar as configurações.' });
+  const method = req.method;
+  if (pathname === '/api/settings/smtp' && method === 'GET') return json(res, 200, await smtpView());
+  if (pathname === '/api/settings/smtp' && method === 'PUT') {
+    const body = await readJson(req);
+    const host = String(body.host || '').trim();
+    const port = Number(body.port);
+    const from = String(body.from || '').trim().slice(0, 200);
+    const smtpUser = String(body.user || '').trim().slice(0, 200);
+    if (!host || host.length > 200 || /[\s/]/.test(host)) throw fail('Informe o servidor SMTP, só o nome (por exemplo, smtp.exemplo.com).');
+    if (!Number.isInteger(port) || port < 1 || port > 65535) throw fail('Porta inválida. Use um número de 1 a 65535.');
+    if (!/[^\s@<]+@[^\s@>]+\.[^\s@>]{2,}/.test(from)) throw fail('Informe o remetente com um e-mail válido, por exemplo: GeradorOne <contato@exemplo.com>.');
+    if (/[\r\n]/.test(from + smtpUser)) throw fail('Remetente ou usuário inválido.');
+    const previous = await settingsStore.get(SMTP_KEY);
+    const newPass = typeof body.pass === 'string' ? body.pass.slice(0, MAX_PASSWORD) : '';
+    let passEnc = '';
+    if (newPass) passEnc = appCrypto.encrypt(newPass, keyEncKey);
+    else if (previous?.passEnc) passEnc = previous.passEnc;
+    else if (envSmtp.pass && envSmtp.host === host && envSmtp.user === smtpUser && !previous) passEnc = appCrypto.encrypt(envSmtp.pass, keyEncKey);
+    if (smtpUser && !passEnc) throw fail('Informe a senha do e-mail.');
+    await settingsStore.set(SMTP_KEY, { host, port, secure: Boolean(body.secure), requireTLS: Boolean(body.requireTLS), user: smtpUser, from, passEnc });
+    await loadSmtpSettings();
+    return json(res, 200, await smtpView());
+  }
+  if (pathname === '/api/settings/smtp' && method === 'DELETE') {
+    await settingsStore.remove(SMTP_KEY);
+    await loadSmtpSettings();
+    return json(res, 200, await smtpView());
+  }
+  if (pathname === '/api/settings/smtp/test' && method === 'POST') {
+    const body = await readJson(req);
+    const to = normalizeEmail(body.to || user.email);
+    if (!EMAIL_RE.test(to)) throw fail('E-mail de destino inválido.');
+    if (!mailer.enabled) throw fail('Salve o servidor SMTP e o remetente antes de testar.');
+    try {
+      await mailer.verify();
+      await mailer.sendTest(to);
+    } catch (error) {
+      console.error('Falha no teste de SMTP:', error.message);
+      throw fail(`O servidor recusou o teste: ${String(error.message).slice(0, 200)}`, 502);
+    }
+    return json(res, 200, { ok: true, message: `E-mail de teste enviado para ${to}.` });
+  }
+  return json(res, 404, { error: 'Rota não encontrada.' });
 }
 
 async function handleAppApi(req, res, pathname, user) {

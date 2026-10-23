@@ -100,6 +100,7 @@
         <a class="nav-item" href="#ia" data-view="ia" title="Minha chave de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span class="nav-label">Minha chave de IA</span></a>
         <a class="nav-item" href="#conta" data-view="conta" title="Minha conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Minha conta</span></a>
         <a class="nav-item" href="#usuarios" data-view="usuarios" data-admin title="Usuários" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-label">Usuários</span></a>
+        <a class="nav-item" href="#smtp" data-view="smtp" data-admin title="E-mail (SMTP)" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="nav-label">E-mail (SMTP)</span></a>
       </nav>
       <div class="sidebar-foot">
         <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label">Tema</span><span class="nav-label theme-current" id="theme-name">Papel</span></a>
@@ -332,6 +333,32 @@
               </div>
             </div>
           </section>
+          <section class="view" data-view="smtp" aria-label="E-mail (SMTP)" hidden>
+            <div class="view-head"><h1>E-mail (SMTP)</h1><p>Conta que envia os códigos de cadastro e de recuperação de senha. A troca vale na hora, sem reiniciar.</p></div>
+            <form id="smtp-form" class="card account-form" novalidate>
+              <p id="smtp-current" class="field-status">Verificando configuração…</p>
+              <div class="grid two">
+                <label>Servidor SMTP<input name="host" maxlength="200" autocomplete="off" placeholder="smtp.exemplo.com" required></label>
+                <label>Porta<input name="port" type="number" min="1" max="65535" inputmode="numeric" autocomplete="off" placeholder="587" required></label>
+                <label>Conexão<select name="mode"><option value="starttls">STARTTLS (porta 587)</option><option value="tls">TLS direto (porta 465)</option><option value="none">Sem criptografia</option></select></label>
+                <label>Usuário<input name="user" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
+                <label>Senha<input name="pass" type="password" maxlength="200" autocomplete="new-password" placeholder="Deixe em branco para manter a atual"></label>
+                <label>Remetente<input name="from" maxlength="200" autocomplete="off" placeholder="GeradorOne &lt;contato@exemplo.com&gt;" required></label>
+              </div>
+              <p id="smtp-status" class="status" role="status"></p>
+              <div class="ai-config-actions">
+                <button id="smtp-reset" type="button">Voltar ao .env</button>
+                <button class="primary" type="submit">Salvar</button>
+              </div>
+            </form>
+            <form id="smtp-test-form" class="card account-form" novalidate>
+              <h2>Enviar e-mail de teste</h2>
+              <label>Destino<input name="to" type="email" autocomplete="off" placeholder="Em branco = o seu e-mail"></label>
+              <p id="smtp-test-status" class="status" role="status"></p>
+              <div class="ai-config-actions"><button class="primary" type="submit">Enviar teste</button></div>
+            </form>
+          </section>
+
           <section class="view" data-view="usuarios" aria-label="Usuários" hidden>
             <div class="view-head"><h1>Usuários</h1><p>Crie e gerencie quem acessa o GeradorOne. Cada usuário tem os próprios projetos e a própria chave de IA.</p></div>
             <form id="user-create-form" class="card account-form" novalidate>
