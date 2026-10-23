@@ -6,6 +6,16 @@
 
 <p align="center">Prompts visuais para apostilas, capas e materiais didáticos.</p>
 
+<p align="center">
+  <a href="LICENSE"><img alt="Licença AGPL-3.0" src="https://img.shields.io/badge/licen%C3%A7a-AGPL--3.0-blue"></a>
+  <img alt="Linguagem JavaScript" src="https://img.shields.io/badge/JavaScript-sem%20framework-F7DF1E?logo=javascript&logoColor=black">
+  <img alt="Node.js 22" src="https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white">
+  <img alt="Banco PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white">
+  <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
+  <img alt="Linux" src="https://img.shields.io/badge/Linux-Alpine%20no%20cont%C3%AAiner-FCC624?logo=linux&logoColor=black">
+  <img alt="Idioma português do Brasil" src="https://img.shields.io/badge/idioma-portugu%C3%AAs%20(BR)-009C3B">
+</p>
+
 Plataforma web para planejar materiais didáticos visualmente ricos e gerar prompts completos para ferramentas de inteligência artificial. O GeradorOne organiza intenção pedagógica, referências, identidade visual e recursos gráficos em um briefing estruturado, acessível e exportável.
 
 O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produza diretamente o material final em HTML ou PDF.
@@ -63,6 +73,14 @@ No modo **somente prompt**, o botão de PDF exporta o prompt/roteiro. No modo **
 ### Ajuda dentro do app
 
 O item **FAQ** do menu reúne perguntas e respostas sobre todos os recursos: primeiros passos, conta, Apostila, Capa, resultado e exportação, projetos, chave de IA (como criar a chave na OpenAI e no Google Gemini, com os links oficiais, e como protegê-la), tema, segurança e administração. Tem busca e filtro por categoria. O texto fica em `public/faq-data.js`; ao mudar um botão ou fluxo do app, atualize a FAQ junto. O GeradorOne aceita chaves da OpenAI e do Gemini; a Anthropic ainda não é um provedor aceito.
+
+## Código aberto e licença
+
+O GeradorOne é software livre, licenciado sob a **GNU Affero General Public License v3.0** (AGPL-3.0). O código-fonte está em <https://github.com/Epaminondaslage/geradorOne>.
+
+Em resumo: você pode ler, usar, modificar e distribuir o código. Quem oferecer uma versão modificada como serviço na internet precisa disponibilizar o código-fonte dessa versão, sob a mesma licença. O texto completo está no arquivo [LICENSE](LICENSE); em caso de dúvida, vale o texto da licença, não este resumo.
+
+Copyright (C) 2026 Fulano.
 
 ## Arquitetura
 
@@ -156,7 +174,7 @@ Usuários e projetos ficam em um Postgres 17 (serviço `db` no `compose.yaml`), 
 - Contêiner: `gerador-one`
 - Imagem: `gerador-one:2.0.0`
 - Porta externa: `8123`
-- Rede local: `http://IP-INTERNO:8123`
+- Rede local: `http://seu-servidor:8123`
 
 ## Estrutura do projeto
 

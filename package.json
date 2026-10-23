@@ -3,6 +3,16 @@
   "version": "2.0.0",
   "private": true,
   "description": "Gerador de prompts pedagógicos e base para renderização HTML/PDF.",
+  "license": "AGPL-3.0-only",
+  "author": "Fulano",
+  "homepage": "https://github.com/Epaminondaslage/geradorOne",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Epaminondaslage/geradorOne.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Epaminondaslage/geradorOne/issues"
+  },
   "scripts": {
     "start": "node server.js",
     "test": "node scripts/run-tests.js",

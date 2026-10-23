@@ -23,7 +23,7 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 
 ### Acesso público e HTTPS
 
-- [ ] Definir o domínio, por exemplo `geradorone.dominio.com.br`, e apontar o DNS (quem administra o DNS?).
+- [ ] Definir o domínio, por exemplo `geradorone.seu-dominio.com.br`, e apontar o DNS (quem administra o DNS?).
 - [ ] Liberar o servidor para a internet (NAT e firewall nas portas 80 e 443) ou hospedar em outro lugar.
 - [ ] Emitir certificado HTTPS (Let's Encrypt pelo Coolify/Traefik, que já escuta nas portas 80 e 443).
 - [ ] Fechar a porta 8123, hoje aberta para todos: tirar o `ports:` do `compose.yaml` ou publicar só em `127.0.0.1`.
@@ -51,7 +51,7 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 
 ### E-mail
 
-- [x] Criar a caixa `geradorone@dominio.com.br` e usá-la no envio (feito em 23/10/2026). A senha pode ser trocada na tela **E-mail (SMTP)** do administrador, sem mexer no `.env`. Falta a Luiza trocar a senha que foi enviada por e-mail em texto aberto.
+- [x] Criar uma caixa própria do projeto e usá-la no envio (feito em 23/10/2026). A senha pode ser trocada na tela **E-mail (SMTP)** do administrador, sem mexer no `.env`. Falta trocar a senha que foi enviada por e-mail em texto aberto.
 - [ ] Configurar SPF, DKIM e DMARC do domínio, para os e-mails não caírem no spam.
 
 **Pronto quando:** o app abre em `https://` no domínio, a 8123 está fechada, há backup diário com cópia externa, alertas funcionando e a geração de PDF tem limites.

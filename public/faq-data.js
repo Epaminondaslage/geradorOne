@@ -14,6 +14,11 @@ const FAQ_ITEMS = [
   },
   {
     categoria: 'Primeiros passos',
+    pergunta: 'O GeradorOne é código aberto?',
+    resposta: 'Sim. O código-fonte é público em https://github.com/Epaminondaslage/geradorOne, sob a licença AGPL-3.0.\n\nNa prática, você pode ler, usar e modificar o código. Quem oferecer uma versão modificada como serviço na internet precisa disponibilizar o código-fonte dessa versão, com a mesma licença. É um resumo: vale o texto completo, que está no arquivo LICENSE do repositório.'
+  },
+  {
+    categoria: 'Primeiros passos',
     pergunta: 'Por onde eu começo?',
     resposta: '1. Abra "Apostila" ou "Capa" no menu.\n2. Preencha os campos com * (são os obrigatórios).\n3. Escolha o estilo das ilustrações, a paleta e o formato.\n4. Clique em "Gerar prompt completo" (Apostila) ou "Gerar prompt da capa" (Capa).\n5. No painel "Resultado", clique em "Copiar" e cole o prompt na sua ferramenta de IA de imagens.'
   },
