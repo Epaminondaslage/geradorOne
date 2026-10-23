@@ -42,7 +42,10 @@ PY
 }
 
 umask 077
-if ! docker exec gerador-one-db pg_dump -U geradorone --no-owner geradorone | gzip > "$FILE" || [ ! -s "$FILE" ]; then
+# Sob o Coolify o contêiner se chama db-<uuid>; o volume do banco é sempre geradorone_pgdata.
+DB_CONTAINER="${DB_CONTAINER:-$(docker ps --filter volume=geradorone_pgdata --format '{{.Names}}' | head -1)}"
+DB_CONTAINER="${DB_CONTAINER:-gerador-one-db}"
+if ! docker exec "$DB_CONTAINER" pg_dump -U geradorone --no-owner geradorone | gzip > "$FILE" || [ ! -s "$FILE" ]; then
   rm -f "$FILE"
   registrar falhou "pg_dump não gerou arquivo"
   echo "backup vazio, abortando" >&2
