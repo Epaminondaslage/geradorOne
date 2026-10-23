@@ -26,7 +26,7 @@ O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produ
 - 12 estilos de ilustração com miniaturas de acabamento.
 - Paleta visual configurada separadamente do estilo das ilustrações.
 - Formatos para tela, impressão A4 e apresentação 16:9.
-- Temas claro e escuro, com detecção do sistema e preferência persistente.
+- Seis temas de cores (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste), com detecção do sistema e preferência persistente. Veja [docs/DESIGN.md](docs/DESIGN.md).
 - Interface responsiva para computadores, tablets e celulares.
 - Linha de progresso numerada que avança entre configuração, revisão e exportação.
 

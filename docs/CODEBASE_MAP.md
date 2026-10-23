@@ -67,7 +67,9 @@ graph TB
 │   ├── index.html            # tela de login + app (menu, páginas, painel de resultado)
 │   ├── app.js                # toda a lógica do navegador (~1.330 linhas)
 │   ├── app.css               # shell, menu, painel de resultado, login, páginas novas
-│   ├── theme.css             # tokens do tema escuro e componentes compartilhados
+│   ├── theme.css             # componentes compartilhados (herança do desenho antigo)
+│   ├── design.css            # identidade: tokens dos 6 temas, fontes, acabamento (ver docs/DESIGN.md)
+│   ├── fonts/                # Literata e Atkinson Hyperlegible Next (woff2, SIL OFL)
 │   ├── styles.css            # base legada minificada (ainda necessária)
 │   └── assets/icons/         # PNGs dos recursos, logo (mapa-mental.png) e favicon
 ├── test/                     # node:test contra Postgres real (ver "Testes")
@@ -195,7 +197,7 @@ O painel de resultado só aparece nas páginas `apostila` e `capa` (regra de CSS
 
 ### CSS
 
-Ordem de carga: `styles.css`, `theme.css`, `app.css`. O tema vem de `html[data-theme]` (claro é o padrão). Pontos de quebra: 1180 px (resultado vai para baixo), 900 px (menu vira gaveta), 860 px (login em coluna única) e 600 px (barra de ação compacta). `[hidden]` tem regra global com `!important`.
+Ordem de carga: `styles.css`, `theme.css`, `app.css`, `design.css` (por último, vence as anteriores). O tema vem de `html[data-theme]` (`papel`, `grafite`, `lousa`, `azul-tinta`, `sepia`, `alto-contraste`; `papel` é o padrão) e a escolha fica em `localStorage` (`apostila-theme`). Detalhes em `docs/DESIGN.md`. Pontos de quebra: 1180 px (resultado vai para baixo), 900 px (menu vira gaveta), 860 px (login em coluna única) e 600 px (barra de ação compacta). `[hidden]` tem regra global com `!important`.
 
 ## Fluxos principais
 

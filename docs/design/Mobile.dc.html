@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>GeradorOne: apostila no celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&amp;family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1D3FBF}a:hover{color:#0F1A33}
+.gx{font-family:'Atkinson Hyperlegible Next',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.gx *,.gx *::before,.gx *::after{box-sizing:border-box}
+.gx h1,.gx h2{font-family:Literata,Georgia,'Times New Roman',serif;font-weight:600;margin:0;text-wrap:balance;letter-spacing:-0.01em}
+.gx p{margin:0}
+.gx a{color:var(--accent)}
+.gx .logo{display:block;background:var(--accent);-webkit-mask:url(/_blob/4d78f43386485c676776e2a1eb8b818c) center/contain no-repeat;mask:url(/_blob/4d78f43386485c676776e2a1eb8b818c) center/contain no-repeat}
+.gx .lbl{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
+.gx .in{height:48px;width:100%;padding:0 14px;border:1px solid var(--field);border-radius:2px;background:var(--paper);color:var(--ink);font:inherit;font-size:16px;font-weight:400}
+.gx .sel{position:relative;display:block}
+.gx .sel select{appearance:none;-webkit-appearance:none;padding-right:40px}
+.gx .sel svg{position:absolute;right:14px;top:16px;pointer-events:none;color:var(--muted)}
+.gx .in:focus-visible,.gx button:focus-visible,.gx a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gx .help{font-size:13.5px;font-weight:400;color:var(--muted)}
+.gx .ib{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:2px;background:transparent;color:var(--ink);cursor:pointer}
+.gx .ib:hover{border-color:var(--line)}
+</style>
+</helmet>
+<div class="gx" style="--bg:#ECF0F6;--paper:#FFFFFF;--ink:#0F1A33;--muted:#475471;--line:#C6CEDD;--field:#7A87A3;--accent:#1D3FBF;--accent-ink:#FFFFFF;width:390px;height:844px;position:relative;overflow:hidden;display:flex;flex-direction:column">
+
+<header style="height:60px;flex:none;display:flex;align-items:center;gap:6px;padding:0 8px;border-bottom:1px solid var(--line);background:var(--bg)">
+<button class="ib" type="button" aria-label="Abrir menu" aria-expanded="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+<span class="logo" role="img" aria-label="Símbolo do GeradorOne" style="width:22px;height:25px"></span>
+<span style="font-family:Literata,Georgia,serif;font-weight:600;font-size:18px;letter-spacing:-0.02em;flex:1">GeradorOne</span>
+<a class="ib" href="#" aria-label="Meus projetos"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"></path></svg></a>
+</header>
+
+<main style="flex:1;min-height:0;overflow:hidden;padding:20px 16px 120px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;flex-direction:column;gap:4px">
+<h1 style="font-size:30px;line-height:1.1">Apostila</h1>
+<p class="help">Inglês 6º ano: rotina · salvo às 14:32</p>
+</div>
+
+<div role="group" aria-label="Etapas" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid var(--field);border-radius:2px">
+<button type="button" aria-pressed="true" style="height:44px;border:0;background:var(--ink);color:var(--paper);font:inherit;font-size:15px;font-weight:700">Dados</button>
+<button type="button" aria-pressed="false" style="height:44px;border:0;border-left:1px solid var(--field);background:var(--paper);color:var(--ink);font:inherit;font-size:15px;font-weight:500">Resultado</button>
+</div>
+
+<form style="display:flex;flex-direction:column;gap:16px" aria-label="Dados da apostila">
+<label class="lbl" for="mb-disc">Disciplina *<input id="mb-disc" class="in" value="Língua Inglesa"></label>
+<label class="lbl" for="mb-assunto">Assunto principal *<input id="mb-assunto" class="in" value="Simple present: rotina diária"></label>
+<label class="lbl" for="mb-pub">Público / faixa etária *<span class="sel"><select id="mb-pub" class="in"><option>Ensino Fundamental II</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<label class="lbl" for="mb-tipo">Tipo de material<span class="sel"><select id="mb-tipo" class="in"><option>Caderno de atividades</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+<label class="lbl" for="mb-pag">Páginas<span class="sel"><select id="mb-pag" class="in"><option>1 página</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<label class="lbl" for="mb-prof">Profundidade<span class="sel"><select id="mb-prof" class="in"><option>Intermediário</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+</div>
+<label class="lbl" for="mb-estilo">Estilo das ilustrações<span class="sel"><select id="mb-estilo" class="in"><option>Livro Didático: padrão editorial clássico</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+</form>
+</main>
+
+<div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:6px;padding:12px 16px 16px;background:var(--bg);border-top:1px solid var(--ink)">
+<button type="submit" style="height:48px;width:100%;border:0;border-radius:2px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:16px;font-weight:700;cursor:pointer">Gerar prompt</button>
+<p class="help" style="text-align:center">O resultado abre na aba Resultado.</p>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

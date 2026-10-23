@@ -1,0 +1,206 @@
+/* Identidade visual e temas. Carregado por último: define os tokens de cada tema
+   e substitui o acabamento antigo (gradientes, sombras, pílulas) por bordas finas. */
+
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/atkinson-hyperlegible-next-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/atkinson-hyperlegible-next-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible Next"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/atkinson-hyperlegible-next-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: Literata; font-weight: 400 700; font-style: normal; font-display: swap; src: url("fonts/literata-latin-wght-normal.woff2") format("woff2"); }
+
+/* Tokens: --bg fundo, --paper superfície, --ink texto, --muted texto de apoio,
+   --line divisória, --field borda de campo, --accent ação, --accent-ink texto sobre a ação. */
+:root,
+html[data-theme="papel"] {
+  color-scheme: light;
+  --bg: #f2f0eb; --paper: #fcfbf8; --ink: #1d1b17; --muted: #5c574e;
+  --line: #d3cec4; --field: #8a8378; --accent: #13704a; --accent-ink: #ffffff; --danger: #b42318;
+}
+html[data-theme="grafite"] {
+  color-scheme: dark;
+  --bg: #161719; --paper: #1f2124; --ink: #eceae5; --muted: #a6a39c;
+  --line: #3a3d42; --field: #77746e; --accent: #f0a040; --accent-ink: #1a1206; --danger: #ff8a7a;
+}
+html[data-theme="lousa"] {
+  color-scheme: dark;
+  --bg: #1d3a2f; --paper: #244537; --ink: #f2f0e6; --muted: #bcc9bf;
+  --line: #45685a; --field: #86a596; --accent: #e9d26a; --accent-ink: #1d2a14; --danger: #ffb4a8;
+}
+html[data-theme="azul-tinta"] {
+  color-scheme: light;
+  --bg: #ecf0f6; --paper: #ffffff; --ink: #0f1a33; --muted: #475471;
+  --line: #c6cedd; --field: #7a87a3; --accent: #1d3fbf; --accent-ink: #ffffff; --danger: #b42318;
+}
+html[data-theme="sepia"] {
+  color-scheme: light;
+  --bg: #ece2cd; --paper: #f6eedc; --ink: #2a2015; --muted: #5d4c38;
+  --line: #cbb896; --field: #8c7656; --accent: #7a3812; --accent-ink: #ffffff; --danger: #a0261a;
+}
+html[data-theme="alto-contraste"] {
+  color-scheme: dark;
+  --bg: #000000; --paper: #0a0a0a; --ink: #ffffff; --muted: #dadada;
+  --line: #ffffff; --field: #ffffff; --accent: #ffe14d; --accent-ink: #000000; --danger: #ff6b6b;
+}
+
+/* Nomes antigos usados pelas folhas anteriores, ligados aos tokens novos */
+:root, html[data-theme] {
+  --teal: var(--accent);
+  --teal-dark: var(--accent);
+  --aqua: color-mix(in srgb, var(--accent) 11%, var(--paper));
+  --violet: var(--accent);
+  --glow: transparent;
+  --topbar: var(--paper);
+  --shadow: none;
+  --sans: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --serif: Literata, "Iowan Old Style", Georgia, "Times New Roman", serif;
+  font-family: var(--sans);
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; -webkit-font-smoothing: antialiased; transition: none; }
+h1, h2, h3, .brand strong, .auth-brand strong { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+.view-head h1 { font-size: 34px; line-height: 1.1; letter-spacing: -.01em; }
+.pane .card h2, .card h2 { font-size: 20px; letter-spacing: -.005em; }
+a { color: var(--accent); }
+a:hover { color: var(--ink); }
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* Logo: a mesma imagem, pintada com a cor do tema */
+.logo { display: block; background: var(--accent); -webkit-mask: url("assets/icons/mapa-mental.png") center / contain no-repeat; mask: url("assets/icons/mapa-mental.png") center / contain no-repeat; }
+.brand-mark.logo { width: 30px; height: 34px; padding: 0; border: 0; border-radius: 0; background: var(--ink); }
+.auth-brand .brand-mark.logo { width: 34px; height: 38px; }
+.home-logo.logo { width: min(327px, 62vw); aspect-ratio: 897 / 1000; height: auto; background: var(--accent); }
+
+/* Superfícies sem sombra, com borda fina e cantos retos */
+.card, .pane .card, .out-panel, .auth-card, .project-card, .user-card, .improve-box, .byok-note, .temp-box,
+.generated-file, .switch-row, .out-empty, .projects-empty {
+  border-radius: 2px; box-shadow: none; border-color: var(--line); background: var(--paper);
+}
+.card { border-top: 1px solid var(--line); }
+.card::after { display: none; }
+.visual-card { border-top: 1px solid var(--line); }
+.pane .card { padding: 26px; }
+.card-head { border-bottom: 1px solid var(--line); }
+.number { border-radius: 2px; background: transparent; color: var(--accent); border: 1px solid var(--line); font-family: var(--serif); }
+.temp-box { border-color: var(--accent); background: var(--aqua); }
+
+/* Campos */
+label, legend, .ai-config-form label, .account-form label, .improve-box label { color: var(--ink); font-weight: 700; }
+input, select, textarea {
+  border: 1px solid var(--field); border-radius: 2px; background: var(--paper); color: var(--ink);
+  transition: border-color .12s;
+}
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: 1; }
+input:focus, select:focus, textarea:focus { border-color: var(--ink); box-shadow: none; outline: 2px solid var(--accent); outline-offset: 1px; }
+button:focus-visible, a:focus-visible, .nav-item:focus-visible, .menu-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
+.option input:focus-visible + label, .improve-chip input:focus-visible + span, .resource input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
+input[aria-invalid="true"], select[aria-invalid="true"] { border-color: var(--danger); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+.field-help, .field-status, .legal, .view-head p, .card-head p { color: var(--muted); }
+.field-status.available { color: var(--accent); }
+.field-status.unavailable, .auth-error, .project-buttons .danger, #ai-config-clear { color: var(--danger); }
+.auth-error.ok { color: var(--accent); }
+
+/* Botões: contorno em tinta; ao passar o mouse, invertem. Sem elevação. */
+.ghost, .icon-button, .project-actions button, .resource-tools button, .project-buttons button, .ai-config-actions button,
+.result-actions button, .menu-toggle, .modal-close {
+  border: 1px solid var(--ink); border-radius: 2px; background: transparent; color: var(--ink);
+  font-weight: 700; transition: background-color .12s, color .12s;
+}
+.ghost:hover, .icon-button:hover, .project-actions button:hover, .resource-tools button:hover, .project-buttons button:hover,
+.ai-config-actions button:hover, .result-actions button:hover, .menu-toggle:hover, .modal-close:hover {
+  background: var(--ink); color: var(--paper); border-color: var(--ink);
+}
+.primary, .pane .primary, .out-panel .primary, .result-actions .pdf-action, .generated-file button {
+  border: 1px solid var(--accent); border-radius: 2px; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+  transition: background-color .12s, color .12s;
+}
+.primary:hover:not(:disabled), .pane .primary:hover:not(:disabled), .out-panel .primary:hover:not(:disabled),
+.result-actions .pdf-action:hover, .generated-file button:hover {
+  background: var(--ink); border-color: var(--ink); color: var(--paper); transform: none; box-shadow: none;
+}
+.primary:disabled { opacity: .6; }
+.result-actions button.active { background: var(--ink); color: var(--paper); }
+.result-actions button.copied { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.project-buttons .danger.armed { background: var(--danger); border-color: var(--danger); color: var(--bg); }
+.link { color: var(--accent); }
+.button-spinner { border-color: color-mix(in srgb, currentColor 35%, transparent); border-top-color: currentColor; }
+.ai-spinner { border-color: var(--line); border-top-color: var(--accent); }
+
+/* Escolhas (tipo, estilo, recursos): retângulos de borda fina, sem subir no hover */
+.option label, .resource label { border-radius: 2px; border-color: var(--line); background: var(--paper); transition: border-color .12s; }
+.option label:hover, .resource label:hover { transform: none; box-shadow: none; border-color: var(--field); }
+.option input:checked + label, .resource input:checked + label { border-color: var(--accent); background: var(--aqua); box-shadow: inset 0 0 0 1px var(--accent); }
+.style-sample, .resource-demo { border-radius: 2px; background: var(--bg); border: 1px solid var(--line); color: var(--ink); box-shadow: none; }
+.sample-1, .sample-4, .sample-5, .sample-8, .sample-9, .sample-10, .sample-11 { background: var(--bg); color: var(--ink); box-shadow: none; transform: none; border-radius: 2px; }
+.resource-icon { color: var(--ink); }
+.improve-chip span { border-radius: 2px; border-color: var(--line); }
+.improve-chip input:checked + span { border-color: var(--accent); background: var(--aqua); color: var(--ink); box-shadow: inset 0 0 0 1px var(--accent); }
+
+/* Menu lateral */
+.sidebar { background: var(--bg); border-right: 1px solid var(--line); box-shadow: none; }
+.sidebar-head, .sidebar-foot { border-color: var(--line); }
+.nav-group { color: var(--muted); letter-spacing: .08em; font-weight: 700; }
+.nav-item { border-radius: 2px; color: var(--ink); font-weight: 500; font-size: 15px; transition: background-color .12s; }
+.nav-item:hover { background: var(--paper); color: var(--ink); }
+.nav-item[aria-current="page"] { background: var(--paper); color: var(--ink); font-weight: 700; box-shadow: inset 0 0 0 1px var(--line); }
+.user-chip small { color: var(--muted); }
+.mobile-bar { background: var(--bg); border-color: var(--line); }
+.scrim { background: color-mix(in srgb, var(--ink) 55%, transparent); }
+
+/* Seletor de temas */
+.theme-wrap { position: relative; }
+.theme-menu { margin: 0 0 6px; padding: 6px; display: grid; gap: 2px; border: 1px solid var(--ink); background: var(--paper); }
+.theme-menu[hidden] { display: none; }
+.theme-option { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 8px; border: 0; border-radius: 2px; background: transparent; color: var(--ink); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.theme-option:hover { background: var(--bg); }
+.theme-option[aria-checked="true"] { font-weight: 700; box-shadow: inset 0 0 0 1px var(--ink); }
+.theme-option .swatch { position: relative; flex: none; width: 34px; height: 22px; border: 1px solid var(--ink); border-radius: 2px; background: var(--sw-bg); overflow: hidden; }
+.theme-option .swatch::before { content: ""; position: absolute; left: 4px; right: 4px; top: 5px; height: 3px; background: var(--sw-ink); }
+.theme-option .swatch::after { content: ""; position: absolute; left: 4px; width: 14px; bottom: 4px; height: 5px; background: var(--sw-accent); }
+.theme-option[data-theme-pick="papel"] { --sw-bg: #f2f0eb; --sw-ink: #1d1b17; --sw-accent: #13704a; }
+.theme-option[data-theme-pick="grafite"] { --sw-bg: #161719; --sw-ink: #eceae5; --sw-accent: #f0a040; }
+.theme-option[data-theme-pick="lousa"] { --sw-bg: #1d3a2f; --sw-ink: #f2f0e6; --sw-accent: #e9d26a; }
+.theme-option[data-theme-pick="azul-tinta"] { --sw-bg: #ecf0f6; --sw-ink: #0f1a33; --sw-accent: #1d3fbf; }
+.theme-option[data-theme-pick="sepia"] { --sw-bg: #ece2cd; --sw-ink: #2a2015; --sw-accent: #7a3812; }
+.theme-option[data-theme-pick="alto-contraste"] { --sw-bg: #000; --sw-ink: #fff; --sw-accent: #ffe14d; }
+.shell.collapsed .theme-menu { position: fixed; left: 76px; bottom: 12px; width: 220px; }
+.shell.collapsed .theme-menu .nav-label { display: inline; }
+
+/* Painel de resultado: o prompt vira uma folha */
+.out-panel { border: 1px solid var(--line); }
+.out-head h2 { font-size: 22px; }
+.chip-badge { border-radius: 2px; background: transparent; color: var(--accent); border: 1px solid var(--accent); font-weight: 700; }
+.project-kind { border-radius: 2px; background: transparent; border: 1px solid var(--line); color: var(--ink); font-weight: 700; }
+pre, .out-panel .modal-content pre { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 2px; font-family: var(--serif); font-size: 15px; line-height: 1.7; }
+.out-panel .modal-content iframe, .modal-content iframe { border-radius: 2px; border-color: var(--line); }
+.status { color: var(--muted); font-weight: 500; }
+.file-icon { border-radius: 2px; background: transparent; border: 1px solid var(--line); color: var(--accent); }
+
+/* Barra de ação do formulário */
+.action-bar, .pane .action-bar { background: var(--paper); color: var(--ink); border: 1px solid var(--ink); border-radius: 2px; box-shadow: none; }
+.action-bar p span { color: var(--muted); }
+.action-bar .ghost { color: var(--ink); border-color: var(--ink); }
+.action-bar .ghost:hover { color: var(--paper); }
+
+/* Login */
+.auth-card { padding: 32px; }
+.auth-art { background: var(--ink); border-left: 1px solid var(--line); }
+.auth-art .logo { width: min(300px, 62%); aspect-ratio: 897 / 1000; background: var(--paper); }
+@media (max-width: 860px) { .auth-art .logo { width: 72px; } }
+
+/* Modal, aviso e restos do desenho antigo */
+.result-modal { border-radius: 2px; box-shadow: none; border: 1px solid var(--ink); background: var(--paper); animation: none; }
+.result-modal::backdrop { backdrop-filter: none; background: color-mix(in srgb, var(--ink) 60%, transparent); animation: none; }
+.toast { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 2px; box-shadow: none; }
+.hero-canvas { box-shadow: none; transform: none; border-radius: 2px; }
+.completion-ring { background: conic-gradient(var(--accent) calc(var(--pct, 0) * 3.6deg), var(--line) 0); }
+.progress-track i { background: var(--accent); }
+.workflow-progress li.active span, .workflow-progress li.complete span { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: none; }
+.footer, footer { background: var(--bg); color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Numeração dos cartões removida; ícones de recurso (PNG turquesa) viram silhueta na cor do texto */
+.number { display: none; }
+.resource-icon { filter: brightness(0); opacity: .82; }
+html[data-theme="grafite"] .resource-icon, html[data-theme="lousa"] .resource-icon, html[data-theme="alto-contraste"] .resource-icon { filter: brightness(0) invert(1); }
+.resource input:checked + label .resource-icon { opacity: 1; }
+input, select, textarea { font-weight: 400; font-family: var(--sans); }

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>GeradorOne: apostila</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&amp;family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#13704A}a:hover{color:#1D1B17}
+.gx{font-family:'Atkinson Hyperlegible Next',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.gx *,.gx *::before,.gx *::after{box-sizing:border-box}
+.gx h1,.gx h2,.gx h3{font-family:Literata,Georgia,'Times New Roman',serif;font-weight:600;margin:0;text-wrap:balance;letter-spacing:-0.01em}
+.gx p{margin:0}
+.gx a{color:var(--accent)}
+.gx .logo{display:block;background:var(--accent);-webkit-mask:url(/_blob/4d78f43386485c676776e2a1eb8b818c) center/contain no-repeat;mask:url(/_blob/4d78f43386485c676776e2a1eb8b818c) center/contain no-repeat}
+.gx .lbl{display:flex;flex-direction:column;gap:6px;font-size:13.5px;font-weight:700;min-width:0}
+.gx .in{height:40px;width:100%;padding:0 12px;border:1px solid var(--field);border-radius:2px;background:var(--paper);color:var(--ink);font:inherit;font-size:15px;font-weight:400}
+.gx textarea.in{height:auto;padding:10px 12px;resize:vertical;line-height:1.5}
+.gx .in::placeholder{color:var(--muted)}
+.gx .sel{position:relative;display:block}
+.gx .sel select{appearance:none;-webkit-appearance:none;padding-right:36px}
+.gx .sel svg{position:absolute;right:12px;top:12px;pointer-events:none;color:var(--muted)}
+.gx .in:focus-visible,.gx button:focus-visible,.gx a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gx .help{font-size:13px;font-weight:400;color:var(--muted)}
+.gx .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:2px;border:1px solid var(--ink);background:transparent;color:var(--ink);font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap}
+.gx .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.gx .btn.txt{border-color:transparent;padding:0 10px}
+.gx .btn.sm{height:34px;padding:0 12px;font-size:13.5px}
+.gx .btn:hover{background:var(--ink);color:var(--paper)}
+.gx .btn.pri:hover{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.gx .btn.txt:hover{background:var(--line);color:var(--ink)}
+.gx .nav{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.gx .nav a{display:flex;align-items:center;gap:12px;height:40px;padding:0 10px;border-radius:2px;color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
+.gx .nav a:hover{background:var(--paper)}
+.gx .nav a[aria-current="page"]{background:var(--paper);font-weight:700;box-shadow:inset 0 0 0 1px var(--line)}
+.gx .opt{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:400;min-height:34px;cursor:pointer}
+.gx .opt input{accent-color:var(--accent);width:18px;height:18px;margin:0;flex:none}
+.gx .sty{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);background:var(--paper);cursor:pointer;min-height:64px}
+.gx .sty input{accent-color:var(--accent);width:16px;height:16px;margin:3px 0 0;flex:none}
+.gx .sty:hover{border-color:var(--field)}
+.gx .sec{display:flex;flex-direction:column;gap:18px;padding-top:28px;border-top:1px solid var(--line)}
+.gx .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:16px 20px}
+.gx .tool{border-radius:0;border-color:transparent;border-right:1px solid var(--line)}
+.gx .num{font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div class="gx" style="--bg:{{t.bg}};--paper:{{t.paper}};--ink:{{t.ink}};--muted:{{t.muted}};--line:{{t.line}};--field:{{t.field}};--accent:{{t.accent}};--accent-ink:{{t.accentInk}};--danger:{{t.danger}};min-height:100vh;display:flex;flex-wrap:wrap;align-items:stretch">
+
+<nav aria-label="Menu principal" style="flex:1 1 252px;max-width:100%;display:flex;flex-direction:column;gap:20px;padding:18px 14px;border-right:1px solid var(--line)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 14px 6px;border-bottom:1px solid var(--line)">
+<a href="#" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)">
+<span class="logo" role="img" aria-label="Símbolo do GeradorOne" style="width:24px;height:27px"></span>
+<span style="font-family:Literata,Georgia,serif;font-weight:600;font-size:19px;letter-spacing:-0.02em">GeradorOne</span>
+</a>
+<button class="btn txt" type="button" aria-label="Recolher menu" aria-expanded="true" style="width:40px;padding:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
+</div>
+<ul class="nav">
+<li><a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10"></path></svg>Início</a></li>
+<li><a href="#" aria-current="page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M6 3h9l4 4v14H6z M15 3v4h4 M9 12h7 M9 16h7"></path></svg>Apostila</a></li>
+<li><a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><rect x="5" y="3" width="14" height="18"></rect><path d="M8 3v18M11 8h5M11 11h5"></path></svg>Capa</a></li>
+<li><a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"></path></svg>Meus projetos</a></li>
+<li><a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><circle cx="8" cy="15" r="4"></circle><path d="M11 12l9-9M16 7l3 3M14 9l2 2"></path></svg>Minha chave de IA</a></li>
+<li><a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4-6 8-6s7 2 8 6"></path></svg>Minha conta</a></li>
+<li><a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2 20c.8-3.5 3.5-5.5 7-5.5s6.2 2 7 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .8 3.4 2.6 4 5.2"></path></svg>Usuários</a></li>
+</ul>
+<div style="margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:14px;border-top:1px solid var(--line)">
+<ul class="nav">
+<li><a href="Temas.dc.html" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:12px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><rect x="3" y="3" width="8" height="8"></rect><rect x="13" y="3" width="8" height="8"></rect><rect x="3" y="13" width="8" height="8"></rect><rect x="13" y="13" width="8" height="8"></rect></svg>Tema</span><span class="help" style="color:var(--muted)">{{t.nome}}</span></a></li>
+<li><a href="Login.dc.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10"></path></svg>Sair</a></li>
+</ul>
+<p style="padding:10px 10px 0;display:flex;flex-direction:column;font-size:13.5px"><strong>Marta Ribeiro</strong><span class="help">Administradora</span></p>
+</div>
+</nav>
+
+<div style="flex:999 1 560px;min-width:0;display:flex;flex-direction:column">
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 32px;border-bottom:1px solid var(--line);font-size:14px">
+<p style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline"><a href="#" style="font-weight:700">Meus projetos</a><span aria-hidden="true" class="help">/</span><span style="font-weight:700">Inglês 6º ano: rotina</span><span class="help num">salvo às 14:32</span></p>
+<div style="display:flex;gap:8px"><button class="btn sm txt" type="button">Renomear</button><button class="btn sm" type="button">Salvar projeto</button></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px;padding:32px 32px 24px">
+<h1 style="font-size:34px;line-height:1.1">Apostila</h1>
+<p style="color:var(--muted);max-width:70ch">Defina o material. Cada página vira uma imagem pronta para o seu gerador.</p>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:32px;padding:0 32px 48px">
+
+<form style="flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:32px" aria-label="Dados da apostila">
+
+<section class="sec" aria-labelledby="a-dados">
+<div style="display:flex;flex-direction:column;gap:2px"><h2 id="a-dados" style="font-size:20px">Dados do material</h2><p class="help">O que será ensinado e para quem. Campos com * são obrigatórios.</p></div>
+<div class="grid">
+<label class="lbl" for="a-disc">Disciplina *<input id="a-disc" class="in" value="Língua Inglesa"></label>
+<label class="lbl" for="a-assunto">Assunto principal *<input id="a-assunto" class="in" value="Simple present: rotina diária"></label>
+<label class="lbl" for="a-publico">Público / faixa etária *<span class="sel"><select id="a-publico" class="in"><option>Ensino Fundamental II</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<label class="lbl" for="a-prof">Profundidade<span class="sel"><select id="a-prof" class="in"><option>Intermediário</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+</div>
+<label class="lbl" for="a-obj">Objetivo de aprendizagem<textarea id="a-obj" class="in" rows="2">Descrever a própria rotina usando o simple present nas formas afirmativa, negativa e interrogativa.</textarea></label>
+<div class="grid">
+<label class="lbl" for="a-escrita">Estilo de escrita<span class="sel"><select id="a-escrita" class="in"><option>Didático</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<label class="lbl" for="a-pag">Número de páginas<span class="sel"><select id="a-pag" class="in"><option>1 página</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span><span class="help">Cada página vira uma imagem.</span></label>
+</div>
+</section>
+
+<fieldset class="sec" style="border:0;border-top:1px solid var(--line);margin:0;padding:28px 0 0">
+<legend style="float:left;width:100%;padding:0;display:flex;flex-direction:column;gap:2px"><span style="font-family:Literata,Georgia,serif;font-weight:600;font-size:20px">Tipo de material</span><span class="help">13 tipos. O tipo muda a estrutura da página, não o assunto.</span></legend>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(200px,100%),1fr));gap:0 20px;clear:both">
+<label class="opt"><input type="radio" name="a-tipo">Apostila didática</label>
+<label class="opt"><input type="radio" name="a-tipo">Material de revisão</label>
+<label class="opt"><input type="radio" name="a-tipo">Material preparatório</label>
+<label class="opt"><input type="radio" name="a-tipo">Material complementar</label>
+<label class="opt" style="font-weight:700"><input type="radio" name="a-tipo" checked>Caderno de atividades</label>
+<label class="opt"><input type="radio" name="a-tipo">Guia de estudos</label>
+<label class="opt"><input type="radio" name="a-tipo">Resumo visual</label>
+<label class="opt"><input type="radio" name="a-tipo">Mapa mental</label>
+<label class="opt"><input type="radio" name="a-tipo">Material para concurso</label>
+<label class="opt"><input type="radio" name="a-tipo">Material profissional</label>
+<label class="opt"><input type="radio" name="a-tipo">Guia do professor</label>
+<label class="opt"><input type="radio" name="a-tipo">Sequência didática</label>
+<label class="opt"><input type="radio" name="a-tipo">Outro</label>
+</div>
+</fieldset>
+
+<fieldset class="sec" style="border:0;border-top:1px solid var(--line);margin:0;padding:28px 0 0">
+<legend style="float:left;width:100%;padding:0;display:flex;flex-direction:column;gap:2px"><span style="font-family:Literata,Georgia,serif;font-weight:600;font-size:20px">Estilo das ilustrações</span><span class="help">O traço e o acabamento. As cores ficam em Paleta, logo abaixo.</span></legend>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(190px,100%),1fr));gap:8px;clear:both">
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Cartoon</strong><span class="help">Traço amigável e expressivo</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Hand-drawn</strong><span class="help">Aparência desenhada à mão</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Doodle</strong><span class="help">Rabiscos leves e criativos</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Cartoon Educacional</strong><span class="help">Cartoon com foco pedagógico</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Scientific Illustration</strong><span class="help">Precisão científica</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Futuristic Digital</strong><span class="help">Visual digital moderno</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Infográfico Moderno</strong><span class="help">Blocos, ícones e dados</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Minimalista</strong><span class="help">Poucos elementos, muito ar</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">3D Educacional</strong><span class="help">Volumes suaves em 3D</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Realista</strong><span class="help">Aparência fotográfica</span></span></label>
+<label class="sty" style="border:2px solid var(--ink);padding:9px 11px"><input type="radio" name="a-estilo" checked><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Livro Didático</strong><span class="help">Padrão editorial clássico</span></span></label>
+<label class="sty"><input type="radio" name="a-estilo"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Colorido Infantil</strong><span class="help">Cores vivas para crianças</span></span></label>
+</div>
+<div class="grid">
+<label class="lbl" for="a-paleta">Paleta<span class="sel"><select id="a-paleta" class="in"><option>Automática</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<label class="lbl" for="a-formato">Formato prioritário<span class="sel"><select id="a-formato" class="in"><option>Impressão A4</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+</div>
+</fieldset>
+
+<section class="sec" aria-labelledby="a-ped">
+<div style="display:flex;flex-direction:column;gap:2px"><h2 id="a-ped" style="font-size:20px">Configuração pedagógica</h2><p class="help">Referências e limites contra informações inventadas.</p></div>
+<div class="grid">
+<label class="lbl" for="a-bncc">Códigos da BNCC (opcional)<input id="a-bncc" class="in" placeholder="Cole só códigos que você já conferiu"></label>
+<label class="opt" style="align-items:flex-start;padding-top:24px"><input type="checkbox" checked style="margin-top:3px"><span style="display:flex;flex-direction:column"><strong style="font-size:14.5px">Sugerir habilidades da BNCC</strong><span class="help">Somente quando houver correspondência verificável.</span></span></label>
+</div>
+<label class="lbl" for="a-ref">Texto ou material de referência<textarea id="a-ref" class="in" rows="3" placeholder="Cole definições, trechos, fontes ou observações obrigatórias. Não inclua dados pessoais sensíveis."></textarea></label>
+</section>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding-top:20px;border-top:2px solid var(--ink)">
+<button class="btn pri" type="submit" style="height:44px;padding:0 22px;font-size:15.5px">Gerar prompt</button>
+<button class="btn txt" type="reset">Limpar formulário</button>
+<span class="help" style="margin-left:auto">O gerador não valida automaticamente conteúdos ou códigos curriculares.</span>
+</div>
+</form>
+
+<aside aria-labelledby="r-titulo" style="flex:1 1 400px;max-width:100%;min-width:0;display:flex;flex-direction:column;border:1px solid var(--ink);background:var(--paper)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:16px 20px 0">
+<h2 id="r-titulo" style="font-size:20px">Resultado</h2>
+<span class="help num">gerado às 14:32 · 1 página</span>
+</div>
+<div role="group" aria-label="Visualização" style="display:flex;gap:20px;padding:10px 20px 0;border-bottom:1px solid var(--line)">
+<button type="button" aria-pressed="true" style="background:none;border:0;border-bottom:2px solid var(--accent);padding:8px 0;font:inherit;font-weight:700;color:var(--ink);cursor:pointer">Prompt</button>
+<button type="button" aria-pressed="false" style="background:none;border:0;border-bottom:2px solid transparent;padding:8px 0;font:inherit;font-weight:500;color:var(--muted);cursor:pointer">Prévia</button>
+</div>
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line)">
+<div role="group" aria-label="Exportar" style="display:flex;border:1px solid var(--field);border-radius:2px">
+<button class="btn sm tool" type="button"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square" aria-hidden="true"><rect x="8" y="8" width="12" height="12"></rect><path d="M16 8V4H4v12h4"></path></svg>Copiar</button>
+<button class="btn sm tool" type="button">TXT</button>
+<button class="btn sm tool" type="button">JSON</button>
+<button class="btn sm tool" type="button" style="border-right:0">PDF</button>
+</div>
+<button class="btn sm" type="button" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z M14 6l3 3"></path></svg>Melhorar com IA</button>
+</div>
+<div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+<p class="help" style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:700;color:var(--ink)">Página 1 de 1</span><span>Imagem A4 retrato</span></p>
+<p style="font-family:Literata,Georgia,serif;font-size:15px;line-height:1.65;white-space:pre-line;max-width:62ch">Página única de caderno de atividades, formato A4 retrato, para alunos do Ensino Fundamental II, nível intermediário. Disciplina: Língua Inglesa. Tema: simple present para descrever a rotina diária.
+
+Topo: título “My daily routine” em letras grandes e legíveis, com espaço para nome e data.
+
+Corpo: seis quadros em duas colunas, cada um com uma cena do dia de um estudante (acordar, tomar café, ir à escola, estudar, jantar, dormir), um relógio com o horário e uma linha para o aluno completar a frase, como “I ___ up at 6:30”.
+
+Rodapé: quadro “Now you” com três linhas para o aluno escrever a própria rotina.
+
+Estilo: livro didático, traço limpo, cores sóbrias para impressão. Texto em inglês correto, sem palavras inventadas. Sem logotipos e sem marca-d’água.</p>
+</div>
+<section aria-labelledby="r-ia" style="margin-top:auto;border-top:1px solid var(--ink);padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px;background:var(--bg)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h3 id="r-ia" style="font-size:17px">Gerar o material com IA</h3><a href="#" style="font-size:13.5px;font-weight:700">Alterar chave</a></div>
+<p class="help" style="color:var(--ink)">OpenAI · texto <span class="num">gpt-6-astra</span> · imagens <span class="num">gpt-image-2.5-flare</span></p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
+<label class="lbl" for="r-fmt" style="flex:1 1 180px">Formato de entrega<span class="sel"><select id="r-fmt" class="in"><option>Arquivo PDF final</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span></label>
+<button class="btn" type="button">Gerar PDF com imagens</button>
+</div>
+<p class="help">Cada geração é cobrada pelo provedor, na sua conta.</p>
+</section>
+</aside>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tema":{"editor":"enum","options":["papel","grafite","lousa","tinta","sepia","contraste"],"default":"papel"},"$preview":{"width":1440,"height":2000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const temas = {
+      papel:     { nome: 'Papel',          bg: '#F2F0EB', paper: '#FCFBF8', ink: '#1D1B17', muted: '#5C574E', line: '#D3CEC4', field: '#8A8378', accent: '#13704A', accentInk: '#FFFFFF', danger: '#B42318' },
+      grafite:   { nome: 'Grafite',        bg: '#161719', paper: '#1F2124', ink: '#ECEAE5', muted: '#A6A39C', line: '#3A3D42', field: '#77746E', accent: '#F0A040', accentInk: '#1A1206', danger: '#FF8A7A' },
+      lousa:     { nome: 'Lousa',          bg: '#1D3A2F', paper: '#244537', ink: '#F2F0E6', muted: '#BCC9BF', line: '#45685A', field: '#86A596', accent: '#E9D26A', accentInk: '#1D2A14', danger: '#FFB4A8' },
+      tinta:     { nome: 'Azul-tinta',     bg: '#ECF0F6', paper: '#FFFFFF', ink: '#0F1A33', muted: '#475471', line: '#C6CEDD', field: '#7A87A3', accent: '#1D3FBF', accentInk: '#FFFFFF', danger: '#B42318' },
+      sepia:     { nome: 'Sépia',          bg: '#ECE2CD', paper: '#F6EEDC', ink: '#2A2015', muted: '#5D4C38', line: '#CBB896', field: '#8C7656', accent: '#7A3812', accentInk: '#FFFFFF', danger: '#A0261A' },
+      contraste: { nome: 'Alto contraste', bg: '#000000', paper: '#0A0A0A', ink: '#FFFFFF', muted: '#DADADA', line: '#FFFFFF', field: '#FFFFFF', accent: '#FFE14D', accentInk: '#000000', danger: '#FF6B6B' }
+    };
+    const t = temas[this.props.tema ?? 'papel'] || temas.papel;
+    return { t };
+  }
+}
+</script>
+</body>
+</html>

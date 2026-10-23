@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>GeradorOne: temas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&amp;family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#13704A}a:hover{color:#1D1B17}
+.gx{font-family:'Atkinson Hyperlegible Next',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.gx *,.gx *::before,.gx *::after{box-sizing:border-box}
+.gx h1,.gx h2,.gx h3{font-family:Literata,Georgia,'Times New Roman',serif;font-weight:600;margin:0;text-wrap:balance;letter-spacing:-0.01em}
+.gx p{margin:0}
+.gx .logo{display:block;background:var(--accent);-webkit-mask:url(/_blob/4d78f43386485c676776e2a1eb8b818c) center/contain no-repeat;mask:url(/_blob/4d78f43386485c676776e2a1eb8b818c) center/contain no-repeat}
+.gx button:focus-visible,.gx a:focus-visible,.gx input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gx .help{font-size:13px;font-weight:400;color:var(--muted)}
+.gx .num{font-variant-numeric:tabular-nums}
+.gx .sample{display:flex;flex-direction:column;gap:0;padding:0;background:var(--paper);color:var(--ink);font:inherit;text-align:left;cursor:pointer;border-radius:2px}
+.gx .sample:hover .sname{text-decoration:underline}
+.gx .mini *{box-sizing:border-box}
+.gx .mfield{height:26px;border:1px solid var(--m-field);background:var(--m-paper);border-radius:2px;font-size:11.5px;display:flex;align-items:center;padding:0 8px;color:var(--m-ink)}
+.gx .mlbl{font-size:11px;font-weight:700;color:var(--m-ink)}
+</style>
+</helmet>
+<div class="gx" style="--bg:{{s.bg}};--paper:{{s.paper}};--ink:{{s.ink}};--muted:{{s.muted}};--line:{{s.line}};--field:{{s.field}};--accent:{{s.accent}};--accent-ink:{{s.accentInk}};width:1440px;height:1640px;padding:56px 72px;display:flex;flex-direction:column;gap:40px;overflow:hidden">
+
+<header style="display:flex;justify-content:space-between;align-items:flex-end;gap:32px;padding-bottom:24px;border-bottom:2px solid var(--ink)">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="font-size:40px;line-height:1.05">Tema</h1>
+<p style="color:var(--muted);max-width:64ch">Seis temas com os mesmos nomes de cor. A troca vale na hora para todas as telas e fica guardada neste navegador.</p>
+</div>
+<p class="help" style="text-align:right">Clique numa amostra: esta prancha inteira muda para o tema escolhido.</p>
+</header>
+
+<section aria-labelledby="t-sel" style="display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:40px">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px">
+<h2 id="t-sel" style="font-size:22px">Escolha o tema</h2>
+<label style="display:flex;align-items:center;gap:8px;font-size:14px"><input type="checkbox" style="accent-color:var(--accent);width:18px;height:18px;margin:0">Seguir o sistema: Papel de dia, Grafite à noite</label>
+</div>
+<div role="radiogroup" aria-label="Temas" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+<sc-for list="{{temas}}" as="item" hint-placeholder-count="6">
+<button type="button" role="radio" aria-checked="{{item.checked}}" class="sample" onClick="{{item.pick}}" style="border:{{item.borda}}">
+<span aria-hidden="true" style="display:flex;height:132px;background:{{item.bg}};padding:14px;gap:10px;border-bottom:1px solid var(--line)">
+<span style="width:26px;display:flex;flex-direction:column;gap:6px;padding-top:2px">
+<span style="height:6px;background:{{item.ink}}"></span>
+<span style="height:6px;background:{{item.muted}}"></span>
+<span style="height:6px;background:{{item.muted}}"></span>
+<span style="height:6px;background:{{item.muted}}"></span>
+</span>
+<span style="flex:1;display:flex;flex-direction:column;gap:8px;padding:12px;background:{{item.paper}};border:1px solid {{item.line}}">
+<span style="font-family:Literata,Georgia,serif;font-weight:600;font-size:16px;line-height:1;color:{{item.ink}}">Apostila</span>
+<span style="height:16px;border:1px solid {{item.field}}"></span>
+<span style="height:16px;border:1px solid {{item.field}}"></span>
+<span style="align-self:flex-start;font-size:11px;font-weight:700;padding:3px 8px;background:{{item.accent}};color:{{item.accentInk}}">Gerar prompt</span>
+</span>
+</span>
+<span style="display:flex;flex-direction:column;gap:2px;padding:12px 14px 14px">
+<span style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><strong class="sname" style="font-size:15.5px">{{item.nome}}</strong><span style="font-size:12.5px;font-weight:700;color:var(--accent)">{{item.marca}}</span></span>
+<span class="help">{{item.desc}}</span>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:16px">
+<h2 style="font-size:22px">{{s.nome}}: cores e contraste</h2>
+<table style="border-collapse:collapse;width:100%;font-size:14px">
+<thead><tr><th scope="col" style="text-align:left;font-size:13px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--ink)">Nome</th><th scope="col" style="text-align:left;font-size:13px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--ink)">Cor</th><th scope="col" style="text-align:right;font-size:13px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--ink)">Contraste</th></tr></thead>
+<tbody>
+<sc-for list="{{s.linhas}}" as="r" hint-placeholder-count="9">
+<tr>
+<td style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="display:flex;align-items:center;gap:10px"><span aria-hidden="true" style="width:20px;height:20px;background:{{r.hex}};border:1px solid var(--field);flex:none"></span><strong>{{r.nome}}</strong></span></td>
+<td class="num" style="padding:8px 0;border-bottom:1px solid var(--line)">{{r.hex}}</td>
+<td class="num" style="padding:8px 0;border-bottom:1px solid var(--line);text-align:right;color:var(--muted)">{{r.cr}}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+<p class="help">Texto e notas passam de 4,5:1 em todos os temas. Bordas de campo passam de 3:1.</p>
+</div>
+</section>
+
+<section aria-labelledby="t-cmp" style="display:flex;flex-direction:column;gap:16px;padding-top:32px;border-top:1px solid var(--line)">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px">
+<h2 id="t-cmp" style="font-size:22px">A mesma tela em três temas</h2>
+<p class="help">Apostila com o resultado aberto. Só os valores das cores mudam.</p>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+<sc-for list="{{comparar}}" as="c" hint-placeholder-count="3">
+<figure style="margin:0;display:flex;flex-direction:column;gap:10px">
+<div class="mini" style="--m-bg:{{c.bg}};--m-paper:{{c.paper}};--m-ink:{{c.ink}};--m-muted:{{c.muted}};--m-line:{{c.line}};--m-field:{{c.field}};--m-accent:{{c.accent}};--m-ai:{{c.accentInk}};height:560px;display:flex;background:var(--m-bg);color:var(--m-ink);border:1px solid var(--line);overflow:hidden">
+<div style="width:48px;flex:none;border-right:1px solid var(--m-line);display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px 0">
+<span class="logo" style="width:20px;height:22px;background:var(--m-accent)"></span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10"></path></svg>
+<span style="width:32px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--m-paper);border:1px solid var(--m-line)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M6 3h9l4 4v14H6z M15 3v4h4 M9 12h7 M9 16h7"></path></svg></span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><rect x="5" y="3" width="14" height="18"></rect><path d="M8 3v18M11 8h5M11 11h5"></path></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><path d="M3 6h6l2 2h10v11H3z"></path></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><circle cx="8" cy="15" r="4"></circle><path d="M11 12l9-9M16 7l3 3M14 9l2 2"></path></svg>
+</div>
+<div style="flex:1;min-width:0;padding:16px;display:flex;flex-direction:column;gap:12px">
+<span style="font-family:Literata,Georgia,serif;font-weight:600;font-size:22px;line-height:1.1">Apostila</span>
+<span style="font-size:12px;color:var(--m-muted)">Cada página vira uma imagem pronta para o seu gerador.</span>
+<span style="display:flex;flex-direction:column;gap:4px;padding-top:10px;border-top:1px solid var(--m-line)"><span class="mlbl">Disciplina *</span><span class="mfield">Língua Inglesa</span></span>
+<span style="display:flex;flex-direction:column;gap:4px"><span class="mlbl">Assunto principal *</span><span class="mfield">Simple present: rotina diária</span></span>
+<span style="display:flex;flex-direction:column;gap:5px;font-size:12px"><span class="mlbl">Tipo de material</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:50%;border:1px solid var(--m-field)"></span>Apostila didática</span>
+<span style="display:flex;align-items:center;gap:6px;font-weight:700"><span style="width:12px;height:12px;border-radius:50%;border:4px solid var(--m-accent)"></span>Caderno de atividades</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:50%;border:1px solid var(--m-field)"></span>Mapa mental</span>
+</span>
+<span style="align-self:flex-start;font-size:12.5px;font-weight:700;padding:7px 12px;background:var(--m-accent);color:var(--m-ai);border-radius:2px">Gerar prompt</span>
+<span style="margin-top:4px;border:1px solid var(--m-ink);background:var(--m-paper);display:flex;flex-direction:column">
+<span style="display:flex;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--m-line)"><span style="font-family:Literata,Georgia,serif;font-weight:600;font-size:14px">Resultado</span><span style="font-size:11px;color:var(--m-muted)">gerado às 14:32</span></span>
+<span style="display:flex;gap:0;padding:6px 10px;border-bottom:1px solid var(--m-line);font-size:11px;font-weight:700"><span style="padding:2px 8px;border:1px solid var(--m-field)">Copiar</span><span style="padding:2px 8px;border:1px solid var(--m-field);border-left:0">TXT</span><span style="padding:2px 8px;border:1px solid var(--m-field);border-left:0">JSON</span><span style="padding:2px 8px;border:1px solid var(--m-field);border-left:0">PDF</span></span>
+<span style="padding:10px;font-family:Literata,Georgia,serif;font-size:12px;line-height:1.55">Página única de caderno de atividades, formato A4 retrato, para alunos do Ensino Fundamental II. Topo: título “My daily routine”, com espaço para nome e data.</span>
+</span>
+</div>
+</div>
+<figcaption style="display:flex;justify-content:space-between;gap:12px;font-size:14px"><strong>{{c.nome}}</strong><span class="help num">{{c.resumo}}</span></figcaption>
+</figure>
+</sc-for>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1640}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tema: 'papel' };
+  }
+  renderVals() {
+    const base = [
+      { id: 'papel', nome: 'Papel', desc: 'Claro e quente, o padrão. Folha de caderno e caneta verde de correção.', bg: '#F2F0EB', paper: '#FCFBF8', ink: '#1D1B17', muted: '#5C574E', line: '#D3CEC4', field: '#8A8378', accent: '#13704A', accentInk: '#FFFFFF', danger: '#B42318', cr: { ink: '16,6:1', muted: '6,3:1', field: '3,6:1', accent: '5,4:1', btn: '6,1:1', danger: '5,8:1' } },
+      { id: 'grafite', nome: 'Grafite', desc: 'Escuro neutro para trabalhar à noite. Acento laranja de marca-texto.', bg: '#161719', paper: '#1F2124', ink: '#ECEAE5', muted: '#A6A39C', line: '#3A3D42', field: '#77746E', accent: '#F0A040', accentInk: '#1A1206', danger: '#FF8A7A', cr: { ink: '13,4:1', muted: '6,4:1', field: '3,5:1', accent: '7,5:1', btn: '8,7:1', danger: '7,0:1' } },
+      { id: 'lousa', nome: 'Lousa', desc: 'Verde-escuro de sala de aula, texto cor de giz e acento de giz amarelo.', bg: '#1D3A2F', paper: '#244537', ink: '#F2F0E6', muted: '#BCC9BF', line: '#45685A', field: '#86A596', accent: '#E9D26A', accentInk: '#1D2A14', danger: '#FFB4A8', cr: { ink: '9,3:1', muted: '6,2:1', field: '4,0:1', accent: '7,0:1', btn: '10,0:1', danger: '6,2:1' } },
+      { id: 'tinta', nome: 'Azul-tinta', desc: 'Claro e frio, com o azul da caneta esferográfica nas ações.', bg: '#ECF0F6', paper: '#FFFFFF', ink: '#0F1A33', muted: '#475471', line: '#C6CEDD', field: '#7A87A3', accent: '#1D3FBF', accentInk: '#FFFFFF', danger: '#B42318', cr: { ink: '17,3:1', muted: '6,6:1', field: '3,6:1', accent: '7,3:1', btn: '8,3:1', danger: '5,7:1' } },
+      { id: 'sepia', nome: 'Sépia', desc: 'Papel envelhecido e tinta marrom, para sessões longas de leitura.', bg: '#ECE2CD', paper: '#F6EEDC', ink: '#2A2015', muted: '#5D4C38', line: '#CBB896', field: '#8C7656', accent: '#7A3812', accentInk: '#FFFFFF', danger: '#A0261A', cr: { ink: '13,8:1', muted: '6,4:1', field: '3,8:1', accent: '6,8:1', btn: '8,7:1', danger: '5,9:1' } },
+      { id: 'contraste', nome: 'Alto contraste', desc: 'Preto e branco puros, amarelo nas ações. Para baixa visão e projetor.', bg: '#000000', paper: '#0A0A0A', ink: '#FFFFFF', muted: '#DADADA', line: '#FFFFFF', field: '#FFFFFF', accent: '#FFE14D', accentInk: '#000000', danger: '#FF6B6B', cr: { ink: '19,8:1', muted: '14,2:1', field: '19,8:1', accent: '15,2:1', btn: '16,1:1', danger: '7,1:1' } }
+    ];
+    const atual = base.find((t) => t.id === this.state.tema) || base[0];
+    const temas = base.map((t) => ({
+      ...t,
+      checked: t.id === atual.id ? 'true' : 'false',
+      marca: t.id === atual.id ? 'Em uso' : '',
+      borda: t.id === atual.id ? '2px solid ' + atual.ink : '1px solid ' + atual.line,
+      pick: () => this.setState({ tema: t.id })
+    }));
+    const s = {
+      ...atual,
+      linhas: [
+        { nome: '--bg', hex: atual.bg, cr: 'fundo' },
+        { nome: '--paper', hex: atual.paper, cr: 'folha e campos' },
+        { nome: '--ink', hex: atual.ink, cr: atual.cr.ink },
+        { nome: '--muted', hex: atual.muted, cr: atual.cr.muted },
+        { nome: '--line', hex: atual.line, cr: 'divisória' },
+        { nome: '--field', hex: atual.field, cr: atual.cr.field },
+        { nome: '--accent', hex: atual.accent, cr: atual.cr.accent },
+        { nome: '--accent-ink', hex: atual.accentInk, cr: atual.cr.btn + ' no acento' },
+        { nome: '--danger', hex: atual.danger, cr: atual.cr.danger }
+      ]
+    };
+    const resumo = (t) => 'texto ' + t.cr.ink + ' · ação ' + t.cr.btn;
+    const comparar = ['papel', 'lousa', 'contraste'].map((id) => {
+      const t = base.find((x) => x.id === id);
+      return { ...t, resumo: resumo(t) };
+    });
+    return { temas, s, comparar };
+  }
+}
+</script>
+</body>
+</html>

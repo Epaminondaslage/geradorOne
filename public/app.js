@@ -6,17 +6,37 @@ const resources = [
 ];
 
 const themeButton = document.querySelector('#theme-toggle');
-const preferredTheme = localStorage.getItem('apostila-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-const sunIcon = '<svg class="icon-svg" viewBox="0 0 20 20" width="17" height="17"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v2.2M10 15.8V18M18 10h-2.2M4.2 10H2M15.6 4.4l-1.5 1.5M5.9 14.1l-1.5 1.5M15.6 15.6l-1.5-1.5M5.9 5.9 4.4 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
-const moonIcon = '<svg class="icon-svg" viewBox="0 0 20 20" width="17" height="17"><path d="M16 12.2A7 7 0 1 1 7.8 4a5.6 5.6 0 0 0 8.2 8.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const themeMenu = document.querySelector('#theme-menu');
+const themeNames = { papel: 'Papel', grafite: 'Grafite', lousa: 'Lousa', 'azul-tinta': 'Azul-tinta', sepia: 'Sépia', 'alto-contraste': 'Alto contraste' };
+function storedTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('apostila-theme'); } catch { /* armazenamento bloqueado */ }
+  if (saved === 'light') saved = 'papel';
+  if (saved === 'dark') saved = 'grafite';
+  if (themeNames[saved]) return saved;
+  return matchMedia('(prefers-color-scheme: dark)').matches ? 'grafite' : 'papel';
+}
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  themeButton.setAttribute('aria-pressed', String(theme === 'dark'));
-  themeButton.querySelector('.icon-slot').innerHTML = theme === 'dark' ? sunIcon : moonIcon;
-  localStorage.setItem('apostila-theme', theme);
+  document.querySelector('#theme-name').textContent = themeNames[theme];
+  themeMenu.querySelectorAll('[data-theme-pick]').forEach(option => option.setAttribute('aria-checked', String(option.dataset.themePick === theme)));
+  try { localStorage.setItem('apostila-theme', theme); } catch { /* armazenamento bloqueado */ }
 }
-setTheme(preferredTheme);
-themeButton.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
+function toggleThemeMenu(open) {
+  themeMenu.hidden = !open;
+  themeButton.setAttribute('aria-expanded', String(open));
+}
+setTheme(storedTheme());
+themeButton.addEventListener('click', () => toggleThemeMenu(themeMenu.hidden));
+themeMenu.addEventListener('click', event => {
+  const option = event.target.closest('[data-theme-pick]');
+  if (!option) return;
+  setTheme(option.dataset.themePick);
+  toggleThemeMenu(false);
+  themeButton.focus();
+});
+document.addEventListener('click', event => { if (!themeMenu.hidden && !event.target.closest('.theme-wrap')) toggleThemeMenu(false); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !themeMenu.hidden) { toggleThemeMenu(false); themeButton.focus(); } });
 
 const styleSamples = ['● ᴗ ●','╱╲〰','✎ ✦ ☁','● ABC ✦','⌬ ⌖ ◌','◈ 01 ◈','▦ ↑ 72','— ○ —','◒ ◉ ◐','▣ ◉ ▣','Aa § 01','★ ● ▲'];
 function renderStyleOptions(container, prefix) {
