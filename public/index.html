@@ -111,8 +111,7 @@
         <a class="nav-item" href="#conta" data-view="conta" title="Minha conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Minha conta</span></a>
         <a class="nav-item" href="#faq" data-view="faq" title="FAQ"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M12 17h.01"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/></svg><span class="nav-label">FAQ</span></a>
         <a class="nav-item" href="#suporte" data-view="suporte" title="Fale com o suporte"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M7 8h10"/><path d="M7 12h6"/></svg><span class="nav-label">Suporte</span></a>
-        <a class="nav-item" href="#usuarios" data-view="usuarios" data-admin title="Usuários" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-label">Usuários</span></a>
-        <a class="nav-item" href="#smtp" data-view="smtp" data-admin title="E-mail (SMTP)" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="nav-label">E-mail (SMTP)</span></a>
+        <a class="nav-item" href="#config" data-view="config" data-admin title="Configurações" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span class="nav-label">Configurações</span></a>
       </nav>
       <div class="sidebar-foot">
         <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label">Tema</span><span class="nav-label theme-current" id="theme-name">Papel</span></a>
@@ -391,33 +390,6 @@
               </div>
             </div>
           </section>
-          <section class="view" data-view="smtp" aria-label="E-mail (SMTP)" hidden>
-            <div class="view-head"><h1>E-mail (SMTP)</h1><p>Conta que envia os códigos de cadastro e de recuperação de senha. A troca vale na hora, sem reiniciar.</p></div>
-            <form id="smtp-form" class="card account-form" novalidate>
-              <p id="smtp-current" class="field-status">Verificando configuração…</p>
-              <div class="grid two">
-                <label>Servidor SMTP<input name="host" maxlength="200" autocomplete="off" placeholder="smtp.exemplo.com" required></label>
-                <label>Porta<input name="port" type="number" min="1" max="65535" inputmode="numeric" autocomplete="off" placeholder="587" required></label>
-                <label>Conexão<select name="mode"><option value="starttls">STARTTLS (porta 587)</option><option value="tls">TLS direto (porta 465)</option><option value="none">Sem criptografia</option></select></label>
-                <label>Usuário<input name="user" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
-                <label>Senha<input name="pass" type="password" maxlength="200" autocomplete="new-password" placeholder="Em branco mantém a atual"></label>
-                <label>Remetente<input name="from" maxlength="200" autocomplete="off" placeholder="Nome &lt;e-mail&gt;" required></label>
-                <label>Endereço do app nos e-mails<input name="appUrl" type="url" maxlength="200" autocomplete="off" placeholder="https://app.exemplo.com.br"></label>
-                <label>E-mail de contato no rodapé<input name="contactEmail" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
-              </div>
-              <p id="smtp-status" class="status" role="status"></p>
-              <div class="ai-config-actions">
-                <button id="smtp-reset" type="button">Voltar ao .env</button>
-                <button class="primary" type="submit">Salvar</button>
-              </div>
-            </form>
-            <form id="smtp-test-form" class="card account-form" novalidate>
-              <h2>Enviar e-mail de teste</h2>
-              <label>Destino<input name="to" type="email" autocomplete="off" placeholder="Em branco = o seu e-mail"></label>
-              <p id="smtp-test-status" class="status" role="status"></p>
-              <div class="ai-config-actions"><button class="primary" type="submit">Enviar teste</button></div>
-            </form>
-          </section>
 
           <section class="view" data-view="faq" aria-label="FAQ" hidden>
             <div class="view-head"><h1>FAQ: perguntas frequentes</h1><p>Respostas sobre cada recurso do GeradorOne, de criar a conta a gerar a chave de IA. Digite para filtrar a lista. Não achou? <a href="#suporte">Fale com o suporte</a>.</p></div>
@@ -469,32 +441,71 @@
             </form>
           </section>
 
-          <section class="view" data-view="usuarios" aria-label="Usuários" hidden>
-            <div class="view-head"><h1>Usuários</h1><p>Crie e gerencie quem acessa o GeradorOne. Cada usuário tem os próprios projetos e a própria chave de IA.</p></div>
-            <form id="user-create-form" class="card account-form" novalidate>
-              <h2>Novo usuário</h2>
-              <div class="grid two">
-                <label>Nome completo<input name="name" maxlength="120" autocomplete="off" required></label>
-                <label>Telefone<input name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="(35) 99999-8888" maxlength="22" required></label>
-                <label>E-mail<input name="email" type="email" autocomplete="off" required></label>
-                <label>Perfil<select name="role"><option value="user">Usuário</option><option value="admin">Administrador</option></select></label>
-                <label class="full">Senha temporária
-                  <span class="input-action"><input name="password" type="text" autocomplete="off" minlength="8" maxlength="200" placeholder="Mínimo de 8 caracteres" required><button type="button" id="generate-password" class="ghost">Gerar senha</button></span>
-                  <small class="field-status">O usuário será obrigado a trocar a senha no primeiro acesso.</small>
-                </label>
-              </div>
-              <p id="user-create-status" class="status" role="status"></p>
-              <div class="ai-config-actions"><button class="primary" type="submit">Criar usuário</button></div>
-            </form>
-            <div id="temp-password-box" class="temp-box" hidden role="status"></div>
-            <div class="table-tools">
-              <label class="sr-only" for="users-search">Buscar usuário</label>
-              <input id="users-search" type="search" placeholder="Buscar por nome ou e-mail" autocomplete="off">
-              <label class="sr-only" for="users-role-filter">Filtrar por perfil</label>
-              <select id="users-role-filter"><option value="">Todos os perfis</option><option value="admin">Administradores</option><option value="user">Usuários</option></select>
-              <span id="users-count" class="field-status" role="status"></span>
+          <section class="view" data-view="config" aria-label="Configurações" hidden>
+            <div class="view-head"><h1>Configurações</h1><p>Usuários, e-mail e backup do GeradorOne, cada assunto na sua aba. Só administradores veem esta tela.</p></div>
+            <div class="config-tabs" role="tablist" aria-label="Assuntos da configuração">
+              <button id="config-tab-usuarios" class="config-tab" type="button" role="tab" data-tab="usuarios" aria-controls="config-pane-usuarios" aria-selected="true">Usuários</button>
+              <button id="config-tab-smtp" class="config-tab" type="button" role="tab" data-tab="smtp" aria-controls="config-pane-smtp" aria-selected="false">E-mail (SMTP)</button>
+              <button id="config-tab-backup" class="config-tab" type="button" role="tab" data-tab="backup" aria-controls="config-pane-backup" aria-selected="false">Backup</button>
             </div>
-            <div class="table-wrap"><table id="users-list" class="data-table" aria-live="polite"></table></div>
+            <div class="config-pane" id="config-pane-usuarios" data-pane="usuarios" role="tabpanel" aria-labelledby="config-tab-usuarios">
+              <p class="pane-intro">Crie e gerencie quem acessa o GeradorOne. Cada usuário tem os próprios projetos e a própria chave de IA.</p>
+              <form id="user-create-form" class="card account-form" novalidate>
+                <h2>Novo usuário</h2>
+                <div class="grid two">
+                  <label>Nome completo<input name="name" maxlength="120" autocomplete="off" required></label>
+                  <label>Telefone<input name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="(35) 99999-8888" maxlength="22" required></label>
+                  <label>E-mail<input name="email" type="email" autocomplete="off" required></label>
+                  <label>Perfil<select name="role"><option value="user">Usuário</option><option value="admin">Administrador</option></select></label>
+                  <label class="full">Senha temporária
+                    <span class="input-action"><input name="password" type="text" autocomplete="off" minlength="8" maxlength="200" placeholder="Mínimo de 8 caracteres" required><button type="button" id="generate-password" class="ghost">Gerar senha</button></span>
+                    <small class="field-status">O usuário será obrigado a trocar a senha no primeiro acesso.</small>
+                  </label>
+                </div>
+                <p id="user-create-status" class="status" role="status"></p>
+                <div class="ai-config-actions"><button class="primary" type="submit">Criar usuário</button></div>
+              </form>
+              <div id="temp-password-box" class="temp-box" hidden role="status"></div>
+              <div class="table-tools">
+                <label class="sr-only" for="users-search">Buscar usuário</label>
+                <input id="users-search" type="search" placeholder="Buscar por nome ou e-mail" autocomplete="off">
+                <label class="sr-only" for="users-role-filter">Filtrar por perfil</label>
+                <select id="users-role-filter"><option value="">Todos os perfis</option><option value="admin">Administradores</option><option value="user">Usuários</option></select>
+                <span id="users-count" class="field-status" role="status"></span>
+              </div>
+              <div class="table-wrap"><table id="users-list" class="data-table" aria-live="polite"></table></div>
+            </div>
+            <div class="config-pane" id="config-pane-smtp" data-pane="smtp" role="tabpanel" aria-labelledby="config-tab-smtp" hidden>
+              <p class="pane-intro">Conta que envia os códigos de cadastro e de recuperação de senha. A troca vale na hora, sem reiniciar.</p>
+              <form id="smtp-form" class="card account-form" novalidate>
+                <p id="smtp-current" class="field-status">Verificando configuração…</p>
+                <div class="grid two">
+                  <label>Servidor SMTP<input name="host" maxlength="200" autocomplete="off" placeholder="smtp.exemplo.com" required></label>
+                  <label>Porta<input name="port" type="number" min="1" max="65535" inputmode="numeric" autocomplete="off" placeholder="587" required></label>
+                  <label>Conexão<select name="mode"><option value="starttls">STARTTLS (porta 587)</option><option value="tls">TLS direto (porta 465)</option><option value="none">Sem criptografia</option></select></label>
+                  <label>Usuário<input name="user" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
+                  <label>Senha<input name="pass" type="password" maxlength="200" autocomplete="new-password" placeholder="Em branco mantém a atual"></label>
+                  <label>Remetente<input name="from" maxlength="200" autocomplete="off" placeholder="Nome &lt;e-mail&gt;" required></label>
+                  <label>Endereço do app nos e-mails<input name="appUrl" type="url" maxlength="200" autocomplete="off" placeholder="https://app.exemplo.com.br"></label>
+                  <label>E-mail de contato no rodapé<input name="contactEmail" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
+                </div>
+                <p id="smtp-status" class="status" role="status"></p>
+                <div class="ai-config-actions">
+                  <button id="smtp-reset" type="button">Voltar ao .env</button>
+                  <button class="primary" type="submit">Salvar</button>
+                </div>
+              </form>
+              <form id="smtp-test-form" class="card account-form" novalidate>
+                <h2>Enviar e-mail de teste</h2>
+                <label>Destino<input name="to" type="email" autocomplete="off" placeholder="Em branco = o seu e-mail"></label>
+                <p id="smtp-test-status" class="status" role="status"></p>
+                <div class="ai-config-actions"><button class="primary" type="submit">Enviar teste</button></div>
+              </form>
+            </div>
+            <div class="config-pane" id="config-pane-backup" data-pane="backup" role="tabpanel" aria-labelledby="config-tab-backup" hidden>
+              <p class="pane-intro">Situação das cópias de segurança. Esta tela só mostra o que aconteceu; as cópias são feitas pelo servidor.</p>
+              <div id="backup-box" aria-live="polite"><p class="field-status">Verificando o backup…</p></div>
+            </div>
           </section>
           <p class="legal">O gerador não valida automaticamente conteúdos ou códigos curriculares. GeradorOne v2</p>
         </div>

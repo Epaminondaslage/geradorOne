@@ -88,6 +88,7 @@ As telas seguem as pranchas de `docs/design/`. Os blocos reutilizáveis:
 - **Login**: duas metades. À esquerda, marca, formulário sem cartão (título com linha, "Esqueci a senha" ao lado do rótulo, botão "Mostrar" junto do campo) e rodapé; à direita, painel sempre no tema Lousa (`data-theme-scope="lousa"`) com o logo e a frase de apresentação.
 - **Título de cada tela**: leva na frente o mesmo ícone do botão do menu. O `app.js` copia o `<svg>` do próprio item do menu (classe `.title-icon`), então os dois nunca divergem; ao criar uma tela nova, o ícone vem de graça se o item do menu tiver `data-view` igual ao da seção.
 - **FAQ**: caixa explicativa recolhível, busca, filtro por categoria e tabela Categoria/Pergunta; a resposta abre na própria linha. No celular a tabela vira lista.
+- **Abas** (`.config-tabs`, em Configurações): texto sem caixa, aba ativa com sublinhado de 2 px em `--accent` e peso 700; no celular rolam na horizontal. Painel de backup: `.backup-alert` (borda esquerda `--accent` ou `--danger`), `.backup-stat`, tabelas `.data-table` e log em `.backup-log`.
 - **Menu lateral**: sem rótulos de grupo; rodapé com Tema (nome do tema à direita), Sair e o nome com o perfil.
 
 ## Miniaturas dos estilos de ilustração

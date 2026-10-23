@@ -143,6 +143,7 @@ A aplicação será publicada na porta `8123` do servidor. O contêiner executa 
 Todo o app exige login por e-mail e senha. Cada usuário tem os próprios projetos e a própria chave de IA.
 
 - **Primeiro administrador:** criado na primeira inicialização, com `ADMIN_NAME`, `ADMIN_EMAIL` e (opcional) `ADMIN_PHONE`. Sem telefone, o app pede para completá-lo em Minha conta. Sem `ADMIN_PASSWORD`, uma senha temporária aleatória é impressa uma vez no log do contêiner (`docker logs gerador-one | grep setup`). A troca da senha é exigida no primeiro acesso. Projetos criados antes do login passam para esse administrador.
+- **Configurações (administradores):** uma tela com três abas, **Usuários**, **E-mail (SMTP)** e **Backup**. A aba Backup só mostra a situação (banco todo dia às 03:15, cópia externa do servidor inteiro às 03:30, 14 dias de retenção, aviso se passar de 26 horas); quem faz e restaura as cópias é o servidor.
 - **Usuários:** cada cadastro tem nome completo, telefone, e-mail e senha temporária (com botão para gerar). O administrador cria, edita, ativa/desativa, redefine a senha (temporária, com troca obrigatória) e exclui usuários na página **Usuários**. Sempre sobra ao menos um administrador ativo.
 - **Exportar os próprios dados:** em **Minha conta**, "Baixar meus dados (JSON)" gera um arquivo com a conta, as preferências de IA, todos os projetos e as mensagens enviadas ao suporte (`GET /api/auth/export`). A senha e o valor da chave de IA não entram no arquivo.
 - **Excluir a própria conta:** em **Minha conta**, pede a senha atual e um segundo clique em "Confirmar exclusão". Apaga a conta, os projetos e a chave de IA salva, e encerra a sessão. O único administrador ativo não pode se excluir.
@@ -166,6 +167,8 @@ POSTGRES_PASSWORD=         # obrigatória; gere com: node -e "console.log(requir
 # SMTP_USER=
 # SMTP_PASS=
 # SMTP_FROM="GeradorOne <no-reply@exemplo.com>"
+# APP_URL=https://app.exemplo.com.br        endereço do app nos e-mails (o painel SMTP tem prioridade)
+# CONTACT_EMAIL=contato@exemplo.com        e-mail de contato nos e-mails, nos Termos, na Política e na FAQ
 ```
 
 Os e-mails (código de cadastro, redefinição de senha e teste) saem em HTML, com cabeçalho e rodapé com o logotipo (`public/assets/icons/logo-email.png`, embutido na mensagem), o endereço do app e o e-mail de contato. O administrador também pode configurar o SMTP na tela **E-mail (SMTP)** do menu, com botão de teste e os campos "Endereço do app nos e-mails" e "E-mail de contato no rodapé". O que for salvo ali tem prioridade sobre o `.env`; **Voltar ao .env** remove a configuração do painel. A senha fica cifrada no banco.

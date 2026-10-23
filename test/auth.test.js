@@ -312,6 +312,11 @@ test('configuração de SMTP: só administrador, senha cifrada e aplicada na hor
   assert.equal((await ana('GET', '/api/settings/smtp')).status, 403);
   assert.equal((await ana('PUT', '/api/settings/smtp', { host: 'x.com', port: 587, from: 'a@b.com' })).status, 403);
   assert.equal((await client()('GET', '/api/settings/smtp')).status, 401);
+  assert.equal((await client()('GET', '/api/settings/backup')).status, 401);
+  assert.equal((await ana('GET', '/api/settings/backup')).status, 403);
+  const backupView = await admin('GET', '/api/settings/backup');
+  assert.equal(backupView.status, 200);
+  assert.equal(backupView.data.disponivel, false, 'o teste não tem pasta de status do backup');
   assert.equal((await admin('PUT', '/api/settings/smtp', { host: '', port: 587, from: 'GeradorOne <a@b.com>' })).status, 400);
   assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 99999, from: 'GeradorOne <a@b.com>' })).status, 400);
   assert.equal((await admin('PUT', '/api/settings/smtp', { host: 'smtp.exemplo.com', port: 587, from: 'sem-email' })).status, 400);

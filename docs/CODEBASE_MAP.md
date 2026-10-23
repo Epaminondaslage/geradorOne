@@ -57,6 +57,7 @@ graph TB
 │   ├── crypto.js             # scrypt, AES-256-GCM, HKDF, token de sessão, códigos
 │   ├── secret-check.js       # impressão digital da chave mestra (recusa iniciar se mudar)
 │   ├── mailer.js             # nodemailer: envio dos e-mails; setConfig troca o SMTP sem reiniciar e setBrand define endereço e contato do rodapé
+│   ├── backup.js             # lê o status do backup em MONITOR_DIR (backup-db.json, pbs.json, backup.log); só leitura
 │   ├── legal.js              # LEGAL_VERSION: versão vigente dos Termos e da Política (mudar a data exige novo aceite de todos)
 │   ├── support.js            # validação da mensagem e dos anexos, protocolo e tabela support_messages
 │   ├── email-template.js     # modelo HTML (tabelas e estilos inline) e texto puro dos e-mails; logotipo embutido por cid
@@ -115,6 +116,7 @@ graph TB
 | POST | `/api/auth/signup` | público | Autocadastro: valida nome, e-mail e senha, guarda o pedido na memória e envia código de 6 dígitos; resposta sempre genérica (e-mail já cadastrado não recebe código); 503 sem SMTP |
 | POST | `/api/auth/signup/confirm` | público | Confere o código (5 tentativas, 10 min), cria o usuário com perfil `user` sem troca obrigatória de senha e abre a sessão |
 | GET/PUT/DELETE | `/api/settings/smtp` | admin | Ler, salvar (senha cifrada com a chave BYOK; em branco mantém a atual) e remover a configuração de SMTP do painel; vale na hora e tem prioridade sobre o `.env`; DELETE volta ao `.env` |
+| GET | `/api/settings/backup` | admin | Situação do backup: banco (pg_dump diário) e cópias externas (PBS), lidas dos arquivos de status em `MONITOR_DIR`. Só leitura; sem pasta, informa (dev) ou sinaliza erro (`BACKUP_ESPERADO=1`) |
 | POST | `/api/settings/smtp/test` | admin | Verifica a conexão e envia e-mail de teste |
 | GET | `/api/auth/me` | sessão | Usuário atual |
 | POST | `/api/auth/change-password` | sessão | Troca a senha e emite sessão nova |

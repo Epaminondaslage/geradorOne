@@ -27,7 +27,7 @@ Aplicativo web que gera prompts de imagem para apostilas e capas didáticas. Voc
 6. Esqueceu a senha? Use "Esqueci a senha" (também depende do envio de e-mail): informe e-mail e a nova senha, e confirme com o código de 6 dígitos.
 
 # Menu lateral
-Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta, FAQ (perguntas e respostas, com busca), Suporte (formulário "Fale com o suporte") e, embaixo, Tema e Sair. Administradores também veem Usuários e E-mail (SMTP).
+Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta, FAQ (perguntas e respostas, com busca), Suporte (formulário "Fale com o suporte") e, embaixo, Tema e Sair. Administradores também veem Configurações, com três abas: Usuários, E-mail (SMTP) e Backup.
 
 # Gerar o prompt de uma apostila
 1. Abra "Apostila". Os campos com * são obrigatórios.
@@ -71,8 +71,9 @@ Em Apostila e Capa a tela se divide em duas abas: "Dados" e "Resultado". Ao gera
 "Tema" oferece seis temas (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste) ou seguir o sistema. A escolha fica na sua conta.
 
 # Só para administradores
-- "Usuários": criar, editar, ativar/desativar, redefinir senha (temporária, com troca obrigatória) e excluir. Sempre sobra pelo menos um administrador ativo.
-- "E-mail (SMTP)": servidor, porta, tipo de conexão, usuário, senha e remetente da conta que envia os códigos. "Salvar" vale na hora; há "Enviar teste" e "Voltar ao .env". Sem e-mail ativo, "Criar conta" e "Esqueci a senha" ficam escondidos.
+- Configurações, aba "Usuários": criar, editar, ativar/desativar, redefinir senha (temporária, com troca obrigatória) e excluir. Sempre sobra pelo menos um administrador ativo.
+- Configurações, aba "E-mail (SMTP)": servidor, porta, tipo de conexão, usuário, senha e remetente da conta que envia os códigos. "Salvar" vale na hora; há "Enviar teste" e "Voltar ao .env". Sem e-mail ativo, "Criar conta" e "Esqueci a senha" ficam escondidos.
+- Configurações, aba "Backup": só mostra a situação. "Protegido" quando o banco (todo dia às 03:15) e a cópia externa do servidor inteiro (03:30) rodaram nas últimas 26 horas; senão, "Atenção" com o motivo. Lista as cópias do banco e as do PBS, com tamanho, e o log das execuções. Não faz nem restaura cópias. No desenvolvimento avisa que não há registro de backup.
 
 # Regras para você, assistente
 - Não invente botões, telas, preços ou prazos. Hoje o uso é gratuito; uma assinatura mensal está prevista, sem data definida.

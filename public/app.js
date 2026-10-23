@@ -1396,12 +1396,16 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios', 'smtp', 'faq', 'suporte'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'config', 'faq', 'suporte'];
+// Configurações reúne um assunto por aba; o endereço #usuarios, #smtp ou #backup abre a aba certa.
+const CONFIG_TABS = ['usuarios', 'smtp', 'backup'];
+let configTab = 'usuarios';
 
 let supportOrigin = '';
 function showView(name) {
   const previous = workspace.dataset.view;
-  if (!VIEWS.includes(name) || (['usuarios', 'smtp'].includes(name) && currentUser?.role !== 'admin')) name = 'inicio';
+  if (CONFIG_TABS.includes(name)) { configTab = name; name = 'config'; }
+  if (!VIEWS.includes(name) || (name === 'config' && currentUser?.role !== 'admin')) name = 'inicio';
   workspace.dataset.view = name;
   document.querySelector('#crumbs').hidden = name !== 'apostila' && name !== 'capa';
   document.querySelector('#mobile-steps').hidden = name !== 'apostila' && name !== 'capa';
@@ -1414,13 +1418,141 @@ function showView(name) {
   if (name === 'ia') loadAiConfig();
   if (name === 'conta') fillAccount();
   if (name === 'tema') renderThemeView();
-  if (name === 'usuarios') loadUsers();
-  if (name === 'smtp') loadSmtp();
+  if (name === 'config') showConfigTab(configTab);
   if (name === 'faq') renderFaq();
   if (name === 'suporte') { if (previous && previous !== 'suporte') supportOrigin = previous; fillSupport(); }
   setMobileMenu(false);
-  try { history.replaceState(null, '', `#${name}`); } catch {}
+  try { history.replaceState(null, '', `#${name === 'config' ? configTab : name}`); } catch {}
   window.scrollTo({ top: 0 });
+}
+
+function showConfigTab(tab) {
+  if (!CONFIG_TABS.includes(tab)) tab = 'usuarios';
+  configTab = tab;
+  document.querySelectorAll('.config-tab').forEach(button => button.setAttribute('aria-selected', String(button.dataset.tab === tab)));
+  document.querySelectorAll('.config-pane').forEach(pane => { pane.hidden = pane.dataset.pane !== tab; });
+  if (tab === 'usuarios') loadUsers();
+  if (tab === 'smtp') loadSmtp();
+  if (tab === 'backup') loadBackup();
+  try { history.replaceState(null, '', `#${tab}`); } catch {}
+}
+
+document.querySelector('.config-tabs').addEventListener('click', event => {
+  const button = event.target.closest('.config-tab');
+  if (button) showConfigTab(button.dataset.tab);
+});
+document.querySelector('.config-tabs').addEventListener('keydown', event => {
+  if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+  event.preventDefault();
+  const step = event.key === 'ArrowRight' ? 1 : -1;
+  const next = CONFIG_TABS[(CONFIG_TABS.indexOf(configTab) + step + CONFIG_TABS.length) % CONFIG_TABS.length];
+  showConfigTab(next);
+  document.querySelector(`#config-tab-${next}`).focus();
+});
+
+// Aba Backup: só mostra o que o servidor registrou (banco e cópias do PBS). Nada aqui executa ou restaura cópia.
+const backupBox = document.querySelector('#backup-box');
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes)) return '-';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = bytes, unit = 0;
+  while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit += 1; }
+  return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1).replace('.', ',')} ${units[unit]}`;
+}
+// O nome do arquivo guarda a data como AAAAMMDD-HHMM.
+function formatStamp(stamp) {
+  const match = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/.exec(stamp || '');
+  return match ? `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}` : '-';
+}
+function formatWhen(iso) {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+function backupEl(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function backupStat(label, value, note, late) {
+  const box = backupEl('div', `backup-stat${late ? ' atrasada' : ''}`);
+  box.append(backupEl('span', '', label), backupEl('strong', '', value), backupEl('small', '', note));
+  return box;
+}
+function backupTable(headers, rows) {
+  const wrap = backupEl('div', 'table-wrap');
+  const table = backupEl('table', 'data-table');
+  const head = document.createElement('tr');
+  headers.forEach(text => head.append(backupEl('th', '', text)));
+  const thead = document.createElement('thead');
+  thead.append(head);
+  const tbody = document.createElement('tbody');
+  rows.forEach(cells => { const tr = document.createElement('tr'); cells.forEach(text => tr.append(backupEl('td', '', text))); tbody.append(tr); });
+  table.append(thead, tbody);
+  wrap.append(table);
+  return wrap;
+}
+function renderBackup(data) {
+  backupBox.replaceChildren();
+  if (!data.disponivel) {
+    const alert = backupEl('div', `backup-alert${data.gravidade === 'erro' ? ' erro' : ''}`);
+    alert.append(backupEl('strong', '', data.gravidade === 'erro' ? 'Backup sem registro' : 'Sem registro de backup aqui'), backupEl('span', '', data.aviso));
+    backupBox.append(alert);
+    return;
+  }
+  const alert = backupEl('div', `backup-alert${data.protegido ? '' : ' erro'}`);
+  if (data.protegido) alert.append(backupEl('strong', '', 'Protegido'), backupEl('span', '', 'O banco e as cópias externas rodaram dentro do prazo.'));
+  else {
+    const reasons = [];
+    if (data.semBanco) reasons.push('o backup do banco ainda não registrou nenhuma execução');
+    else if (data.banco.atrasada) reasons.push(data.banco.ok ? `a última cópia do banco tem mais de ${data.banco.horasMax} horas` : `a última cópia do banco falhou: ${data.banco.mensagem || 'sem detalhe'}`);
+    if (data.semPbs) reasons.push('as cópias externas (PBS) ainda não registraram nenhuma execução');
+    else if (data.pbs.atrasada) reasons.push(data.pbs.ok ? `a última cópia externa tem mais de ${data.pbs.horasMax} horas` : `a última cópia externa falhou: ${data.pbs.mensagem || 'sem detalhe'}`);
+    alert.append(backupEl('strong', '', 'Atenção'), backupEl('span', '', `${reasons.join('; ')}.`));
+  }
+  backupBox.append(alert);
+
+  const grid = backupEl('div', 'backup-grid');
+  if (data.banco) {
+    const last = data.banco.copias?.[0];
+    grid.append(backupStat('Banco de dados', formatWhen(data.banco.fim), `${data.banco.agenda || ''} · guarda ${data.banco.retencaoDias} dias${last ? ` · ${formatBytes(last.bytes)}` : ''}`, data.banco.atrasada));
+    grid.append(backupStat('Cópias do banco', String(data.banco.copias?.length ?? 0), 'arquivos .sql.gz no servidor', false));
+  }
+  if (data.pbs) {
+    const last = data.pbs.snapshots?.[0];
+    grid.append(backupStat('Cópia externa (PBS)', formatWhen(data.pbs.fim), `${data.pbs.agenda || ''} · guarda ${data.pbs.retencaoDias} dias${last ? ` · ${formatBytes(last.bytes)}` : ''}`, data.pbs.atrasada));
+    grid.append(backupStat('Cópias no PBS', String(data.pbs.snapshots?.length ?? 0), 'servidor inteiro, em disco físico separado', false));
+  }
+  backupBox.append(grid);
+
+  if (data.banco?.copias?.length) {
+    const section = backupEl('div', 'backup-section');
+    section.append(backupEl('h3', '', 'Cópias do banco'), backupTable(['Quando', 'Arquivo', 'Tamanho'], data.banco.copias.map(copy => [formatStamp(copy.data), copy.nome, formatBytes(copy.bytes)])));
+    backupBox.append(section);
+  }
+  if (data.pbs?.snapshots?.length) {
+    const section = backupEl('div', 'backup-section');
+    section.append(backupEl('h3', '', 'Cópias externas (PBS)'), backupTable(['Quando', 'Tamanho'], data.pbs.snapshots.map(copy => [formatWhen(copy.data), formatBytes(copy.bytes)])));
+    backupBox.append(section);
+  }
+  if (data.falhasRecentes?.length) {
+    const section = backupEl('div', 'backup-section');
+    section.append(backupEl('h3', '', 'Falhas e avisos recentes'), backupEl('pre', 'backup-log', data.falhasRecentes.join('\n')));
+    backupBox.append(section);
+  }
+  const logSection = backupEl('div', 'backup-section');
+  logSection.append(backupEl('h3', '', 'Log das execuções'), backupEl('pre', 'backup-log', data.log?.length ? data.log.join('\n') : 'Nenhuma execução registrada ainda.'));
+  backupBox.append(logSection);
+  const note = backupEl('p', 'pane-intro', 'Para restaurar uma cópia ou fazer outra agora, use o servidor. Esta tela não executa nem restaura cópias.');
+  backupBox.append(note);
+}
+async function loadBackup() {
+  backupBox.replaceChildren(backupEl('p', 'field-status', 'Verificando o backup…'));
+  try {
+    renderBackup(await smtpRequest('GET', 'api/settings/backup'));
+  } catch (error) {
+    backupBox.replaceChildren(backupEl('p', 'field-status unavailable', error.message));
+  }
 }
 
 

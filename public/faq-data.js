@@ -461,22 +461,27 @@ const FAQ_ITEMS = [
   {
     categoria: 'Administração',
     pergunta: 'Como crio um usuário? (administradores)',
-    resposta: '1. Abra "Usuários" no menu (só administradores veem).\n2. Em "Novo usuário", informe nome completo, telefone, e-mail e o perfil (Usuário ou Administrador).\n3. Defina uma senha temporária (o botão "Gerar senha" cria uma) e clique em "Criar usuário".\n\nEntregue a senha temporária à pessoa com segurança. Ela precisa trocá-la no primeiro acesso.'
+    resposta: '1. Abra "Configurações" no menu (só administradores veem) e escolha a aba "Usuários".\n2. Em "Novo usuário", informe nome completo, telefone, e-mail e o perfil (Usuário ou Administrador).\n3. Defina uma senha temporária (o botão "Gerar senha" cria uma) e clique em "Criar usuário".\n\nEntregue a senha temporária à pessoa com segurança. Ela precisa trocá-la no primeiro acesso.'
   },
   {
     categoria: 'Administração',
     pergunta: 'Como gerencio usuários existentes? (administradores)',
-    resposta: 'Na tabela de "Usuários" você busca por nome ou e-mail, filtra por perfil e, em cada linha, edita os dados, ativa ou desativa a conta, redefine a senha e exclui o usuário.\n\nAo redefinir, a nova senha temporária aparece uma única vez na tela, com o botão "Copiar senha", e a pessoa precisa trocá-la no próximo acesso. Excluir um usuário remove também os projetos dele. O sistema sempre mantém pelo menos um administrador ativo.'
+    resposta: 'Na aba "Usuários" de "Configurações" você busca por nome ou e-mail, filtra por perfil e, em cada linha, edita os dados, ativa ou desativa a conta, redefine a senha e exclui o usuário.\n\nAo redefinir, a nova senha temporária aparece uma única vez na tela, com o botão "Copiar senha", e a pessoa precisa trocá-la no próximo acesso. Excluir um usuário remove também os projetos dele. O sistema sempre mantém pelo menos um administrador ativo.'
   },
   {
     categoria: 'Administração',
     pergunta: 'Como configuro o e-mail que envia os códigos? (administradores)',
-    resposta: '1. Abra "E-mail (SMTP)" no menu.\n2. Informe servidor, porta, tipo de conexão (STARTTLS, TLS direto ou sem criptografia), usuário, senha e remetente. Se quiser, preencha também "Endereço do app nos e-mails" e "E-mail de contato no rodapé": os dois aparecem no rodapé dos e-mails de cadastro e de redefinição de senha.\n3. Clique em "Salvar". A mudança vale na hora, sem reiniciar.\n4. Use "Enviar teste" para conferir: o e-mail chega no endereço que você digitar (em branco, no seu).\n\nA senha fica cifrada e nunca volta para a tela; deixar o campo em branco mantém a atual. "Voltar ao .env" apaga a configuração do painel e volta ao que está no arquivo de configuração do servidor.'
+    resposta: '1. Abra "Configurações" no menu e escolha a aba "E-mail (SMTP)".\n2. Informe servidor, porta, tipo de conexão (STARTTLS, TLS direto ou sem criptografia), usuário, senha e remetente. Se quiser, preencha também "Endereço do app nos e-mails" e "E-mail de contato no rodapé": os dois aparecem no rodapé dos e-mails de cadastro e de redefinição de senha.\n3. Clique em "Salvar". A mudança vale na hora, sem reiniciar.\n4. Use "Enviar teste" para conferir: o e-mail chega no endereço que você digitar (em branco, no seu).\n\nA senha fica cifrada e nunca volta para a tela; deixar o campo em branco mantém a atual. "Voltar ao .env" apaga a configuração do painel e volta ao que está no arquivo de configuração do servidor.'
   },
   {
     categoria: 'Administração',
     pergunta: 'Por que "Criar conta" e "Esqueci a senha" sumiram? (administradores)',
-    resposta: 'Os dois dependem do envio de e-mail. Se o e-mail estiver desligado ou sem configuração, eles ficam escondidos. Configure o servidor em "E-mail (SMTP)" e os links voltam a aparecer.'
+    resposta: 'Os dois dependem do envio de e-mail. Se o e-mail estiver desligado ou sem configuração, eles ficam escondidos. Configure o servidor na aba "E-mail (SMTP)" de "Configurações" e os links voltam a aparecer.'
+  },
+  {
+    categoria: 'Administração',
+    pergunta: 'Como vejo se o backup está funcionando? (administradores)',
+    resposta: 'Abra "Configurações" no menu e escolha a aba "Backup". No alto aparece "Protegido" quando o banco e a cópia externa rodaram dentro de 26 horas, ou "Atenção" com o motivo (cópia atrasada, falha ou sem registro).\n\nA aba mostra:\n- a data da última cópia do banco e do servidor inteiro (cópia externa);\n- a lista de cópias guardadas, com tamanho;\n- o log das execuções e as falhas recentes.\n\nO banco é copiado todo dia às 03:15 e as cópias ficam por 14 dias. A cópia externa do servidor inteiro roda às 03:30 e também guarda 14 dias. A aba só mostra a situação: ela não faz nem restaura cópias, isso é feito no servidor. Na instalação de desenvolvimento a aba avisa que não há registro de backup.'
   }
 ];
 

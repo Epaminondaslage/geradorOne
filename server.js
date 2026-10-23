@@ -15,6 +15,7 @@ const { createLimiter } = require('./lib/rate-limit');
 const { createDb } = require('./lib/db');
 const { importLegacyJson } = require('./lib/legacy-import');
 const { createMailer } = require('./lib/mailer');
+const backup = require('./lib/backup');
 const { DEFAULT_CONTACT } = require('./lib/email-template');
 const CONTACT_PAGES = new Set(['termos.html', 'privacidade.html', 'faq-data.js']);
 const { createSettingsStore } = require('./lib/settings');
@@ -714,6 +715,7 @@ async function handleApi(req, res, pathname) {
 async function handleSettingsApi(req, res, pathname, user) {
   if (user.role !== 'admin') return json(res, 403, { error: 'Apenas administradores podem alterar as configurações.' });
   const method = req.method;
+  if (pathname === '/api/settings/backup' && method === 'GET') return json(res, 200, backup.situacao());
   if (pathname === '/api/settings/smtp' && method === 'GET') return json(res, 200, await smtpView());
   if (pathname === '/api/settings/smtp' && method === 'PUT') {
     const body = await readJson(req);
