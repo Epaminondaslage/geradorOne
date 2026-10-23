@@ -11,3 +11,4 @@ dist/
 ._*
 backups/
 monitor/
+.deploy.lock/
