@@ -5,45 +5,99 @@ const resources = [
   ['mapasMentais','◉','Mapas mentais','Síntese radial e conexões'],['diagramas','◇','Diagramas','Processos, relações e fluxos'],['ilustracoes','✦','Ilustrações','Conceitos, cenas e objetos'],['infograficos','▦','Infográficos','Dados e explicações visuais'],['graficos','⌁','Gráficos','Somente com dados verificáveis'],['quadros','▤','Quadros comparativos','Contrastes e classificações'],['linhas','↝','Linhas do tempo','Eventos em sequência'],['icones','⬡','Ícones e sinalização','Navegação e destaques']
 ];
 
-const themeButton = document.querySelector('#theme-toggle');
-const themeMenu = document.querySelector('#theme-menu');
-const themeNames = { papel: 'Papel', grafite: 'Grafite', lousa: 'Lousa', 'azul-tinta': 'Azul-tinta', sepia: 'Sépia', 'alto-contraste': 'Alto contraste' };
+const THEME_LIST = [
+  { id: 'papel', nome: 'Papel', desc: 'Claro e quente, o padrão. Folha de caderno e caneta verde de correção.' },
+  { id: 'grafite', nome: 'Grafite', desc: 'Escuro neutro para trabalhar à noite. Acento laranja de marca-texto.' },
+  { id: 'lousa', nome: 'Lousa', desc: 'Verde-escuro de sala de aula, texto cor de giz e acento de giz amarelo.' },
+  { id: 'azul-tinta', nome: 'Azul-tinta', desc: 'Claro e frio, com o azul da caneta esferográfica nas ações.' },
+  { id: 'sepia', nome: 'Sépia', desc: 'Papel envelhecido e tinta marrom, para sessões longas de leitura.' },
+  { id: 'alto-contraste', nome: 'Alto contraste', desc: 'Preto e branco puros, amarelo nas ações. Para baixa visão e projetor.' }
+];
+const themeNames = Object.fromEntries(THEME_LIST.map(theme => [theme.id, theme.nome]));
+const systemTheme = () => (matchMedia('(prefers-color-scheme: dark)').matches ? 'grafite' : 'papel');
 function storedTheme() {
   let saved = null;
   try { saved = localStorage.getItem('apostila-theme'); } catch { /* armazenamento bloqueado */ }
   if (saved === 'light') saved = 'papel';
   if (saved === 'dark') saved = 'grafite';
-  if (themeNames[saved]) return saved;
-  return matchMedia('(prefers-color-scheme: dark)').matches ? 'grafite' : 'papel';
+  return themeNames[saved] ? saved : null;
 }
-function setTheme(theme) {
+// Sem escolha explícita, o tema acompanha o sistema (claro vira Papel, escuro vira Grafite).
+let themeFollowsSystem = !storedTheme();
+
+function setTheme(theme, { persist = true } = {}) {
   document.documentElement.dataset.theme = theme;
+  try { if (persist) localStorage.setItem('apostila-theme', theme); else localStorage.removeItem('apostila-theme'); } catch { /* armazenamento bloqueado */ }
   document.querySelector('#theme-name').textContent = themeNames[theme];
-  themeMenu.querySelectorAll('[data-theme-pick]').forEach(option => option.setAttribute('aria-checked', String(option.dataset.themePick === theme)));
-  try { localStorage.setItem('apostila-theme', theme); } catch { /* armazenamento bloqueado */ }
+  renderThemeView();
 }
-function toggleThemeMenu(open) {
-  themeMenu.hidden = !open;
-  themeButton.setAttribute('aria-expanded', String(open));
+
+function saveThemeToAccount(theme) {
+  if (!currentUser) return;
+  postJson('api/auth/theme', { theme }).then(result => {
+    if (result.ok) currentUser = result.data.user;
+    else notify('Tema aplicado neste navegador, mas não foi salvo na conta.');
+  });
 }
-setTheme(storedTheme());
-themeButton.addEventListener('click', () => toggleThemeMenu(themeMenu.hidden));
-themeMenu.addEventListener('click', event => {
-  const option = event.target.closest('[data-theme-pick]');
-  if (!option) return;
-  const chosen = option.dataset.themePick;
-  setTheme(chosen);
-  if (currentUser) {
-    postJson('api/auth/theme', { theme: chosen }).then(result => {
-      if (result.ok) currentUser = result.data.user;
-      else notify('Tema aplicado neste navegador, mas não foi salvo na conta.');
-    });
+function chooseTheme(id) {
+  themeFollowsSystem = false;
+  setTheme(id);
+  saveThemeToAccount(id);
+}
+function followSystemTheme(on) {
+  themeFollowsSystem = on;
+  if (on) {
+    setTheme(systemTheme(), { persist: false });
+    saveThemeToAccount('');
+  } else {
+    const current = document.documentElement.dataset.theme;
+    setTheme(current);
+    saveThemeToAccount(current);
   }
-  toggleThemeMenu(false);
-  themeButton.focus();
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (themeFollowsSystem) setTheme(systemTheme(), { persist: false }); });
+
+function luminance(hex) {
+  const channels = hex.replace('#', '').match(/../g).map(part => parseInt(part, 16) / 255).map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+function contrastRatio(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+const formatRatio = ratio => `${ratio.toFixed(1).replace('.', ',')}:1`;
+
+function renderThemeView() {
+  const gallery = document.querySelector('#theme-gallery');
+  if (!gallery) return;
+  const current = document.documentElement.dataset.theme;
+  document.querySelector('#theme-follow').checked = themeFollowsSystem;
+  gallery.innerHTML = THEME_LIST.map(theme => `<button type="button" role="radio" class="theme-card" aria-checked="${theme.id === current}" data-theme-pick="${theme.id}">
+    <span class="theme-mini" data-theme-scope="${theme.id}" aria-hidden="true"><span class="mini-rail"><i></i><i></i><i></i><i></i></span><span class="mini-sheet"><b>Apostila</b><i class="mini-field"></i><i class="mini-field"></i><em>Gerar prompt</em></span></span>
+    <span class="theme-meta"><span class="theme-line"><strong>${theme.nome}</strong><span class="theme-mark">${theme.id === current ? 'Em uso' : ''}</span></span><span class="field-help">${theme.desc}</span></span>
+  </button>`).join('');
+  document.querySelector('#theme-tokens-name').textContent = themeNames[current];
+  const css = getComputedStyle(document.documentElement);
+  const token = name => css.getPropertyValue(name).trim();
+  const [paper, accent] = [token('--paper'), token('--accent')];
+  const rows = [
+    ['--bg', 'fundo'], ['--paper', 'folha e campos'],
+    ['--ink', formatRatio(contrastRatio(token('--ink'), paper))],
+    ['--muted', formatRatio(contrastRatio(token('--muted'), paper))],
+    ['--line', 'divisória'],
+    ['--field', formatRatio(contrastRatio(token('--field'), paper))],
+    ['--accent', formatRatio(contrastRatio(accent, paper))],
+    ['--accent-ink', `${formatRatio(contrastRatio(token('--accent-ink'), accent))} no acento`],
+    ['--danger', formatRatio(contrastRatio(token('--danger'), paper))]
+  ];
+  document.querySelector('#theme-tokens-body').innerHTML = rows.map(([name, note]) => `<tr><td><span class="token-name"><span class="token-chip tok${name.slice(1)}" aria-hidden="true"></span><strong>${name}</strong></span></td><td class="num">${token(name).toUpperCase()}</td><td class="num num-col">${note}</td></tr>`).join('');
+}
+document.querySelector('#theme-gallery').addEventListener('click', event => {
+  const card = event.target.closest('[data-theme-pick]');
+  if (card) chooseTheme(card.dataset.themePick);
 });
-document.addEventListener('click', event => { if (!themeMenu.hidden && !event.target.closest('.theme-wrap')) toggleThemeMenu(false); });
-document.addEventListener('keydown', event => { if (event.key === 'Escape' && !themeMenu.hidden) { toggleThemeMenu(false); themeButton.focus(); } });
+document.querySelector('#theme-follow').addEventListener('change', event => followSystemTheme(event.target.checked));
+setTheme(storedTheme() || systemTheme(), { persist: !themeFollowsSystem });
 
 function renderStyleOptions(container, prefix) {
   styles.forEach(([name, description], index) => container.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="${prefix}-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="${prefix}-${index}"><span class="style-sample">${styleArt(index, prefix)}</span><strong>${name}</strong><small>${description}</small></label></div>`));
@@ -1084,7 +1138,7 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'usuarios'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios'];
 
 function showView(name) {
   if (!VIEWS.includes(name) || (name === 'usuarios' && currentUser?.role !== 'admin')) name = 'inicio';
@@ -1096,6 +1150,7 @@ function showView(name) {
   if (name === 'projetos') loadProjects();
   if (name === 'ia') loadAiConfig();
   if (name === 'conta') fillAccount();
+  if (name === 'tema') renderThemeView();
   if (name === 'usuarios') loadUsers();
   setMobileMenu(false);
   try { history.replaceState(null, '', `#${name}`); } catch {}
@@ -1108,7 +1163,7 @@ document.querySelector('[data-view-link]').addEventListener('click', event => {
   showView(event.currentTarget.dataset.viewLink);
 });
 
-document.querySelector('.nav').addEventListener('click', event => {
+document.querySelector('#sidebar').addEventListener('click', event => {
   const link = event.target.closest('a[data-view]');
   if (!link) return;
   event.preventDefault();
@@ -1138,7 +1193,7 @@ function startApp(user) {
   const switched = currentUser && currentUser.id !== user.id;
   currentUser = user;
   if (switched) { location.hash = ''; location.reload(); return; }
-  if (user.theme && themeNames[user.theme]) setTheme(user.theme);
+  if (user.theme && themeNames[user.theme]) { themeFollowsSystem = false; setTheme(user.theme); } else { themeFollowsSystem = true; setTheme(systemTheme(), { persist: false }); }
   document.querySelector('#user-name').textContent = user.name;
   document.querySelector('#user-email').textContent = user.email;
   document.querySelectorAll('[data-admin]').forEach(item => { item.hidden = user.role !== 'admin'; });
@@ -1278,30 +1333,69 @@ function showTempPassword(name, password) {
   });
 }
 
+let usersData = [];
+const usersSearch = document.querySelector('#users-search');
+const usersRoleFilter = document.querySelector('#users-role-filter');
+const usersCount = document.querySelector('#users-count');
+const USER_HEAD = '<thead><tr><th scope="col">Nome</th><th scope="col">Telefone</th><th scope="col">E-mail</th><th scope="col">Perfil</th><th scope="col">Situação</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>';
+
+function userGroupHtml(user) {
+  const id = escapeUi(user.id);
+  const self = currentUser && user.id === currentUser.id;
+  const notes = [user.hasApiKey ? 'chave de IA cadastrada' : 'sem chave de IA', user.mustChangePassword ? 'troca de senha pendente' : '', self ? 'você' : ''].filter(Boolean).join(' · ');
+  return `<tbody class="user-group" data-user-id="${id}">
+    <tr class="user-row">
+      <th scope="row"><span class="user-name">${escapeUi(user.name)}</span><small>${notes}</small></th>
+      <td class="num">${escapeUi(formatPhone(user.phone)) || '—'}</td>
+      <td class="wrap">${escapeUi(user.email)}</td>
+      <td>${user.role === 'admin' ? 'Administrador' : 'Usuário'}</td>
+      <td>${user.active ? 'Ativo' : 'Inativo'}</td>
+      <td class="row-actions">
+        <button type="button" data-edit-user="${id}">Editar</button>
+        <button type="button" data-reset-user="${id}">Redefinir senha</button>
+        <button type="button" class="danger" data-delete-user="${id}">${ICON_TRASH}<span>Excluir</span></button>
+      </td>
+    </tr>
+    <tr class="user-edit-row" hidden>
+      <td colspan="6">
+        <form class="user-card" data-user-id="${id}" novalidate>
+          <div class="user-fields">
+            <label>Nome<input name="name" value="${escapeUi(user.name)}" maxlength="120" required></label>
+            <label>Telefone<input name="phone" type="tel" value="${escapeUi(formatPhone(user.phone))}" placeholder="(35) 99999-8888" maxlength="22"></label>
+            <label>E-mail<input name="email" type="email" value="${escapeUi(user.email)}" required></label>
+            <label>Perfil<select name="role"><option value="user"${user.role === 'user' ? ' selected' : ''}>Usuário</option><option value="admin"${user.role === 'admin' ? ' selected' : ''}>Administrador</option></select></label>
+            <label class="user-active"><input name="active" type="checkbox"${user.active ? ' checked' : ''}>Ativo</label>
+          </div>
+          <div class="project-buttons"><button type="submit">Salvar</button><button type="button" data-cancel-edit>Cancelar</button></div>
+          <p class="status" role="status"></p>
+        </form>
+      </td>
+    </tr>
+  </tbody>`;
+}
+
+function renderUsers() {
+  const term = usersSearch.value.trim().toLowerCase();
+  const role = usersRoleFilter.value;
+  const shown = usersData.filter(user => (!role || user.role === role) && (!term || `${user.name} ${user.email}`.toLowerCase().includes(term)));
+  usersList.innerHTML = shown.length
+    ? USER_HEAD + shown.map(userGroupHtml).join('')
+    : `${USER_HEAD}<tbody><tr><td colspan="6" class="table-empty">Nenhum usuário encontrado.</td></tr></tbody>`;
+  usersCount.textContent = `${shown.length} de ${usersData.length}`;
+}
+usersSearch.addEventListener('input', renderUsers);
+usersRoleFilter.addEventListener('change', renderUsers);
+
 async function loadUsers() {
-  usersList.innerHTML = '<p class="field-status">Carregando usuários…</p>';
+  usersList.innerHTML = '<tbody><tr><td class="table-empty">Carregando usuários…</td></tr></tbody>';
   try {
     const response = await apiFetch('api/users');
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Não foi possível carregar os usuários.');
-    usersList.innerHTML = data.users.map(user => `<form class="user-card" data-user-id="${escapeUi(user.id)}" novalidate>
-      <div class="user-fields">
-        <label>Nome<input name="name" value="${escapeUi(user.name)}" maxlength="120" required></label>
-        <label>Telefone<input name="phone" type="tel" value="${escapeUi(formatPhone(user.phone))}" placeholder="(35) 99999-8888" maxlength="22"></label>
-        <label>E-mail<input name="email" type="email" value="${escapeUi(user.email)}" required></label>
-        <label>Perfil<select name="role"><option value="user"${user.role === 'user' ? ' selected' : ''}>Usuário</option><option value="admin"${user.role === 'admin' ? ' selected' : ''}>Administrador</option></select></label>
-        <label class="user-active"><input name="active" type="checkbox"${user.active ? ' checked' : ''}>Ativo</label>
-      </div>
-      <div class="user-meta"><small>${user.hasApiKey ? 'Chave de IA cadastrada' : 'Sem chave de IA'}${user.mustChangePassword ? ' · troca de senha pendente' : ''}${currentUser && user.id === currentUser.id ? ' · você' : ''}</small></div>
-      <div class="project-buttons">
-        <button type="submit">Salvar</button>
-        <button type="button" data-reset-user="${escapeUi(user.id)}">Redefinir senha</button>
-        <button type="button" class="danger" data-delete-user="${escapeUi(user.id)}">${ICON_TRASH}<span>Excluir</span></button>
-      </div>
-      <p class="status" role="status"></p>
-    </form>`).join('');
+    usersData = data.users;
+    renderUsers();
   } catch (error) {
-    usersList.innerHTML = `<p class="field-status unavailable">${escapeUi(error.message)}</p>`;
+    usersList.innerHTML = `<tbody><tr><td class="table-empty field-status unavailable">${escapeUi(error.message)}</td></tr></tbody>`;
   }
 }
 
@@ -1327,6 +1421,7 @@ document.querySelector('#user-create-form').addEventListener('submit', async eve
 usersList.addEventListener('submit', async event => {
   event.preventDefault();
   const card = event.target.closest('.user-card');
+  if (!card) return;
   const status = card.querySelector('.status');
   const response = await apiFetch(`api/users/${encodeURIComponent(card.dataset.userId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: card.name.value, phone: card.phone.value, email: card.email.value, role: card.role.value, active: card.active.checked }) });
   const data = await response.json().catch(() => ({}));
@@ -1339,10 +1434,17 @@ usersList.addEventListener('submit', async event => {
 usersList.addEventListener('click', async event => {
   const reset = event.target.closest('[data-reset-user]');
   const del = event.target.closest('[data-delete-user]');
-  const card = event.target.closest('.user-card');
+  const edit = event.target.closest('[data-edit-user]');
+  const group = event.target.closest('.user-group');
+  if (edit || event.target.closest('[data-cancel-edit]')) {
+    const row = group.querySelector('.user-edit-row');
+    row.hidden = !edit;
+    if (edit) row.querySelector('input[name="name"]').focus();
+    return;
+  }
   if (reset) {
     const result = await postJson(`api/users/${encodeURIComponent(reset.dataset.resetUser)}/reset-password`, {});
-    if (!result.ok) { card.querySelector('.status').textContent = result.data.error || 'Não foi possível redefinir.'; return; }
+    if (!result.ok) { notify(result.data.error || 'Não foi possível redefinir.'); return; }
     showTempPassword(result.data.user.name, result.data.temporaryPassword);
     notify('Senha redefinida');
     loadUsers();
@@ -1351,13 +1453,13 @@ usersList.addEventListener('click', async event => {
   if (!del) return;
   if (!del.classList.contains('armed')) {
     del.classList.add('armed');
-    del.lastElementChild.textContent = 'Confirmar exclusão (apaga os projetos dele)';
+    del.lastElementChild.textContent = 'Confirmar (apaga os projetos)';
     setTimeout(() => { del.classList.remove('armed'); del.lastElementChild.textContent = 'Excluir'; }, 4000);
     return;
   }
   const response = await apiFetch(`api/users/${encodeURIComponent(del.dataset.deleteUser)}`, { method: 'DELETE' });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) { card.querySelector('.status').textContent = data.error || 'Não foi possível excluir.'; return; }
+  if (!response.ok) { notify(data.error || 'Não foi possível excluir.'); return; }
   notify(`Usuário excluído (${data.removedProjects} projeto(s) apagado(s))`);
   loadUsers();
 });

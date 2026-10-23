@@ -321,6 +321,9 @@ test('o tema escolhido fica salvo na conta e volta no login seguinte', async () 
   assert.equal((await ana('GET', '/api/projects')).status, 200);
   const again = await loginAs('ana@teste.com', 'OutraSenha123');
   assert.equal((await again('GET', '/api/auth/me')).data.user.theme, 'azul-tinta');
+  const followed = await again('POST', '/api/auth/theme', { theme: '' });
+  assert.equal(followed.status, 200);
+  assert.equal(followed.data.user.theme, '');
 });
 
 test('script de emergência redefine a senha e exige troca', async () => {

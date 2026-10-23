@@ -487,7 +487,8 @@ async function handleAuthApi(req, res, pathname, user) {
   }
   if (method === 'POST' && pathname === '/api/auth/theme') {
     const body = await readJson(req);
-    if (!THEMES.includes(body.theme)) throw fail('Tema inválido.');
+    // '' = seguir a preferência do sistema
+    if (body.theme !== '' && !THEMES.includes(body.theme)) throw fail('Tema inválido.');
     const updated = await userStore.update(user.id, { theme: body.theme, keepSessions: true });
     return json(res, 200, { user: userView(updated) });
   }

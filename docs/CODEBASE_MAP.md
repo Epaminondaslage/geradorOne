@@ -111,7 +111,7 @@ graph TB
 | GET | `/api/auth/me` | sessão | Usuário atual |
 | POST | `/api/auth/change-password` | sessão | Troca a senha e emite sessão nova |
 | POST | `/api/auth/profile` | sessão | Nome e telefone (telefone obrigatório) |
-| POST | `/api/auth/theme` | sessão | Tema de cores da conta (`papel`, `grafite`, `lousa`, `azul-tinta`, `sepia`, `alto-contraste`) |
+| POST | `/api/auth/theme` | sessão | Tema de cores da conta (`papel`, `grafite`, `lousa`, `azul-tinta`, `sepia`, `alto-contraste`; vazio = seguir o sistema) |
 | GET/POST | `/api/users` | admin | Listar e criar (senha e telefone obrigatórios) |
 | PUT/DELETE | `/api/users/:id` | admin | Editar e excluir; nunca deixa sem administrador ativo |
 | POST | `/api/users/:id/reset-password` | admin | Senha temporária, troca obrigatória |
@@ -181,7 +181,8 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 | `projetos` | Listar, abrir, excluir e importar | `/api/projects` |
 | `ia` | BYOK: provedor, chave e modelos | `/api/ai/config` |
 | `conta` | Perfil e senha | `/api/auth/profile`, `change-password` |
-| `usuarios` | Gestão de usuários (admin) | `/api/users*` |
+| `tema` | Galeria de temas, "Seguir o sistema" e tabela de cores com contraste | `/api/auth/theme` |
+| `usuarios` | Gestão de usuários em tabela, com busca, filtro e edição por linha (admin) | `/api/users*` |
 
 O painel de resultado só aparece nas páginas `apostila` e `capa` (regra de CSS por `data-view`).
 

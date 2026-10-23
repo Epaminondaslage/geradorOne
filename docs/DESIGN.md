@@ -26,7 +26,9 @@ Tamanhos: texto 15 px; título de página 34 px; título de seção 20 px; texto
 
 ## Temas
 
-São seis combinações de cores aplicadas ao mesmo app. O tema fica em `<html data-theme="...">` e a escolha fica salva **na conta**, na coluna `users.theme` (vazia = ainda não escolheu), pela rota `POST /api/auth/theme`. Ao entrar, o app aplica o tema da conta. O `localStorage` (`apostila-theme`) só guarda uma cópia para a tela de login e para quem ainda não escolheu. Sem escolha, vale a preferência do sistema: escuro vira Grafite, claro vira Papel. Valores antigos (`light`, `dark`) são convertidos.
+A escolha acontece na tela **Tema** (item "Tema: …" no rodapé do menu): uma galeria com a miniatura da tela em cada tema, a opção "Seguir o sistema" e a tabela de cores do tema em uso, com o contraste calculado na hora a partir das cores reais (`getComputedStyle`). A prancha de referência é `docs/design/Temas.dc.html`. Qualquer elemento com `data-theme-scope="nome"` recebe os tokens daquele tema sem mudar o resto da página; é assim que as miniaturas da galeria se pintam.
+
+São seis combinações de cores aplicadas ao mesmo app. O tema fica em `<html data-theme="...">` e a escolha fica salva **na conta**, na coluna `users.theme` (vazia = ainda não escolheu), pela rota `POST /api/auth/theme`. Ao entrar, o app aplica o tema da conta; "Seguir o sistema" grava vazio na conta. O `localStorage` (`apostila-theme`) só guarda uma cópia para a tela de login e para quem ainda não escolheu. Sem escolha, vale a preferência do sistema: escuro vira Grafite, claro vira Papel. Valores antigos (`light`, `dark`) são convertidos.
 
 | Tema (`data-theme`) | `--bg` | `--paper` | `--ink` | `--muted` | `--line` | `--field` | `--accent` | `--accent-ink` | `--danger` |
 |---|---|---|---|---|---|---|---|---|---|
@@ -89,4 +91,4 @@ Em `docs/design/` estão os arquivos do desenho feito no Artifact "GeradorOne �
 ## Pendências do redesenho
 
 - `styles.css`, `theme.css` e `app.css` ainda carregam regras do desenho antigo, anuladas por `design.css`. Dá para enxugá-las aos poucos.
-- Falta a tela de Usuários em tabela como no desenho (hoje são cartões).
+- A prancha Temas tem também a seção "A mesma tela em três temas" (comparação lado a lado); no app só há a galeria e a tabela.

@@ -79,6 +79,7 @@ test('tema: começa vazio, aceita só os temas conhecidos e não derruba a sess�
   assert.equal(saved.pwdVersion, user.pwdVersion);
   await assert.rejects(users.update(user.id, { theme: 'neon' }), { status: 400 });
   assert.equal((await users.getById(user.id)).theme, 'lousa');
+  assert.equal((await users.update(user.id, { theme: '', keepSessions: true })).theme, '');
 });
 
 test('atualizações simultâneas do mesmo usuário não se perdem', async () => {
