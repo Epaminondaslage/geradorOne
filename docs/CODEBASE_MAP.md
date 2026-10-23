@@ -57,6 +57,7 @@ graph TB
 │   ├── crypto.js             # scrypt, AES-256-GCM, HKDF, token de sessão, códigos
 │   ├── secret-check.js       # impressão digital da chave mestra (recusa iniciar se mudar)
 │   ├── mailer.js             # nodemailer: envio dos e-mails; setConfig troca o SMTP sem reiniciar e setBrand define endereço e contato do rodapé
+│   ├── support.js            # validação da mensagem e dos anexos, protocolo e tabela support_messages
 │   ├── email-template.js     # modelo HTML (tabelas e estilos inline) e texto puro dos e-mails; logotipo embutido por cid
 │   └── rate-limit.js         # limitador em memória (janela deslizante)
 ├── scripts/
@@ -118,6 +119,7 @@ graph TB
 | POST | `/api/auth/change-password` | sessão | Troca a senha e emite sessão nova |
 | POST | `/api/auth/profile` | sessão | Nome e telefone (telefone obrigatório) |
 | GET | `/api/auth/export` | sessão | Baixa um JSON (`Content-Disposition: attachment`) com a conta, as preferências de IA (sem o valor da chave) e todos os projetos do usuário; nunca inclui hash de senha |
+| POST | `/api/support` | sessão | "Fale com o suporte": valida tipo, texto (5 a 2.000), e-mail e anexos (até 5, 5 MB cada, 8 MB no total, conferindo extensão e primeiros bytes), guarda em `support_messages`, envia ao `mailer.supportAddress()` com `replyTo` na pessoa e manda a confirmação com protocolo. Corpo de até 12 MB só nesta rota; 5 por hora por conta (429); campo isca `site` devolve sucesso sem enviar |
 | POST | `/api/auth/delete-account` | sessão | Exclui a própria conta. Exige a senha atual (erros contam no limite de login); 409 se for o único administrador ativo; apaga os projetos em cascata, devolve `removedProjects` e limpa o cookie |
 | POST | `/api/auth/theme` | sessão | Tema de cores da conta (`papel`, `grafite`, `lousa`, `azul-tinta`, `sepia`, `alto-contraste`; vazio = seguir o sistema) |
 | GET/POST | `/api/users` | admin | Listar e criar (senha e telefone obrigatórios) |
@@ -191,6 +193,7 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 | `conta` | Perfil, troca de senha, exportação dos dados (JSON) e exclusão da conta (senha atual + segundo clique em "Confirmar exclusão") | `/api/auth/profile`, `change-password`, `export`, `delete-account` |
 | `tema` | Galeria de temas e "Seguir o sistema" | `/api/auth/theme` |
 | `apostila` (seletor da BNCC) | No bloco "Configuração pedagógica": painel com filtros e busca sobre `public/data/bncc.json` (carregado só ao abrir o painel ou ao digitar códigos); "Usar as selecionadas" grava os códigos no campo `bncc`, e `bnccTextBlock` junta o texto oficial ao prompt | `GET /data/bncc.json` (estático) |
+| `suporte` | Formulário "Fale com o suporte" (tipo em botões, texto, anexos por clique, arrastar ou colar, nome e e-mail) | `POST /api/support` |
 | `faq` | Perguntas e respostas (dados em `public/faq-data.js`), com busca, filtro por categoria e resposta aberta na linha | nenhuma |
 | `usuarios` | Gestão de usuários em tabela, com busca, filtro e edição por linha (admin) | `/api/users*` |
 

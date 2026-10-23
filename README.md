@@ -73,6 +73,8 @@ No modo **somente prompt**, o botão de PDF exporta o prompt/roteiro. No modo **
 
 ### Ajuda dentro do app
 
+O item **Suporte** do menu ("Fale com o suporte") tem um formulário no modelo da página "Fale com os Dev's": tipo da mensagem (crítica, sugestão, problema, dúvida ou elogio), texto de até 2.000 caracteres, anexos (imagens, PDF, TXT, LOG e CSV, até 5 arquivos, 5 MB cada e 8 MB no total, com arrastar e soltar e colar print), nome e e-mail para a resposta. A mensagem vai por e-mail ao contato do rodapé (`mailer.supportAddress()`), a pessoa recebe a confirmação com um protocolo (`GO-AAAAMMDD-XXXX`), e uma cópia do texto fica na tabela `support_messages` (os anexos não ficam guardados). O limite é de 5 mensagens por hora por conta, e há um campo isca contra robôs.
+
 O item **FAQ** do menu reúne perguntas e respostas sobre todos os recursos: primeiros passos, conta, Apostila, Capa, resultado e exportação, projetos, chave de IA (como criar a chave na OpenAI e no Google Gemini, com os links oficiais, e como protegê-la), tema, segurança e administração. Tem busca e filtro por categoria. O texto fica em `public/faq-data.js`; ao mudar um botão ou fluxo do app, atualize a FAQ junto. O GeradorOne aceita chaves da OpenAI, do Google Gemini e da Anthropic (Claude). A Anthropic gera só texto: com ela, "Gerar material com IA" exige "Imagens por IA" em "Não usar imagens geradas por IA".
 
 ## Código aberto e licença
@@ -140,7 +142,7 @@ Todo o app exige login por e-mail e senha. Cada usuário tem os próprios projet
 
 - **Primeiro administrador:** criado na primeira inicialização, com `ADMIN_NAME`, `ADMIN_EMAIL` e (opcional) `ADMIN_PHONE`. Sem telefone, o app pede para completá-lo em Minha conta. Sem `ADMIN_PASSWORD`, uma senha temporária aleatória é impressa uma vez no log do contêiner (`docker logs gerador-one | grep setup`). A troca da senha é exigida no primeiro acesso. Projetos criados antes do login passam para esse administrador.
 - **Usuários:** cada cadastro tem nome completo, telefone, e-mail e senha temporária (com botão para gerar). O administrador cria, edita, ativa/desativa, redefine a senha (temporária, com troca obrigatória) e exclui usuários na página **Usuários**. Sempre sobra ao menos um administrador ativo.
-- **Exportar os próprios dados:** em **Minha conta**, "Baixar meus dados (JSON)" gera um arquivo com a conta, as preferências de IA e todos os projetos (`GET /api/auth/export`). A senha e o valor da chave de IA não entram no arquivo.
+- **Exportar os próprios dados:** em **Minha conta**, "Baixar meus dados (JSON)" gera um arquivo com a conta, as preferências de IA, todos os projetos e as mensagens enviadas ao suporte (`GET /api/auth/export`). A senha e o valor da chave de IA não entram no arquivo.
 - **Excluir a própria conta:** em **Minha conta**, pede a senha atual e um segundo clique em "Confirmar exclusão". Apaga a conta, os projetos e a chave de IA salva, e encerra a sessão. O único administrador ativo não pode se excluir.
 - **Recuperar senha por e-mail:** código de 6 dígitos, válido por 10 minutos, com limite de tentativas. Só fica disponível com SMTP configurado; sem SMTP, o administrador redefine a senha.
 - **BYOK:** cada pessoa cadastra a própria chave na página **Minha chave de IA**. A chave é cifrada (AES-256-GCM), nunca volta ao navegador (só os 4 últimos caracteres) e não é visível nem para administradores. Não há chave global do servidor.

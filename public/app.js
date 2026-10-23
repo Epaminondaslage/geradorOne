@@ -1390,9 +1390,11 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios', 'smtp', 'faq'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios', 'smtp', 'faq', 'suporte'];
 
+let supportOrigin = '';
 function showView(name) {
+  const previous = workspace.dataset.view;
   if (!VIEWS.includes(name) || (['usuarios', 'smtp'].includes(name) && currentUser?.role !== 'admin')) name = 'inicio';
   workspace.dataset.view = name;
   document.querySelector('#crumbs').hidden = name !== 'apostila' && name !== 'capa';
@@ -1409,6 +1411,7 @@ function showView(name) {
   if (name === 'usuarios') loadUsers();
   if (name === 'smtp') loadSmtp();
   if (name === 'faq') renderFaq();
+  if (name === 'suporte') { if (previous && previous !== 'suporte') supportOrigin = previous; fillSupport(); }
   setMobileMenu(false);
   try { history.replaceState(null, '', `#${name}`); } catch {}
   window.scrollTo({ top: 0 });
@@ -1506,6 +1509,123 @@ document.querySelectorAll('.view[data-view] .view-head h1').forEach(title => {
   copy.removeAttribute('height');
   copy.classList.add('title-icon');
   title.prepend(copy);
+});
+
+// ---------- Fale com o suporte ----------
+const supportForm = document.querySelector('#support-form');
+const supportStatus = document.querySelector('#support-status');
+const supportMessage = document.querySelector('#support-message');
+const supportList = document.querySelector('#support-files');
+const SUPPORT_MAX_FILES = 5;
+const SUPPORT_MAX_FILE = 5 * 1024 * 1024;
+const SUPPORT_MAX_TOTAL = 8 * 1024 * 1024;
+const SUPPORT_EXT = /\.(png|jpe?g|gif|webp|pdf|txt|log|csv)$/i;
+let supportFiles = [];
+
+const supportSize = bytes => (bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`).replace('.', ',');
+function supportNotice(text, ok = false) { supportStatus.textContent = text; supportStatus.className = `status${text ? (ok ? ' ok' : ' error') : ''}`; }
+
+function fillSupport() {
+  if (currentUser) {
+    if (!supportForm.nome.value) supportForm.nome.value = currentUser.name || '';
+    if (!supportForm.email.value) supportForm.email.value = currentUser.email || '';
+  }
+}
+
+function supportRender() {
+  supportList.replaceChildren(...supportFiles.map((file, index) => {
+    const item = document.createElement('li');
+    const thumb = document.createElement('span');
+    thumb.className = 'support-thumb';
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => { const image = document.createElement('img'); image.alt = ''; image.src = reader.result; thumb.replaceChildren(image); };
+      reader.readAsDataURL(file);
+    } else {
+      thumb.textContent = (file.name.split('.').pop() || '').slice(0, 4).toUpperCase();
+    }
+    const label = document.createElement('span');
+    label.className = 'support-file-name';
+    const name = document.createElement('strong');
+    name.textContent = file.name;
+    const size = document.createElement('small');
+    size.textContent = supportSize(file.size);
+    label.append(name, size);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'support-remove';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label', `Remover ${file.name}`);
+    remove.addEventListener('click', () => { supportFiles.splice(index, 1); supportRender(); });
+    item.append(thumb, label, remove);
+    return item;
+  }));
+}
+
+function supportAdd(files) {
+  const problems = [];
+  [...files].forEach(original => {
+    let file = original;
+    const name = file.name || `imagem-colada.${(file.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`;
+    if (!file.name) file = new File([file], name, { type: file.type });
+    const total = supportFiles.reduce((sum, item) => sum + item.size, 0);
+    if (!SUPPORT_EXT.test(name)) problems.push(`${name}: tipo não aceito`);
+    else if (supportFiles.length >= SUPPORT_MAX_FILES) problems.push('no máximo 5 anexos');
+    else if (file.size > SUPPORT_MAX_FILE) problems.push(`${name} passa de 5 MB`);
+    else if (total + file.size > SUPPORT_MAX_TOTAL) problems.push('os anexos passam de 8 MB no total');
+    else supportFiles.push(file);
+  });
+  supportRender();
+  supportNotice(problems.join(' · '));
+}
+
+const supportFileInput = document.querySelector('#support-file');
+const supportZone = document.querySelector('#support-zone');
+document.querySelector('#support-attach').addEventListener('click', () => supportFileInput.click());
+supportFileInput.addEventListener('change', () => { supportAdd(supportFileInput.files); supportFileInput.value = ''; });
+['dragenter', 'dragover'].forEach(name => supportZone.addEventListener(name, event => { event.preventDefault(); supportZone.classList.add('dragging'); }));
+['dragleave', 'drop'].forEach(name => supportZone.addEventListener(name, event => { event.preventDefault(); supportZone.classList.remove('dragging'); }));
+supportZone.addEventListener('drop', event => { if (event.dataTransfer?.files.length) supportAdd(event.dataTransfer.files); });
+supportMessage.addEventListener('input', () => { document.querySelector('#support-count').textContent = `${supportMessage.value.length} / 2000`; });
+supportMessage.addEventListener('paste', event => {
+  const images = [...(event.clipboardData?.files || [])].filter(file => file.type.startsWith('image/'));
+  if (images.length) { event.preventDefault(); supportAdd(images); }
+});
+
+function supportBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = () => reject(new Error('leitura'));
+    reader.readAsDataURL(file);
+  });
+}
+
+supportForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = document.querySelector('#support-send');
+  const body = { tipo: supportForm.tipo.value, mensagem: supportMessage.value.trim(), nome: supportForm.nome.value.trim(), email: supportForm.email.value.trim(), site: supportForm.site.value, origem: supportOrigin };
+  if (body.mensagem.length < 5 && !supportFiles.length) { supportNotice('Escreva a mensagem (mínimo de 5 caracteres) ou anexe um arquivo.'); supportMessage.focus(); return; }
+  if (!/^[^@\s<>",;]+@[^@\s<>",;]+\.[^@\s<>",;]+$/.test(body.email)) { supportNotice('Informe um e-mail válido para podermos responder.'); supportForm.email.focus(); return; }
+  button.disabled = true;
+  button.textContent = 'Enviando…';
+  supportNotice('');
+  try {
+    body.anexos = await Promise.all(supportFiles.map(async file => ({ nome: file.name, dados: await supportBase64(file) })));
+    const response = await apiFetch('api/support', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Não foi possível enviar agora.');
+    supportNotice(result.enviado ? `Mensagem enviada. O protocolo é ${result.protocolo}, e enviamos uma confirmação para o seu e-mail.` : `Mensagem registrada com o protocolo ${result.protocolo}. O envio por e-mail não está disponível agora, mas ela ficou guardada.`, true);
+    supportMessage.value = '';
+    supportFiles = [];
+    supportRender();
+    document.querySelector('#support-count').textContent = '0 / 2000';
+  } catch (error) {
+    supportNotice(error.message);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Enviar mensagem';
+  }
 });
 
 // FAQ: lista filtrável com resposta que abre na própria linha. O texto vem de faq-data.js e é montado por nós de texto (sem innerHTML).

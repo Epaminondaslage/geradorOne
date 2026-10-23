@@ -313,6 +313,7 @@ test('exportar a conta: exige sessão, traz conta e projetos e não vaza senha n
   assert.equal(exported.data.format, 'geradorone-account');
   assert.equal(exported.data.account.email, 'ana@teste.com');
   assert.equal(exported.data.ai.provider, 'gemini');
+  assert.ok(Array.isArray(exported.data.supportMessages));
   assert.equal(exported.data.ai.hasApiKey, false);
   const mine = exported.data.projects.find(project => project.name === 'Para exportar');
   assert.ok(mine);
@@ -385,6 +386,57 @@ test('provedor Anthropic: usa a API de mensagens, lê só os blocos de texto e n
     global.fetch = realFetch;
   }
   assert.equal((await ana('POST', '/api/ai/config', { provider: 'openai', apiKey: 'x'.repeat(2) })).status, 400);
+});
+
+test('fale com o suporte: valida, guarda, avisa o contato e confirma para a pessoa', async () => {
+  assert.equal((await client()('POST', '/api/support', { tipo: 'duvida', mensagem: 'Olá, tudo bem?', email: 'a@b.com' })).status, 401);
+  const ana = await loginAs('ana@teste.com', 'OutraSenha123');
+  assert.equal((await ana('POST', '/api/support', { tipo: 'xpto', mensagem: 'Mensagem de teste', email: 'ana@teste.com' })).status, 400);
+  assert.equal((await ana('POST', '/api/support', { tipo: 'duvida', mensagem: 'oi', email: 'ana@teste.com' })).status, 400);
+  assert.equal((await ana('POST', '/api/support', { tipo: 'duvida', mensagem: 'Mensagem de teste', email: 'sem-arroba' })).status, 400);
+  const exe = await ana('POST', '/api/support', { tipo: 'duvida', mensagem: 'Mensagem de teste', email: 'ana@teste.com', anexos: [{ nome: 'x.exe', dados: Buffer.from('MZ').toString('base64') }] });
+  assert.equal(exe.status, 400);
+  assert.match(exe.data.error, /não aceito/);
+
+  sent.length = 0;
+  const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(30, 2)]).toString('base64');
+  const done = await ana('POST', '/api/support', { tipo: 'problema', mensagem: 'A tela de tema não muda.', nome: 'Ana', email: 'ana@teste.com', origem: 'tema', anexos: [{ nome: 'print.png', dados: png }] });
+  assert.equal(done.status, 200);
+  assert.equal(done.data.enviado, true);
+  assert.match(done.data.protocolo, /^GO-\d{8}-[A-Z0-9]{4}$/);
+  assert.equal(sent.length, 2);
+  const [toSupport, receipt] = sent;
+  assert.equal(toSupport.to, app.mailer.supportAddress());
+  assert.equal(toSupport.replyTo, 'ana@teste.com');
+  assert.ok(toSupport.subject.includes(done.data.protocolo) && toSupport.subject.includes('Problema'));
+  assert.ok(toSupport.html.includes('A tela de tema não muda.') && toSupport.html.includes('tema'));
+  assert.deepEqual(toSupport.attachments.map(file => file.filename), ['geradorone.png', 'print.png']);
+  assert.equal(receipt.to, 'ana@teste.com');
+  assert.ok(receipt.subject.includes(done.data.protocolo));
+  assert.equal(receipt.replyTo, app.mailer.supportAddress());
+  assert.ok(receipt.text.includes('A tela de tema não muda.'));
+
+  const row = (await app.db.query('SELECT tipo, mensagem, email, origem, sent, anexos FROM support_messages WHERE protocolo = $1', [done.data.protocolo])).rows[0];
+  assert.equal(row.tipo, 'problema');
+  assert.equal(row.sent, true);
+  assert.equal(row.origem, 'tema');
+  assert.deepEqual(row.anexos.map(file => file.nome), ['print.png']);
+  const exported = await ana('GET', '/api/auth/export');
+  assert.ok(exported.data.supportMessages.some(message => message.protocolo === done.data.protocolo && message.enviada === true));
+
+  sent.length = 0;
+  const robot = await ana('POST', '/api/support', { tipo: 'duvida', mensagem: 'Compre agora!!!', email: 'ana@teste.com', site: 'http://spam.example' });
+  assert.equal(robot.status, 200);
+  assert.equal(robot.data.enviado, false);
+  assert.equal(sent.length, 0);
+  assert.equal(Number((await app.db.query("SELECT count(*) AS total FROM support_messages WHERE mensagem = 'Compre agora!!!'")).rows[0].total), 0);
+
+  const huge = await ana('POST', '/api/support', { tipo: 'duvida', mensagem: 'x'.repeat(13_000_000), email: 'ana@teste.com' });
+  assert.equal(huge.status, 413);
+
+  for (let i = 0; i < 4; i += 1) assert.equal((await ana('POST', '/api/support', { tipo: 'elogio', mensagem: `Mensagem número ${i + 2}`, email: 'ana@teste.com' })).status, 200);
+  const limited = await ana('POST', '/api/support', { tipo: 'elogio', mensagem: 'Mensagem demais', email: 'ana@teste.com' });
+  assert.equal(limited.status, 429);
 });
 
 test('excluir a própria conta: exige sessão e senha, protege o último administrador e apaga os projetos', async () => {

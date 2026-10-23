@@ -19,7 +19,7 @@ test('FAQ: perguntas não se repetem', () => {
 
 test('FAQ: cobre os temas principais do app', () => {
   const categorias = new Set(FAQ_ITEMS.map(item => item.categoria));
-  for (const nome of ['Primeiros passos', 'Conta e acesso', 'Apostila', 'Capa', 'Projetos', 'IA e chave', 'Obter a chave de IA', 'BNCC', 'Administração']) {
+  for (const nome of ['Primeiros passos', 'Conta e acesso', 'Apostila', 'Capa', 'Projetos', 'IA e chave', 'Obter a chave de IA', 'BNCC', 'Suporte', 'Administração']) {
     assert.ok(categorias.has(nome), `falta a categoria ${nome}`);
   }
 });

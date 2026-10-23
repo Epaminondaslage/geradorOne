@@ -77,7 +77,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Conta e acesso',
     pergunta: 'Como baixo todos os meus dados?',
-    resposta: '1. Abra "Minha conta".\n2. No bloco "Exportar meus dados", clique em "Baixar meus dados (JSON)".\n\nO arquivo traz os dados da sua conta (nome, e-mail, telefone, perfil e tema), as suas preferências de IA (provedor, modelos e se há chave salva) e todos os seus projetos, com configurações e prompts. A senha e o valor da chave de IA não entram no arquivo.\n\nO app não importa esse arquivo inteiro de volta. O botão "Importar arquivo JSON", em "Meus projetos", aceita um projeto por arquivo, exportado pelo botão "JSON" do painel "Resultado".'
+    resposta: '1. Abra "Minha conta".\n2. No bloco "Exportar meus dados", clique em "Baixar meus dados (JSON)".\n\nO arquivo traz os dados da sua conta (nome, e-mail, telefone, perfil e tema), as suas preferências de IA (provedor, modelos e se há chave salva), todos os seus projetos, com configurações e prompts, e as mensagens que você enviou ao suporte. A senha e o valor da chave de IA não entram no arquivo.\n\nO app não importa esse arquivo inteiro de volta. O botão "Importar arquivo JSON", em "Meus projetos", aceita um projeto por arquivo, exportado pelo botão "JSON" do painel "Resultado".'
   },
   {
     categoria: 'Conta e acesso',
@@ -192,6 +192,33 @@ const FAQ_ITEMS = [
     categoria: 'BNCC',
     pergunta: 'Como escolho habilidades da BNCC no GeradorOne?',
     resposta: '1. Na Apostila, em "Configuração pedagógica", clique em "Escolher habilidades da BNCC".\n2. Filtre por "Etapa" (Educação Infantil, Ensino Fundamental ou Ensino Médio). Depois use o ano ou a faixa etária e o componente, a área ou o campo de experiências. Se preferir, digite uma palavra ou um código em "Buscar".\n3. Marque as habilidades que quiser. A seleção continua marcada mesmo se você mudar os filtros.\n4. Clique em "Usar as selecionadas". Os códigos vão para o campo "Códigos da BNCC".\n\nA lista mostra até 150 resultados por vez: use os filtros para refinar. Ao gerar o prompt, o texto oficial de cada habilidade entra nele, e o app avisa se algum código digitado não existe na base.'
+  },
+
+  // ---------- Suporte ----------
+  {
+    categoria: 'Suporte',
+    pergunta: 'Como falo com o suporte?',
+    resposta: '1. Abra "Suporte", no menu.\n2. Escolha o tipo da mensagem: "Crítica", "Sugestão", "Problema", "Dúvida" ou "Elogio".\n3. Escreva a mensagem (de 5 a 2.000 caracteres). Num problema, diga em qual tela estava e o que esperava ver.\n4. Confira o seu e-mail em "Seu e-mail (para a resposta)". O campo já vem com o e-mail da conta, e a resposta chega nele.\n5. Clique em "Enviar mensagem".\n\nVocê recebe na hora um número de protocolo na tela e uma confirmação por e-mail, que cita o protocolo. Muitas dúvidas já têm resposta na FAQ. Não envie senhas nem chaves de API.'
+  },
+  {
+    categoria: 'Suporte',
+    pergunta: 'Quais anexos posso enviar ao suporte?',
+    resposta: '- Tipos aceitos: imagens (PNG, JPG, GIF e WEBP), PDF, TXT, LOG e CSV.\n- Limites: até 5 arquivos, 5 MB cada e 8 MB no total.\n\nPara anexar, clique em "Anexar arquivo", arraste os arquivos para a área tracejada ou cole um print de tela direto no texto da mensagem (Ctrl+V). Cada anexo aparece numa lista, e o "×" ao lado de cada um remove o arquivo antes do envio.\n\nO app confere o conteúdo do arquivo, além do nome: um arquivo com extensão de imagem que não é uma imagem é recusado. Um print do erro costuma ajudar mais do que a descrição. Antes de enviar, confira se ele não mostra senhas, chaves de API ou dados de outras pessoas.'
+  },
+  {
+    categoria: 'Suporte',
+    pergunta: 'Apareceu "Mensagem registrada" em vez de "Mensagem enviada". O que significa?',
+    resposta: '"Mensagem enviada" quer dizer que o e-mail chegou à equipe e que você recebeu a confirmação. "Mensagem registrada" quer dizer que o GeradorOne guardou a sua mensagem com o protocolo, mas não conseguiu enviar o e-mail agora, por exemplo porque o envio de e-mails do sistema está desligado ou fora do ar.\n\nNesse caso, anote o protocolo que aparece na tela e, se for urgente, escreva para o contato oficial: fulano@dominio.com.br. Cite o protocolo e descreva o assunto de novo, porque os anexos não ficam guardados no sistema.'
+  },
+  {
+    categoria: 'Suporte',
+    pergunta: 'Quantas mensagens posso enviar ao suporte?',
+    resposta: 'Até 5 por hora, por conta. Passando disso, o app avisa para aguardar um pouco. O limite evita envio em massa.\n\nSe precisa acrescentar algo a uma mensagem já enviada, responda ao e-mail de confirmação e cite o protocolo.'
+  },
+  {
+    categoria: 'Suporte',
+    pergunta: 'O que o GeradorOne guarda da minha mensagem ao suporte?',
+    resposta: 'O sistema guarda o texto da mensagem, o tipo, o protocolo, o nome e o e-mail informados, a tela de onde você escreveu e o nome e o tamanho de cada anexo. Os próprios anexos não ficam guardados: eles seguem só no e-mail enviado à equipe.\n\nEssas mensagens aparecem no arquivo de "Baixar meus dados" e somem do sistema quando você exclui a conta. As cópias de segurança do banco são apagadas depois de 14 dias.'
   },
 
   // ---------- Capa ----------

@@ -100,6 +100,7 @@
         <a class="nav-item" href="#ia" data-view="ia" title="Minha chave de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span class="nav-label">Minha chave de IA</span></a>
         <a class="nav-item" href="#conta" data-view="conta" title="Minha conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Minha conta</span></a>
         <a class="nav-item" href="#faq" data-view="faq" title="FAQ"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M12 17h.01"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/></svg><span class="nav-label">FAQ</span></a>
+        <a class="nav-item" href="#suporte" data-view="suporte" title="Fale com o suporte"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg><span class="nav-label">Suporte</span></a>
         <a class="nav-item" href="#usuarios" data-view="usuarios" data-admin title="Usuários" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-label">Usuários</span></a>
         <a class="nav-item" href="#smtp" data-view="smtp" data-admin title="E-mail (SMTP)" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="nav-label">E-mail (SMTP)</span></a>
       </nav>
@@ -404,7 +405,7 @@
           </section>
 
           <section class="view" data-view="faq" aria-label="FAQ" hidden>
-            <div class="view-head"><h1>FAQ: perguntas frequentes</h1><p>Respostas sobre cada recurso do GeradorOne, de criar a conta a gerar a chave de IA. Digite para filtrar a lista.</p></div>
+            <div class="view-head"><h1>FAQ: perguntas frequentes</h1><p>Respostas sobre cada recurso do GeradorOne, de criar a conta a gerar a chave de IA. Digite para filtrar a lista. Não achou? <a href="#suporte">Fale com o suporte</a>.</p></div>
             <details class="faq-intro">
               <summary>O que é a FAQ?</summary>
               <p>A FAQ reúne as dúvidas mais comuns sobre o GeradorOne, organizadas por tema. Em vez de procurar o administrador, você acha a resposta em segundos.</p>
@@ -422,6 +423,35 @@
               <span id="faq-count" class="field-status" role="status"></span>
             </div>
             <div class="table-wrap"><table id="faq-list" class="data-table faq-table" aria-live="polite"></table></div>
+          </section>
+
+          <section class="view" data-view="suporte" aria-label="Fale com o suporte" hidden>
+            <div class="view-head"><h1>Fale com o suporte</h1><p>Envie dúvidas, problemas, sugestões, críticas ou elogios sobre o GeradorOne, com texto e imagens. Antes, veja se a <a href="#faq">FAQ</a> já tem a resposta.</p></div>
+            <form id="support-form" class="card account-form" novalidate>
+              <p class="field-help">A mensagem chega a quem cuida do GeradorOne, e você recebe uma confirmação por e-mail, com o número do protocolo. <strong>Não envie senhas nem chaves de API.</strong></p>
+              <fieldset class="support-types">
+                <legend>Tipo da mensagem</legend>
+                <label><input type="radio" name="tipo" value="critica" checked><span>Crítica</span></label>
+                <label><input type="radio" name="tipo" value="sugestao"><span>Sugestão</span></label>
+                <label><input type="radio" name="tipo" value="problema"><span>Problema</span></label>
+                <label><input type="radio" name="tipo" value="duvida"><span>Dúvida</span></label>
+                <label><input type="radio" name="tipo" value="elogio"><span>Elogio</span></label>
+              </fieldset>
+              <label>Mensagem<textarea id="support-message" name="mensagem" rows="7" maxlength="2000" required placeholder="Conte o que aconteceu ou o que você sugere. Se for um problema, diga em qual tela estava e o que esperava ver."></textarea></label>
+              <div class="support-attach" id="support-zone">
+                <input type="file" id="support-file" multiple accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,.txt,.log,.csv" hidden>
+                <button class="outline" type="button" id="support-attach">Anexar arquivo</button>
+                <small class="field-status" id="support-attach-hint">Imagens (PNG, JPG, GIF, WEBP), PDF, TXT, LOG ou CSV, até 5 arquivos, 5 MB cada e 8 MB no total. Você também pode arrastar arquivos para cá ou colar uma imagem no texto (Ctrl+V).</small>
+                <ul id="support-files" class="support-files"></ul>
+              </div>
+              <div class="grid two">
+                <label>Seu nome (opcional)<input name="nome" maxlength="120" autocomplete="name"></label>
+                <label>Seu e-mail (para a resposta)<input name="email" type="email" maxlength="200" autocomplete="email" required></label>
+              </div>
+              <div class="support-hp" aria-hidden="true"><label>Não preencha este campo<input name="site" tabindex="-1" autocomplete="off"></label></div>
+              <p id="support-status" class="status" role="status"></p>
+              <div class="ai-config-actions"><span id="support-count" class="field-status">0 / 2000</span><button class="primary" type="submit" id="support-send">Enviar mensagem</button></div>
+            </form>
           </section>
 
           <section class="view" data-view="usuarios" aria-label="Usuários" hidden>

@@ -6,6 +6,7 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { URL } = require('node:url');
 const PDFDocument = require('pdfkit');
+const crypto = require('node:crypto');
 const appCrypto = require('./lib/crypto');
 const { createUserStore, publicUser, normalizeEmail, normalizePhone, isValidPhone, EMAIL_RE, THEMES } = require('./lib/users');
 const { createProjectStore, validateProject } = require('./lib/projects');
@@ -14,6 +15,7 @@ const { createDb } = require('./lib/db');
 const { importLegacyJson } = require('./lib/legacy-import');
 const { createMailer } = require('./lib/mailer');
 const { createSettingsStore } = require('./lib/settings');
+const { createSupportStore, validateSupport, newProtocol } = require('./lib/support');
 const { checkMasterSecret } = require('./lib/secret-check');
 
 const PORT = Number(process.env.PORT || 3000);
@@ -21,6 +23,8 @@ const HOST = process.env.HOST || '127.0.0.1';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const RUNTIME_DIR = process.env.RUNTIME_DIR || path.join(__dirname, 'runtime');
 const MAX_BODY = 1_000_000;
+// Só a rota do suporte aceita corpo grande (até 8 MB de anexos em base64, que ocupam cerca de 10,7 MB).
+const SUPPORT_MAX_BODY = 12_000_000;
 const execFileAsync = promisify(execFile);
 
 const PROVIDERS = ['openai', 'gemini', 'anthropic'];
@@ -85,11 +89,13 @@ const db = createDb(process.env.DATABASE_URL);
 const userStore = createUserStore(db);
 const projectStore = createProjectStore(db);
 const settingsStore = createSettingsStore(db);
+const supportStore = createSupportStore(db);
 const envSmtp = { host: process.env.SMTP_HOST, port: process.env.SMTP_PORT, secure: process.env.SMTP_SECURE, requireTLS: process.env.SMTP_REQUIRE_TLS, user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, from: process.env.SMTP_FROM };
 const mailer = createMailer(envSmtp);
 const SMTP_KEY = 'smtp';
 const loginLimiter = createLimiter({ max: 8, windowMs: 15 * 60_000 });
 const resetLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
+const supportLimiter = createLimiter({ max: 5, windowMs: 60 * 60_000 });
 const signupEmailLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
 const signupIpLimiter = createLimiter({ max: 20, windowMs: 15 * 60_000 });
 const resets = new Map();
@@ -221,7 +227,7 @@ function json(res, status, body, headers = {}) {
   res.end(JSON.stringify(body));
 }
 
-function readBody(req) {
+function readBody(req, limit = MAX_BODY) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
@@ -229,7 +235,7 @@ function readBody(req) {
     req.on('data', chunk => {
       if (tooBig) return;
       size += chunk.length;
-      if (size > MAX_BODY) {
+      if (size > limit) {
         tooBig = true;
         chunks.length = 0;
         reject(Object.assign(new Error('Corpo muito grande'), { status: 413 }));
@@ -589,6 +595,7 @@ async function handleAuthApi(req, res, pathname, user) {
       account: { id: user.id, name: user.name, email: user.email, phone: user.phone || '', role: user.role, active: user.active, theme: user.theme || '', createdAt: user.createdAt, updatedAt: user.updatedAt },
       ai: { provider: ai.provider, hasApiKey: Boolean(ai.apiKey), model: ai.model, imageModel: ai.imageModel },
       projects: await projectStore.listAll(user.id),
+      supportMessages: await supportStore.listFor(user.id),
       notes: [
         'A senha (guardada só como hash) e o valor da chave de IA (guardada cifrada) não entram neste arquivo.',
         'Cada item de "projects" traz as configurações e o prompt do projeto. A importação de projetos do app aceita um projeto por arquivo, exportado pelo botão "JSON" do painel de resultado.'
@@ -806,6 +813,38 @@ async function handleAppApi(req, res, pathname, user) {
       if (!error.status) console.error('Falha em projetos:', error.message);
       return json(res, error.status || (error instanceof SyntaxError ? 400 : 500), { error: error.status ? error.message : error instanceof SyntaxError ? 'JSON inválido.' : 'Não foi possível acessar os projetos.' });
     }
+  }
+  if (req.method === 'POST' && pathname === '/api/support') {
+    const limiterKey = `user:${user.id}`;
+    if (supportLimiter.blocked(limiterKey)) return json(res, 429, { error: 'Você já enviou várias mensagens na última hora. Aguarde um pouco e tente de novo.' });
+    let payload;
+    try {
+      payload = JSON.parse(await readBody(req, SUPPORT_MAX_BODY) || '{}');
+    } catch (error) {
+      if (error.status === 413) return json(res, 413, { error: 'Os anexos passam de 8 MB no total.' });
+      return json(res, 400, { error: 'Pedido inválido.' });
+    }
+    const message = validateSupport(payload);
+    // Campo isca que só robôs preenchem: responde como se tivesse dado certo, sem enviar nem guardar nada.
+    if (message.isca) return json(res, 200, { ok: true, enviado: false });
+    supportLimiter.hit(limiterKey);
+    const data = { ...message, protocolo: newProtocol(), conta: { name: user.name, email: user.email, role: user.role } };
+    const id = crypto.randomUUID();
+    await supportStore.create({ id, userId: user.id, protocolo: data.protocolo, tipo: data.tipo, mensagem: data.mensagem, nome: data.nome, email: data.email, origem: data.origem, anexos: data.anexos });
+    let enviado = false;
+    if (mailer.enabled) {
+      try {
+        await mailer.sendSupportMessage(data);
+        enviado = true;
+        await supportStore.markSent(id);
+      } catch (error) {
+        console.error('Falha ao enviar a mensagem de suporte:', error.message);
+      }
+      if (enviado) {
+        try { await mailer.sendSupportReceipt(data); } catch (error) { console.error('Falha ao enviar a confirmação de suporte:', error.message); }
+      }
+    }
+    return json(res, 200, { ok: true, enviado, protocolo: data.protocolo });
   }
   if (req.method === 'POST' && pathname === '/api/improve') {
     try {

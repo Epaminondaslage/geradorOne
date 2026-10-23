@@ -26,7 +26,7 @@ Aplicativo web que gera prompts de imagem para apostilas e capas didáticas. Voc
 6. Esqueceu a senha? Use "Esqueci a senha" (também depende do envio de e-mail): informe e-mail e a nova senha, e confirme com o código de 6 dígitos.
 
 # Menu lateral
-Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta, FAQ (perguntas e respostas, com busca) e, embaixo, Tema e Sair. Administradores também veem Usuários e E-mail (SMTP).
+Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta, FAQ (perguntas e respostas, com busca), Suporte (formulário "Fale com o suporte") e, embaixo, Tema e Sair. Administradores também veem Usuários e E-mail (SMTP).
 
 # Gerar o prompt de uma apostila
 1. Abra "Apostila". Os campos com * são obrigatórios.
@@ -48,6 +48,9 @@ Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minh
 - O resultado abre no painel "Resultado", com as abas "Prompt" e "Prévia".
 - Botões: "Copiar", "TXT" (baixa o prompt), "JSON" (exporta o projeto), "PDF" e "Melhorar com IA" (usa a sua chave).
 - Cole o prompt copiado na ferramenta de IA de imagens da sua escolha.
+
+# Suporte
+- Em "Suporte", escolha o tipo ("Crítica", "Sugestão", "Problema", "Dúvida" ou "Elogio"), escreva a mensagem (5 a 2.000 caracteres), anexe arquivos se quiser (imagens, PDF, TXT, LOG ou CSV; até 5 arquivos, 5 MB cada, 8 MB no total; dá para arrastar ou colar um print) e clique em "Enviar mensagem". A pessoa recebe um protocolo na tela e uma confirmação por e-mail. O limite é de 5 mensagens por hora.
 
 # Projetos
 - No topo aparece "Meus projetos / nome do projeto" e o estado ("não salvo"). Use "Renomear", "Salvar projeto" e "Salvar como novo".
