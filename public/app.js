@@ -115,7 +115,7 @@ const visualSamples = {
   linhas:'<svg class="resource-icon" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 24h38"/><circle cx="13" cy="24" r="3"/><circle cx="24" cy="24" r="3"/><circle cx="35" cy="24" r="3"/><path d="M13 21v-8M35 21v-8M24 27v8"/><path d="M9 13h8M31 13h8M20 35h8"/></svg>',
   icones:'<svg class="resource-icon" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 5 42 37H6Z"/><path d="M24 17v10"/><circle cx="24" cy="32" r=".5"/></svg>'
 };
-resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
+resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><span class="resource-text"><strong>${title}</strong><small>${description}</small></span></label></div>`));
 
 const form = document.querySelector('#formulario');
 const capaForm = document.querySelector('#form-capa');
@@ -170,8 +170,7 @@ let toastTimer;
 let currentFiles = [];
 
 function updateGenerationMode() {
-  const ai = form.elements.modoGeracao.value === 'ai';
-  document.querySelector('.generate-label').textContent = ai ? 'Gerar material com IA' : 'Gerar prompt completo';
+  document.querySelector('.generate-label').textContent = 'Gerar prompt completo';
 }
 
 let aiAvailable = false;
@@ -182,7 +181,7 @@ async function checkAiAvailability() {
     const response = await apiFetch('api/ai/status');
     const data = await response.json();
     aiAvailable = Boolean(data.available);
-    label.textContent = data.available ? `IA disponível no servidor · ${data.provider} · ${data.model}` : 'IA não configurada no servidor; o modo prompt continua disponível.';
+    label.textContent = data.available ? `${data.provider} · texto ${data.model}` : 'Sem chave de IA: salve a sua em "Minha chave de IA" para gerar o material pronto. O prompt continua disponível.';
     label.className = `field-status ${data.available ? 'available' : 'unavailable'}`;
   } catch {
     label.textContent = 'Não foi possível verificar a IA.';
@@ -671,6 +670,8 @@ function syncSaveButtons() {
 function setResultTab(tab) {
   showPromptButton.classList.toggle('active', tab === 'prompt');
   previewButton.classList.toggle('active', tab === 'preview');
+  showPromptButton.setAttribute('aria-pressed', String(tab === 'prompt'));
+  previewButton.setAttribute('aria-pressed', String(tab === 'preview'));
 }
 
 function showResult({ prompt, kind, badge, files = false }) {
@@ -681,7 +682,7 @@ function showResult({ prompt, kind, badge, files = false }) {
   currentFiles = [];
   outEmpty.hidden = true;
   outBody.hidden = false;
-  outBadge.textContent = badge;
+  outBadge.textContent = `${badge} · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
   outBadge.hidden = false;
   output.textContent = prompt;
   output.hidden = files;
@@ -690,10 +691,20 @@ function showResult({ prompt, kind, badge, files = false }) {
   resultActions.hidden = files;
   improveBox.hidden = true;
   improveOpen.setAttribute('aria-expanded', 'false');
+  document.querySelector('#ai-block').hidden = kind !== 'apostila';
   setResultTab('prompt');
   syncSaveButtons();
   if (matchMedia('(max-width: 1180px)').matches) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+document.querySelector('#generate-ai').addEventListener('click', () => {
+  if (!aiAvailable) { notify('Salve a sua chave em "Minha chave de IA" para gerar o material.'); return; }
+  const mode = form.elements.modoGeracao;
+  mode.value = 'ai';
+  form.requestSubmit();
+  mode.value = 'prompt';
+});
+document.querySelector('#ai-change-key').addEventListener('click', () => showView('ia'));
 
 function projectTitle() {
   const data = dataObject(formFor(currentKind));
@@ -1195,7 +1206,7 @@ function startApp(user) {
   if (switched) { location.hash = ''; location.reload(); return; }
   if (user.theme && themeNames[user.theme]) { themeFollowsSystem = false; setTheme(user.theme); } else { themeFollowsSystem = true; setTheme(systemTheme(), { persist: false }); }
   document.querySelector('#user-name').textContent = user.name;
-  document.querySelector('#user-email').textContent = user.email;
+  document.querySelector('#user-email').textContent = user.role === 'admin' ? 'Administrador' : 'Usuário';
   document.querySelectorAll('[data-admin]').forEach(item => { item.hidden = user.role !== 'admin'; });
   authScreen.hidden = true;
   appShell.hidden = false;
@@ -1462,6 +1473,16 @@ usersList.addEventListener('click', async event => {
   if (!response.ok) { notify(data.error || 'Não foi possível excluir.'); return; }
   notify(`Usuário excluído (${data.removedProjects} projeto(s) apagado(s))`);
   loadUsers();
+});
+
+document.querySelector('#toggle-password').addEventListener('click', event => {
+  const button = event.currentTarget;
+  const field = document.querySelector('#login-password');
+  const show = field.type === 'password';
+  field.type = show ? 'text' : 'password';
+  button.textContent = show ? 'Ocultar' : 'Mostrar';
+  button.setAttribute('aria-pressed', String(show));
+  button.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
 });
 
 async function bootstrapAuth() {

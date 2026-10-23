@@ -14,17 +14,19 @@
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
   <div class="auth-screen" id="auth-screen" hidden>
-    <div class="auth-side">
-    <div class="auth-card">
-      <div class="auth-brand"><span class="brand-mark logo" aria-hidden="true"></span><span><strong>GeradorOne</strong><small>Prompts para materiais didáticos</small></span></div>
+    <main class="auth-main">
+      <div class="auth-brand"><span class="brand-mark logo" aria-hidden="true"></span><span class="auth-name">GeradorOne</span></div>
+      <div class="auth-card">
       <form id="login-form" class="auth-panel" data-panel="login" novalidate>
-        <h1>Entrar</h1>
-        <p>Use o e-mail e a senha da sua conta.</p>
+        <div class="auth-title"><h1>Entrar</h1><p>Use o e-mail e a senha que o administrador cadastrou para você.</p></div>
         <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
-        <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+        <div class="field-block">
+          <div class="field-row"><label for="login-password">Senha</label><button class="link" type="button" data-auth-go="forgot">Esqueci a senha</button></div>
+          <div class="input-join"><input id="login-password" name="password" type="password" autocomplete="current-password" required><button class="ghost" type="button" id="toggle-password" aria-label="Mostrar senha" aria-pressed="false">Mostrar</button></div>
+        </div>
         <p class="auth-error" role="alert"></p>
         <button class="primary" type="submit">Entrar</button>
-        <button class="link" type="button" data-auth-go="forgot">Esqueci minha senha</button>
+        <p class="help">Sem acesso? Peça ao administrador da sua escola para criar o seu usuário.</p>
       </form>
       <form id="forgot-form" class="auth-panel" data-panel="forgot" hidden novalidate>
         <h1>Redefinir senha</h1>
@@ -53,11 +55,13 @@
         <button class="primary" type="submit">Salvar e entrar</button>
         <button class="link" type="button" id="first-logout">Sair</button>
       </form>
-    </div>
-    </div>
-    <div class="auth-art" aria-hidden="true">
-      <span class="logo"></span>
-    </div>
+      </div>
+      <p class="help">GeradorOne v2 · O gerador não valida automaticamente conteúdos ou códigos curriculares.</p>
+    </main>
+    <aside class="auth-art" data-theme-scope="lousa" aria-label="Sobre o GeradorOne">
+      <span class="logo" role="img" aria-label="GeradorOne: cabeça com um mapa mental no lugar do cérebro"></span>
+      <div class="auth-pitch"><p class="pitch-title">Um prompt por página, pronto para o seu gerador de imagens.</p><p>Apostilas, cadernos de atividades e capas. Se quiser, a sua própria chave de IA monta o PDF.</p></div>
+    </aside>
   </div>
   <div class="shell" id="shell" hidden>
     <div class="scrim" id="scrim" hidden></div>
@@ -71,20 +75,17 @@
       </div>
       <nav class="nav" aria-label="Menu principal">
         <a class="nav-item" href="#inicio" data-view="inicio" title="Início"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9"/></svg><span class="nav-label">Início</span></a>
-        <p class="nav-group nav-label">Criar</p>
         <a class="nav-item" href="#apostila" data-view="apostila" title="Apostila"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg><span class="nav-label">Apostila</span></a>
         <a class="nav-item" href="#capa" data-view="capa" title="Capa"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg><span class="nav-label">Capa</span></a>
-        <p class="nav-group nav-label">Biblioteca</p>
         <a class="nav-item" href="#projetos" data-view="projetos" title="Meus projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="nav-label">Meus projetos</span></a>
-        <p class="nav-group nav-label">Sistema</p>
         <a class="nav-item" href="#ia" data-view="ia" title="Minha chave de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span class="nav-label">Minha chave de IA</span></a>
         <a class="nav-item" href="#conta" data-view="conta" title="Minha conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Minha conta</span></a>
         <a class="nav-item" href="#usuarios" data-view="usuarios" data-admin title="Usuários" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-label">Usuários</span></a>
       </nav>
       <div class="sidebar-foot">
-        <div class="user-chip nav-label"><strong id="user-name">—</strong><small id="user-email"></small></div>
+        <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label">Tema</span><span class="nav-label theme-current" id="theme-name">Papel</span></a>
         <button id="logout-button" class="nav-item" type="button" title="Sair"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label">Sair</span></button>
-        <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label">Tema: <span id="theme-name">Papel</span></span></a>
+        <div class="user-chip nav-label"><strong id="user-name">—</strong><small id="user-email"></small></div>
       </div>
     </aside>
 
@@ -102,41 +103,63 @@
           <section class="view" data-view="apostila" aria-label="Apostila" hidden>
             <div class="view-head"><h1>Apostila</h1><p>Defina o material. Cada página vira uma imagem pronta para o seu gerador.</p></div>
             <form id="formulario" novalidate>
-              <section class="card" aria-labelledby="dados-title">
-        <div class="card-head"><span class="number">01</span><div><h2 id="dados-title">Dados do material</h2><p>Defina o que será ensinado e para quem.</p></div></div>
-        <div class="grid two">
-          <label>Disciplina <span aria-hidden="true">*</span><input name="disciplina" required placeholder="Ex.: Matemática, Inglês, História"></label>
-          <label>Assunto principal <span aria-hidden="true">*</span><input name="assunto" required placeholder="Ex.: Habilidades de inglês do 6º ano"></label>
-          <label>Público / faixa etária <span aria-hidden="true">*</span><select name="publico" required><option value="">Selecione</option><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
-          <label>Profundidade<select name="profundidade"><option>Introdutório</option><option>Básico</option><option selected>Intermediário</option><option>Avançado</option><option>Completo</option></select></label>
-          <label class="full">Objetivo de aprendizagem<textarea name="objetivo" rows="3" placeholder="Ex.: Capacitar professores para ministrar o conteúdo de inglês do 6º ano."></textarea></label>
-          <label>Tipo de material<select name="tipo"><option>Apostila didática</option><option>Material de revisão</option><option>Material preparatório</option><option>Material complementar</option><option>Caderno de atividades</option><option>Guia de estudos</option><option>Resumo visual</option><option>Mapa mental</option><option>Material para concurso</option><option>Material profissional</option><option>Guia do professor</option><option>Sequência didática</option><option>Outro</option></select></label>
-          <label>Estilo de escrita<select name="escrita"><option>Didático</option><option>Acadêmico</option><option>Conversacional</option><option>Objetivo</option><option>Lúdico</option><option>Técnico</option></select></label>
-          <label>Número de páginas<select name="paginas"><option value="1" selected>1 página</option><option value="2">2 páginas</option><option value="3">3 páginas</option><option value="4">4 páginas</option><option value="5">5 páginas</option><option value="6">6 páginas</option><option value="8">8 páginas</option><option value="10">10 páginas</option><option value="12">12 páginas</option></select><small class="field-status">Cada página vira uma imagem. Com mais de uma, o prompt traz o plano e pede uma página por vez.</small></label>
-        </div>
-      </section>
+              <section class="sec" aria-labelledby="dados-title">
+                <div class="sec-head"><h2 id="dados-title">Dados do material</h2><p class="help">O que será ensinado e para quem. Campos com * são obrigatórios.</p></div>
+                <div class="grid two">
+                  <label>Disciplina *<input name="disciplina" required placeholder="Ex.: Matemática, Inglês, História"></label>
+                  <label>Assunto principal *<input name="assunto" required placeholder="Ex.: Habilidades de inglês do 6º ano"></label>
+                  <label>Público / faixa etária *<select name="publico" required><option value="">Selecione</option><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
+                  <label>Profundidade<select name="profundidade"><option>Introdutório</option><option>Básico</option><option selected>Intermediário</option><option>Avançado</option><option>Completo</option></select></label>
+                </div>
+                <label>Objetivo de aprendizagem<textarea name="objetivo" rows="2" placeholder="Ex.: Capacitar professores para ministrar o conteúdo de inglês do 6º ano."></textarea></label>
+                <div class="grid two">
+                  <label>Estilo de escrita<select name="escrita"><option>Didático</option><option>Acadêmico</option><option>Conversacional</option><option>Objetivo</option><option>Lúdico</option><option>Técnico</option></select></label>
+                  <label>Número de páginas<select name="paginas"><option value="1" selected>1 página</option><option value="2">2 páginas</option><option value="3">3 páginas</option><option value="4">4 páginas</option><option value="5">5 páginas</option><option value="6">6 páginas</option><option value="8">8 páginas</option><option value="10">10 páginas</option><option value="12">12 páginas</option></select><small class="help">Cada página vira uma imagem. Com mais de uma, o prompt traz o plano e pede uma página por vez.</small></label>
+                </div>
+              </section>
 
-      <section class="card" aria-labelledby="pedagogia-title">
-        <div class="card-head"><span class="number">02</span><div><h2 id="pedagogia-title">Configuração pedagógica</h2><p>Adicione referências e limites contra informações inventadas.</p></div></div>
-        <div class="grid two">
-          <label>Códigos da BNCC (opcional)<input name="bncc" placeholder="Ex.: EF06LI01, EF06LI02"></label>
-          <label class="switch-row"><span><strong>Sugerir habilidades da BNCC</strong><small>Somente quando houver correspondência verificável.</small></span><input name="sugerirBncc" type="checkbox" role="switch" checked></label>
-          <label class="full">Texto ou material de referência<textarea name="referencias" rows="5" placeholder="Cole definições, trechos, fontes ou observações obrigatórias. Não inclua dados pessoais sensíveis."></textarea></label>
-        </div>
-      </section>
+              <fieldset class="sec">
+                <legend><span class="sec-title">Tipo de material</span><span class="help">13 tipos. O tipo muda a estrutura da página, não o assunto.</span></legend>
+                <div class="opt-grid">
+            <label class="opt"><input type="radio" name="tipo" value="Apostila didática" checked>Apostila didática</label>
+            <label class="opt"><input type="radio" name="tipo" value="Material de revisão">Material de revisão</label>
+            <label class="opt"><input type="radio" name="tipo" value="Material preparatório">Material preparatório</label>
+            <label class="opt"><input type="radio" name="tipo" value="Material complementar">Material complementar</label>
+            <label class="opt"><input type="radio" name="tipo" value="Caderno de atividades">Caderno de atividades</label>
+            <label class="opt"><input type="radio" name="tipo" value="Guia de estudos">Guia de estudos</label>
+            <label class="opt"><input type="radio" name="tipo" value="Resumo visual">Resumo visual</label>
+            <label class="opt"><input type="radio" name="tipo" value="Mapa mental">Mapa mental</label>
+            <label class="opt"><input type="radio" name="tipo" value="Material para concurso">Material para concurso</label>
+            <label class="opt"><input type="radio" name="tipo" value="Material profissional">Material profissional</label>
+            <label class="opt"><input type="radio" name="tipo" value="Guia do professor">Guia do professor</label>
+            <label class="opt"><input type="radio" name="tipo" value="Sequência didática">Sequência didática</label>
+            <label class="opt"><input type="radio" name="tipo" value="Outro">Outro</label>
+                </div>
+              </fieldset>
 
-      <section class="card" aria-labelledby="visual-title">
-        <div class="card-head"><span class="number">03</span><div><h2 id="visual-title">Direção visual</h2><p>Escolha uma linguagem consistente para tela e impressão.</p></div></div>
-        <fieldset><legend>Estilo das ilustrações</legend><p class="field-help">Escolha o tipo de traço e acabamento. As cores do material são definidas separadamente em “Paleta”.</p><div id="style-options" class="style-grid"></div></fieldset>
-        <div class="grid two palette-row">
-          <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
-          <label>Formato prioritário<select name="formato"><option selected>Impressão A4</option><option>Tela e impressão</option><option>Somente tela</option><option>Apresentação 16:9</option></select></label>
-        </div>
-      </section>
+              <fieldset class="sec">
+                <legend><span class="sec-title">Estilo das ilustrações</span><span class="help">O traço e o acabamento. As cores ficam em Paleta, logo abaixo.</span></legend>
+                <div id="style-options" class="style-grid"></div>
+                <div class="grid two">
+                  <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
+                  <label>Formato prioritário<select name="formato"><option selected>Impressão A4</option><option>Tela e impressão</option><option>Somente tela</option><option>Apresentação 16:9</option></select></label>
+                </div>
+              </fieldset>
 
-      <section class="card visual-card" aria-labelledby="recursos-title">
-        <div class="card-head resource-head"><span class="number">04</span><div><h2 id="recursos-title">Recursos visuais</h2><p>As opções começam desmarcadas. Escolha somente os recursos que deseja usar.</p></div><div class="resource-tools"><button id="select-all-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.3 14l1.4 1.4 2.8-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Selecionar todos</button><button id="clear-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12.5l4.5 4.5M16.5 12.5 12 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Limpar seleção</button></div></div>
-        <div id="resource-options" class="resource-grid"></div>
+              <section class="sec" aria-labelledby="pedagogia-title">
+                <div class="sec-head"><h2 id="pedagogia-title">Configuração pedagógica</h2><p class="help">Referências e limites contra informações inventadas.</p></div>
+                <div class="grid two">
+                  <label>Códigos da BNCC (opcional)<input name="bncc" placeholder="Cole só códigos que você já conferiu"></label>
+                  <label class="opt opt-top"><input name="sugerirBncc" type="checkbox" checked><span><strong>Sugerir habilidades da BNCC</strong><small class="help">Somente quando houver correspondência verificável.</small></span></label>
+                </div>
+                <label>Texto ou material de referência<textarea name="referencias" rows="3" placeholder="Cole definições, trechos, fontes ou observações obrigatórias. Não inclua dados pessoais sensíveis."></textarea></label>
+              </section>
+
+              <section class="sec" aria-labelledby="recursos-title">
+                <div class="sec-head resource-head"><div><h2 id="recursos-title">Recursos visuais</h2><p class="help">As opções começam desmarcadas. Escolha somente os recursos que deseja usar.</p></div>
+                  <div class="resource-tools"><button id="select-all-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.3 14l1.4 1.4 2.8-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Selecionar todos</button><button id="clear-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12.5l4.5 4.5M16.5 12.5 12 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Limpar seleção</button></div>
+                </div>
+                <div id="resource-options" class="resource-grid"></div>
         <div class="grid three controls">
           <label>Frequência visual<select name="frequencia"><option>Essencial — 1 por seção</option><option selected>Equilibrada — 2 a 3 por seção</option><option>Intensa — 4 ou mais por seção</option></select></label>
           <label>Profundidade visual<select name="profundidadeVisual"><option>Simples</option><option selected>Detalhada</option><option>Avançada</option></select></label>
@@ -145,17 +168,15 @@
         <div class="grid two integration-row">
           <label>Formato dos diagramas<select name="formatoDiagrama"><option selected>Mermaid + descrição textual</option><option>SVG editável + descrição textual</option><option>Somente especificação visual</option></select></label>
           <label>Imagens por IA<select name="modoImagem"><option value="gerar" selected>Gerar imagens reais e incorporar</option><option value="nao-usar">Não usar imagens geradas por IA</option></select><small class="field-status">No modo IA, as imagens são criadas e inseridas no HTML ou PDF. Nenhum espaço reservado.</small></label>
-          <label>Formato de entrega<select name="formatoEntrega"><option value="pdf" selected>Arquivo PDF final</option><option value="html">Arquivo HTML autônomo</option></select></label>
-          <label>Modo de geração<select id="generation-mode" name="modoGeracao"><option value="prompt" selected>Gerar somente o prompt</option><option value="ai">Gerar o material com IA</option></select><small id="ai-availability" class="field-status">Verificando disponibilidade da IA…</small></label>
         </div>
         <label class="full">Orientações visuais adicionais<textarea name="orientacoes" rows="3" placeholder="Ex.: usar mapas mentais radiais, gráficos apenas com dados fornecidos e ilustrações inclusivas."></textarea></label>
-      </section>
-              <div class="action-bar">
-                <p><span class="completion-ring" id="completion-ring" aria-hidden="true"></span><strong id="completion">0%</strong><span>Configuração preenchida</span></p>
-                <div class="action-buttons">
-                  <button class="ghost" type="reset" id="reset-apostila"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Novo</button>
-                  <button id="generate-button" class="primary" type="submit"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.34 8 20l-1.94-5.66L0 12.4l6.06-1.94L8 4.8l1.94 5.66L16 12.4z" transform="translate(4 0)"/><path d="M20 3v4M22 5h-4"/></svg><span class="generate-label">Gerar prompt completo</span></button>
-                </div>
+      
+              </section>
+
+              <div class="form-foot">
+                <button id="generate-button" class="primary big" type="submit"><span class="generate-label">Gerar prompt completo</span></button>
+                <button class="textbtn" type="reset" id="reset-apostila">Limpar formulário</button>
+                <p class="help form-note"><span id="completion-ring" hidden></span><strong id="completion">0%</strong> preenchido · O gerador não valida automaticamente conteúdos ou códigos curriculares.</p>
               </div>
             </form>
           </section>
@@ -163,11 +184,11 @@
           <section class="view" data-view="capa" aria-label="Capa" hidden>
             <div class="view-head"><h1>Capa</h1><p>Gere o prompt da arte frontal de uma capa de apostila, com os textos exatos que devem aparecer.</p></div>
             <form id="form-capa" novalidate>
-              <section class="card" aria-labelledby="capa-dados-title">
-                <div class="card-head"><span class="number">01</span><div><h2 id="capa-dados-title">Textos da capa</h2><p>Escreva exatamente como devem aparecer na imagem.</p></div></div>
+              <section class="sec" aria-labelledby="capa-dados-title">
+                <div class="sec-head"><h2 id="capa-dados-title">Textos da capa</h2><p class="help">Escreva exatamente como devem aparecer na imagem.</p></div>
                 <div class="grid two">
                   <label>Disciplina<input name="disciplina" placeholder="Ex.: Eletricidade"></label>
-                  <label>Título principal <span aria-hidden="true">*</span><input name="titulo" required placeholder="Ex.: Lei de Ohm"></label>
+                  <label>Título principal *<input name="titulo" required placeholder="Ex.: Lei de Ohm"></label>
                   <label>Texto superior<input name="textoSuperior" value="Material de Estudos" placeholder="Ex.: Material de Estudos"></label>
                   <label>Subtítulo<input name="subtitulo" placeholder="Ex.: Tensão, corrente e resistência"></label>
                   <label class="full">Frase inferior (opcional)<input name="fraseInferior" placeholder="Ex.: Entenda como a eletricidade se comporta nos circuitos"></label>
@@ -177,21 +198,19 @@
                   <label>Público / faixa etária<select name="publico"><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option selected>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
                 </div>
               </section>
-              <section class="card" aria-labelledby="capa-visual-title">
-                <div class="card-head"><span class="number">02</span><div><h2 id="capa-visual-title">Direção visual da capa</h2><p>Estilo, cores e elementos da ilustração.</p></div></div>
-                <fieldset><legend>Estilo da capa</legend><div id="capa-style-options" class="style-grid"></div></fieldset>
-                <div class="grid two palette-row">
+              <fieldset class="sec">
+                <legend><span class="sec-title">Estilo da capa</span><span class="help">O traço e o acabamento da ilustração.</span></legend>
+                <div id="capa-style-options" class="style-grid"></div>
+                <div class="grid two">
                   <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
                   <label>Formato da capa<select name="formato"><option selected>Impressão A4</option><option>Somente tela</option><option>Apresentação 16:9</option></select></label>
-                  <label class="full">Elementos desejados na ilustração (opcional)<textarea name="elementos" rows="3" placeholder="Ex.: circuito elétrico, lâmpada, resistores e um multímetro."></textarea></label>
                 </div>
-              </section>
-              <div class="action-bar">
-                <p><span>Capa em página única, sem mockup.</span></p>
-                <div class="action-buttons">
-                  <button class="ghost" type="reset" id="reset-capa"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Novo</button>
-                  <button id="generate-capa" class="primary" type="submit"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.34 8 20l-1.94-5.66L0 12.4l6.06-1.94L8 4.8l1.94 5.66L16 12.4z" transform="translate(4 0)"/><path d="M20 3v4M22 5h-4"/></svg><span>Gerar prompt da capa</span></button>
-                </div>
+                <label>Elementos desejados na ilustração (opcional)<textarea name="elementos" rows="3" placeholder="Ex.: circuito elétrico, lâmpada, resistores e um multímetro."></textarea></label>
+              </fieldset>
+              <div class="form-foot">
+                <button id="generate-capa" class="primary big" type="submit"><span>Gerar prompt da capa</span></button>
+                <button class="textbtn" type="reset" id="reset-capa">Limpar formulário</button>
+                <p class="help form-note">Capa em página única, sem mockup.</p>
               </div>
             </form>
           </section>
@@ -307,19 +326,25 @@
           <p class="legal">O gerador não valida automaticamente conteúdos ou códigos curriculares. GeradorOne v2</p>
         </div>
 
-        <aside class="out-panel" id="out-panel" aria-label="Resultado">
-          <div class="out-head"><h2>Resultado</h2><span id="out-badge" class="chip-badge" hidden></span></div>
+        <aside class="out-panel" id="out-panel" aria-labelledby="out-title">
+          <div class="out-head"><h2 id="out-title">Resultado</h2><span id="out-badge" class="out-meta" hidden></span></div>
           <div id="out-empty" class="out-empty"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/></svg><strong>Nada gerado ainda</strong><span>Escolha as opções, preencha os dados e clique em Gerar: o resultado aparece aqui.</span></div>
           <div id="out-body" hidden>
-            <nav class="result-actions" id="result-actions" aria-label="Ações do resultado">
-              <button id="show-prompt" class="active" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>Prompt</button>
-              <button id="preview" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Prévia</button>
-              <button id="copy" type="button"><span class="copy-icon" aria-hidden="true"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span><span class="copy-label">Copiar</span></button>
-              <button id="improve-open" type="button" aria-expanded="false" aria-controls="improve-box"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>Melhorar com IA</button>
-              <button id="export-txt" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>TXT</button>
-              <button id="export-json" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg>JSON</button>
-              <button id="export-pdf" class="pdf-action" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>PDF</button>
-            </nav>
+            <div id="result-actions" class="result-bar" aria-label="Ações do resultado">
+              <div class="out-tabs" role="group" aria-label="Visualização">
+                <button id="show-prompt" class="active" type="button">Prompt</button>
+                <button id="preview" type="button">Prévia</button>
+              </div>
+              <div class="out-tools">
+                <div class="seg" role="group" aria-label="Exportar">
+                  <button id="copy" type="button"><span class="copy-icon" aria-hidden="true"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span><span class="copy-label">Copiar</span></button>
+                  <button id="export-txt" type="button">TXT</button>
+                  <button id="export-json" type="button">JSON</button>
+                  <button id="export-pdf" type="button">PDF</button>
+                </div>
+                <button id="improve-open" class="outline" type="button" aria-expanded="false" aria-controls="improve-box"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>Melhorar com IA</button>
+              </div>
+            </div>
             <section id="improve-box" class="improve-box" hidden aria-label="Melhorar com IA">
               <p id="improve-mode" class="field-status"></p>
               <fieldset class="improve-chips"><legend>Ajustes rápidos</legend><div id="improve-options"></div></fieldset>
@@ -339,6 +364,16 @@
             </div>
             <p id="status" class="status" role="status"></p>
           </div>
+          <section id="ai-block" class="ai-block" aria-labelledby="ai-block-title" hidden>
+            <div class="ai-block-head"><h3 id="ai-block-title">Gerar o material com IA</h3><button class="link" type="button" id="ai-change-key">Alterar chave</button></div>
+            <p id="ai-availability" class="field-status">Verificando a IA…</p>
+            <div class="ai-block-row">
+              <label>Formato de entrega<select name="formatoEntrega" form="formulario"><option value="pdf" selected>Arquivo PDF final</option><option value="html">Arquivo HTML autônomo</option></select></label>
+              <input type="hidden" id="generation-mode" name="modoGeracao" form="formulario" value="prompt">
+              <button id="generate-ai" class="outline" type="button">Gerar material com IA</button>
+            </div>
+            <p class="help">Cada geração é cobrada pelo provedor, na sua conta.</p>
+          </section>
         </aside>
       </main>
     </div>

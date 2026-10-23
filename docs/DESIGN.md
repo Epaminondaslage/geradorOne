@@ -71,6 +71,19 @@ Todos usam só os tokens, então funcionam em qualquer tema.
 - **Aviso e erro**: texto em `--danger` ou `--accent`, nunca só pela cor (acompanha texto claro).
 - **Logo**: o mesmo desenho (`assets/icons/mapa-mental.png`) pintado por máscara CSS na classe `.logo`, assumindo a cor do tema. Use `<span class="logo">` e defina largura e `aspect-ratio: 897 / 1000`.
 
+## Estrutura das telas
+
+As telas seguem as pranchas de `docs/design/`. Os blocos reutilizáveis:
+
+- **Seção plana** (`.sec`): título em serifa 20 px (`.sec-head h2`) com legenda (`.help`), separada da anterior por uma linha de 1 px, sem cartão. Para grupos de opções use `<fieldset class="sec"><legend><span class="sec-title">…</span><span class="help">…</span></legend>`.
+- **Lista de opções** (`.opt-grid` com `<label class="opt"><input type="radio">…`): usada no tipo de material. A opção marcada fica em negrito.
+- **Cartão de escolha** (`.option`, `.resource`): retângulo reto; selecionado, borda de 2 px em tinta. Os 12 estilos levam a miniatura de `style-art.js`.
+- **Rodapé do formulário** (`.form-foot`): linha de 2 px em tinta, botão primário alto (`.primary.big`), "Limpar formulário" como botão de texto (`.textbtn`) e uma nota à direita. No celular vira uma barra fixa no pé da tela.
+- **Painel de resultado** (`.out-panel`): folha com borda de tinta. Cabeçalho "Resultado" com hora, abas Prompt/Prévia (`.out-tabs`), barra de ferramentas com o grupo segmentado Copiar/TXT/JSON/PDF (`.seg`) e "Melhorar com IA" (`.outline`), o prompt em serifa e, no fim, o bloco "Gerar o material com IA" (`.ai-block`), que escolhe o formato de entrega e dispara a geração.
+- **Tabela** (`.data-table`): cabeçalho em caixa-alta pequena com linha de tinta, linhas separadas por `--line`, ações em botões de contorno; a edição abre embaixo da linha.
+- **Login**: duas metades. À esquerda, marca, formulário sem cartão (título com linha, "Esqueci a senha" ao lado do rótulo, botão "Mostrar" junto do campo) e rodapé; à direita, painel sempre no tema Lousa (`data-theme-scope="lousa"`) com o logo e a frase de apresentação.
+- **Menu lateral**: sem rótulos de grupo; rodapé com Tema (nome do tema à direita), Sair e o nome com o perfil.
+
 ## Miniaturas dos estilos de ilustração
 
 Cada um dos 12 estilos do formulário tem uma miniatura em SVG (`public/style-art.js`): a mesma maçã desenhada em Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático e Colorido Infantil. Usar o mesmo objeto nos 12 faz a diferença de traço aparecer sem ruído. O traço usa `currentColor` e acompanha o tema; as cores fixas (vermelho, verde, arco-íris) só aparecem nos estilos que dependem delas. A ordem do array tem que seguir a de `styles` em `app.js`. Gradientes SVG precisam de `id` único (o prefixo vem de `renderStyleOptions`, porque a lista aparece em Apostila e em Capa).
@@ -90,5 +103,5 @@ Em `docs/design/` estão os arquivos do desenho feito no Artifact "GeradorOne �
 
 ## Pendências do redesenho
 
-- `styles.css`, `theme.css` e `app.css` ainda carregam regras do desenho antigo, anuladas por `design.css`. Dá para enxugá-las aos poucos.
+- `styles.css`, `theme.css` e `app.css` ainda carregam regras do desenho antigo, anuladas por `design.css`. O token `--field` era fundo de campo no desenho antigo e hoje é a cor da borda: ao mexer nessas folhas, nunca use `--field` como `background`.
 - A prancha Temas tem também a seção "A mesma tela em três temas" (comparação lado a lado); no app só há a galeria e a tabela.
