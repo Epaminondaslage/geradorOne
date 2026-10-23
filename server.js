@@ -15,6 +15,8 @@ const { createLimiter } = require('./lib/rate-limit');
 const { createDb } = require('./lib/db');
 const { importLegacyJson } = require('./lib/legacy-import');
 const { createMailer } = require('./lib/mailer');
+const { DEFAULT_CONTACT } = require('./lib/email-template');
+const CONTACT_PAGES = new Set(['termos.html', 'privacidade.html', 'faq-data.js']);
 const { createSettingsStore } = require('./lib/settings');
 const { createSupportStore, validateSupport, newProtocol } = require('./lib/support');
 const { checkMasterSecret } = require('./lib/secret-check');
@@ -168,14 +170,17 @@ async function readJson(req) {
   }
 }
 
+// Endereço público do app e e-mail de contato podem vir do .env (APP_URL, CONTACT_EMAIL); o que o administrador salva no painel tem prioridade.
+const envBrand = { appUrl: process.env.APP_URL || '', contactEmail: process.env.CONTACT_EMAIL || '' };
+
 // O SMTP salvo pelo administrador tem prioridade sobre as variáveis SMTP_* do .env.
 async function loadSmtpSettings() {
   const stored = await settingsStore.get(SMTP_KEY);
-  if (!stored || !stored.host) { mailer.setConfig(envSmtp); mailer.setBrand({}); return null; }
+  if (!stored || !stored.host) { mailer.setConfig(envSmtp); mailer.setBrand(envBrand); return null; }
   let pass = '';
   try { pass = stored.passEnc ? appCrypto.decrypt(stored.passEnc, keyEncKey) : ''; } catch { pass = ''; }
   mailer.setConfig({ host: stored.host, port: stored.port, secure: String(Boolean(stored.secure)), requireTLS: String(Boolean(stored.requireTLS)), user: stored.user, pass, from: stored.from });
-  mailer.setBrand({ appUrl: stored.appUrl, contactEmail: stored.contactEmail });
+  mailer.setBrand({ appUrl: stored.appUrl || envBrand.appUrl, contactEmail: stored.contactEmail || envBrand.contactEmail });
   return stored;
 }
 
@@ -918,6 +923,11 @@ async function handleRequest(req, res) {
   if (!filePath.startsWith(`${PUBLIC_DIR}${path.sep}`)) return json(res, 403, { error: 'Acesso negado.' });
   fs.readFile(filePath, (error, data) => {
     if (error) return json(res, error.code === 'ENOENT' ? 404 : 500, { error: 'Arquivo não encontrado.' });
+    // Termos, Política e FAQ citam o e-mail de contato; mostram o configurado (painel ou CONTACT_EMAIL) em vez do padrão.
+    if (CONTACT_PAGES.has(path.basename(filePath))) {
+      const contact = mailer.supportAddress();
+      if (contact && contact !== DEFAULT_CONTACT) data = Buffer.from(data.toString('utf8').split(DEFAULT_CONTACT).join(contact));
+    }
     res.writeHead(200, {
       'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream',
       'X-Content-Type-Options': 'nosniff',
