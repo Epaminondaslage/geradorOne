@@ -16,8 +16,9 @@ DIR="${BACKUP_DIR:-$PWD/backups}"
 MON="${MONITOR_DIR:-$PWD/monitor}"
 RETENCAO="${RETENCAO_DIAS:-14}"
 INICIO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-STAMP=$(date +%Y%m%d-%H%M)
-FILE="$DIR/geradorone-$STAMP.sql.gz"
+# Nome no padrão das rotinas do HD (<nome>_AAAAMMDD_HHMMSS), que a tela de Backup do outro produto reconhece. Horário local (Brasília no CT de produção).
+STAMP=$(date +%Y%m%d_%H%M%S)
+FILE="$DIR/geradorone_$STAMP.sql.gz"
 mkdir -p "$MON"
 chmod 755 "$MON"
 
@@ -35,9 +36,13 @@ registrar() { # $1 = ok|falhou, $2 = mensagem
 import glob, json, os
 dir_, mon = os.environ["DIR"], os.environ["MON"]
 copias = []
-for path in sorted(glob.glob(os.path.join(dir_, "geradorone-*.sql.gz")), reverse=True):
+for path in sorted(glob.glob(os.path.join(dir_, "geradorone[_-]*.sql.gz")), reverse=True):
     info = os.stat(path)
-    copias.append({"nome": os.path.basename(path), "bytes": info.st_size, "data": os.path.basename(path)[11:24]})
+    nome = os.path.basename(path)
+    # novo: geradorone_AAAAMMDD_HHMMSS; antigo: geradorone-AAAAMMDD-HHMM. A tela quer AAAAMMDD-HHMM.
+    partes = nome[len("geradorone_"):-len(".sql.gz")].replace("-", "_").split("_")
+    data = partes[0] + "-" + partes[1][:4] if len(partes) > 1 else ""
+    copias.append({"nome": nome, "bytes": info.st_size, "data": data})
 from datetime import datetime, timezone
 agora = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 ok = os.environ["STATUS"] == "ok"
@@ -86,6 +91,6 @@ if [ "${BACKUP_COPY_ENV:-0}" = "1" ] && [ -f .env ]; then
   install -m 600 .env "$DIR/env_$STAMP"
 fi
 
-find "$DIR" -maxdepth 1 \( -name 'geradorone-*.sql.gz' -o -name 'env_*' \) -mtime +"$RETENCAO" -delete
+find "$DIR" -maxdepth 1 \( -name 'geradorone[_-]*.sql.gz' -o -name 'env_*' \) -mtime +"$RETENCAO" -delete
 registrar ok "$(basename "$FILE") ($(stat -c %s "$FILE") bytes)"
 echo "$FILE"
