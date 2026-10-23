@@ -240,6 +240,52 @@ const FAQ_ITEMS = [
     resposta: 'A revogação é feita no site do provedor, na mesma página onde você criou a chave. Na OpenAI, a página de chaves tem um ícone de lixeira ao lado de cada chave; aplicações que usam uma chave excluída podem deixar de funcionar. No Google AI Studio, use a página de chaves de API.\n\nDepois, no GeradorOne, abra "Minha chave de IA" e clique em "Remover chave", para não ficar uma chave inválida salva.'
   },
 
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Por que o GeradorOne usa BYOK em vez de uma chave única?',
+    resposta: 'Com BYOK, cada pessoa usa a chave da própria conta no provedor de IA. O custo de cada geração vai para quem gerou, e não existe uma conta central pagando por todos.\n\nO GeradorOne é gratuito por enquanto e não cobra pelas gerações com IA. Quem cobra é o provedor, na sua conta, conforme o uso. O servidor não tem chave global.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Preciso de uma chave de IA para usar o GeradorOne?',
+    resposta: 'Não. Sem chave você cria a conta, preenche a Apostila ou a Capa, gera o prompt, copia, exporta em TXT, JSON ou PDF e salva projetos. O prompt é para colar na ferramenta de imagens que você preferir.\n\nA chave só é necessária para os recursos em que o servidor chama uma IA por você. A próxima pergunta lista quais.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'O que só funciona com a minha chave?',
+    resposta: '- "Gerar material com IA", na Apostila: o servidor usa a sua chave para produzir o material pronto, em PDF ou HTML, com as imagens.\n- "Melhorar com IA" reescrevendo o prompt: com chave, a IA reescreve o prompt aplicando os ajustes. Sem chave, os ajustes são só anexados ao fim do prompt.\n\nTodo o resto funciona sem chave.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Como sei se a minha chave está salva?',
+    resposta: 'Abra "Minha chave de IA". A primeira linha da tela mostra o estado. Com chave salva, ela diz "Sua chave está salva" e mostra o provedor, o modelo de texto em uso e os 4 últimos caracteres da chave, no formato ••••1234. Sem chave, a linha avisa que você ainda não salvou uma.\n\nO valor completo nunca aparece de novo, nem para você.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'O app diz "Chave com formato inválido". O que significa?',
+    resposta: 'O app confere o formato antes de salvar: a chave precisa ter de 8 a 512 caracteres, só com letras, números e os símbolos - _ . : ~ + / =. Espaço no meio, aspas ou quebra de linha fazem a conferência falhar.\n\nCopie a chave de novo, inteira, direto do painel do provedor, e cole sem aspas. Espaços no começo e no fim são removidos sozinhos. Se o formato estiver certo e as gerações ainda falharem, veja a pergunta sobre erro na geração com IA.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Posso ter chaves de mais de um provedor ao mesmo tempo?',
+    resposta: 'Não. Cada conta guarda uma configuração por vez: um provedor (OpenAI ou Google Gemini), uma chave e os modelos. Ao trocar de provedor, a chave anterior sai e você informa a do novo provedor.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'O que são o "Modelo de texto" e o "Modelo de imagem"?',
+    resposta: 'São os modelos que o provedor usa em cada tarefa. O modelo de texto escreve o material e reescreve o prompt em "Melhorar com IA". O modelo de imagem cria as ilustrações.\n\nOs campos trazem sugestões na lista. Se você deixar um campo em branco, o app usa o modelo padrão do provedor escolhido. Se o provedor aposentar um modelo ou a sua conta não tiver acesso a ele, troque pelo nome de um modelo disponível na documentação do provedor.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Como controlo o gasto com a IA?',
+    resposta: '- Defina um limite de gasto no painel do provedor.\n- Acompanhe o consumo no próprio painel do provedor, que é a fonte oficial dos valores.\n- O custo cresce com o que você pede: mais texto e mais imagens custam mais. Na Apostila, a "Frequência visual" define de uma a três imagens por material no modo com IA.\n- Para treinar ou testar, gere só o prompt, que não usa a chave.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Posso usar a chave de outra pessoa ou da instituição?',
+    resposta: 'Só com autorização de quem é dono da chave, porque o custo de tudo o que você gerar cai na conta dela. Se a instituição quiser pagar, o mais seguro é criar uma chave separada para cada pessoa, cada uma com o seu limite de gasto, em vez de compartilhar uma só.\n\nQuem recebe a chave a cadastra normalmente, em "Minha chave de IA".'
+  },
+
   // ---------- Obter a chave de IA ----------
   {
     categoria: 'Obter a chave de IA',
