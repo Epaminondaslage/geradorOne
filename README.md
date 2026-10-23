@@ -119,7 +119,7 @@ ADMIN_NAME=Seu Nome Completo
 ADMIN_EMAIL=voce@exemplo.com
 # ADMIN_PHONE=35999998888
 # ADMIN_PASSWORD=          opcional; mínimo de 8 caracteres
-# APP_SECRET=              opcional; 32+ caracteres. Sem ele, uma chave é gerada em runtime/secret.key
+APP_SECRET=                # recomendado; 32+ caracteres (gere com: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
 # SMTP_HOST=smtp.exemplo.com
 # SMTP_PORT=587
 # SMTP_SECURE=false        true para TLS direto (porta 465)
@@ -131,7 +131,7 @@ ADMIN_EMAIL=voce@exemplo.com
 
 Para conferir o SMTP sem esperar um pedido de recuperação, envie um e-mail de teste: `docker exec gerador-one node scripts/test-smtp.js destino@exemplo.com`.
 
-Os dados ficam em `runtime/` (volume do contêiner, fora do Git): `users.json`, `projects.json` e `secret.key`. A chave que cifra as chaves de IA fica na mesma pasta; faça backup da pasta inteira e restrinja o acesso ao servidor. Perder `secret.key` (ou o `APP_SECRET`) torna as chaves de IA salvas ilegíveis, e cada pessoa precisa cadastrar a sua de novo.
+Os dados ficam em `runtime/` (volume do contêiner, fora do Git): `users.json` e `projects.json`. A chave mestra, que cifra as chaves de IA e assina as sessões, deve ficar em `APP_SECRET` no `.env`, **fora** da pasta `runtime/`: assim uma cópia dos dados não leva a chave junto. Faça o backup do `.env` separado do backup de `runtime/`. Sem `APP_SECRET`, o app gera `runtime/secret.key` como alternativa (menos seguro, pois fica ao lado dos dados). Perder a chave mestra torna as chaves de IA salvas ilegíveis e encerra todas as sessões; cada pessoa precisa cadastrar a sua chave de novo.
 
 ## Implantação atual
 

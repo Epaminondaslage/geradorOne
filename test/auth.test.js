@@ -220,10 +220,9 @@ test('sessão adulterada é rejeitada', async () => {
   assert.equal(response.status, 401);
 });
 
-test('chave mestra fica fora do repositório e com permissão restrita', () => {
-  const mode = fs.statSync(path.join(runtime, 'secret.key')).mode & 0o777;
-  assert.equal(mode, 0o600);
+test('dados ficam com permissão restrita, e a chave mestra também quando está em arquivo', () => {
   assert.equal(fs.statSync(path.join(runtime, 'users.json')).mode & 0o777, 0o600);
+  if (!process.env.APP_SECRET) assert.equal(fs.statSync(path.join(runtime, 'secret.key')).mode & 0o777, 0o600);
 });
 
 test('perfil exige telefone válido e o admin edita o telefone de outros usuários', async () => {
