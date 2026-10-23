@@ -1307,7 +1307,7 @@ document.querySelector('#login-form').addEventListener('submit', async event => 
 const smtpForm = document.querySelector('#smtp-form');
 const smtpCurrent = document.querySelector('#smtp-current');
 const smtpStatus = document.querySelector('#smtp-status');
-const SMTP_SOURCES = { painel: 'salvo neste painel', env: 'vindo do arquivo .env', nenhum: 'não configurado' };
+const SMTP_SOURCES = { painel: 'salva neste painel', env: 'vinda do arquivo .env', nenhum: 'não configurado' };
 
 async function smtpRequest(method, url, body) {
   const response = await apiFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -1319,7 +1319,7 @@ async function smtpRequest(method, url, body) {
 function fillSmtp(data) {
   smtpForm.host.value = data.host || '';
   smtpForm.port.value = data.port || 587;
-  smtpForm.mode.value = data.secure ? 'tls' : data.requireTLS ? 'starttls' : 'none';
+  smtpForm.mode.value = data.secure ? 'tls' : (data.requireTLS || data.source === 'nenhum') ? 'starttls' : 'none';
   smtpForm.user.value = data.user || '';
   smtpForm.pass.value = '';
   smtpForm.from.value = data.from || '';
@@ -1649,7 +1649,7 @@ async function loadAuthConfig() {
   try {
     const config = await (await fetch('api/auth/config')).json();
     authScreen.querySelector('[data-auth-go="forgot"]').hidden = !config.emailReset;
-    authScreen.querySelector('#signup-link').hidden = !config.signup;
+    authScreen.querySelector('#signup-on').hidden = !config.signup;
     authScreen.querySelector('#signup-off').hidden = Boolean(config.signup);
   } catch {}
 }

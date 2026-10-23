@@ -26,7 +26,7 @@
         </div>
         <p class="auth-error" role="alert"></p>
         <button class="primary" type="submit">Entrar</button>
-        <p class="help">Ainda não tem conta? <button class="link" type="button" data-auth-go="signup" id="signup-link" hidden>Criar conta</button><span id="signup-off">Peça ao administrador da sua escola para criar o seu usuário.</span></p>
+        <p class="help"><span id="signup-off">Sem acesso? Peça ao administrador da sua escola para criar o seu usuário.</span><span id="signup-on" hidden>Ainda não tem conta? <button class="link" type="button" data-auth-go="signup" id="signup-link">Criar conta</button></span></p>
       </form>
       <form id="signup-form" class="auth-panel" data-panel="signup" hidden novalidate>
         <h1>Criar conta</h1>
@@ -342,8 +342,8 @@
                 <label>Porta<input name="port" type="number" min="1" max="65535" inputmode="numeric" autocomplete="off" placeholder="587" required></label>
                 <label>Conexão<select name="mode"><option value="starttls">STARTTLS (porta 587)</option><option value="tls">TLS direto (porta 465)</option><option value="none">Sem criptografia</option></select></label>
                 <label>Usuário<input name="user" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
-                <label>Senha<input name="pass" type="password" maxlength="200" autocomplete="new-password" placeholder="Deixe em branco para manter a atual"></label>
-                <label>Remetente<input name="from" maxlength="200" autocomplete="off" placeholder="GeradorOne &lt;contato@exemplo.com&gt;" required></label>
+                <label>Senha<input name="pass" type="password" maxlength="200" autocomplete="new-password" placeholder="Em branco mantém a atual"></label>
+                <label>Remetente<input name="from" maxlength="200" autocomplete="off" placeholder="Nome &lt;e-mail&gt;" required></label>
               </div>
               <p id="smtp-status" class="status" role="status"></p>
               <div class="ai-config-actions">
