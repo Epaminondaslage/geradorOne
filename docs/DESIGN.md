@@ -67,6 +67,7 @@ Todos usam só os tokens, então funcionam em qualquer tema.
 - **Cartão** (`.card`): fundo `--paper`, borda `--line`, sem sombra. Título de seção em serifa 20 px.
 - **Escolha** (`.option`, `.resource`): retângulo com borda `--line`; selecionado com borda e filete interno em `--accent` e fundo `--aqua` (acento a 11% sobre `--paper`).
 - **Linha de caminho do projeto** (`.crumbs`, só na Apostila e na Capa): "Meus projetos / nome do projeto · salvo às HH:MM" à esquerda; Renomear, Salvar projeto (ou Atualizar projeto) e Salvar como novo à direita. Substituiu a linha de salvar que ficava dentro do painel de resultado. O botão avisa se ainda não há prompt gerado.
+- **Celular (até 900 px)**: cabeçalho com menu, logo, nome e atalho para Meus projetos; abas Dados | Resultado (`.mobile-steps`, a ativa em tinta cheia); o formulário mostra só os dados e o painel só o resultado. Ao gerar, abre sozinho na aba Resultado. O botão "Gerar prompt" (48 px) fica fixo no pé da tela, com a nota "O resultado abre na aba Resultado.". Entre 901 e 1180 px a tela empilha formulário e resultado, sem abas.
 - **Menu lateral**: fundo `--bg`; item ativo com fundo `--paper` e contorno fino de `--line`, sem barra colorida.
 - **Painel de resultado**: o prompt em serifa 15 px com entrelinha 1,7, dentro de uma folha com borda.
 - **Aviso e erro**: texto em `--danger` ou `--accent`, nunca só pela cor (acompanha texto claro).
@@ -105,4 +106,5 @@ Em `docs/design/` estão os arquivos do desenho feito no Artifact "GeradorOne �
 ## Pendências do redesenho
 
 - `styles.css`, `theme.css` e `app.css` ainda carregam regras do desenho antigo, anuladas por `design.css`. O token `--field` era fundo de campo no desenho antigo e hoje é a cor da borda: ao mexer nessas folhas, nunca use `--field` como `background`.
+- A prancha Mobile usa menus suspensos para tipo e estilo; no app continuam a lista de opções e os cartões, que rolam normalmente no celular.
 - A prancha Temas tem também a seção "A mesma tela em três temas" (comparação lado a lado); no app só há a galeria e a tabela.

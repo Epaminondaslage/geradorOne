@@ -438,3 +438,28 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 @media (max-width: 900px) { .crumbs { padding: 10px 16px; } }
 .sidebar .menu-toggle { border-color: transparent; }
 .sidebar .menu-toggle:hover { border-color: var(--ink); }
+
+/* Celular: cabeçalho, abas Dados/Resultado e botão de gerar fixo (prancha Mobile) */
+.mobile-steps { display: none; }
+.mobile-note { display: none; }
+@media (max-width: 900px) {
+  .mobile-bar { height: 60px; gap: 6px; padding: 0 8px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .mobile-bar .menu-toggle { width: 44px; height: 44px; border-color: transparent; }
+  .mobile-bar .brand-mark.logo { width: 22px; height: 25px; }
+  .mobile-bar strong { flex: 1; font-family: var(--serif); font-size: 18px; font-weight: 600; letter-spacing: -.02em; }
+  .mobile-steps:not([hidden]) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--field); border-radius: 2px; overflow: hidden; }
+  .mobile-steps button { height: 44px; border: 0; background: var(--paper); color: var(--ink); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .mobile-steps button + button { border-left: 1px solid var(--field); }
+  .mobile-steps button[aria-pressed="true"] { background: var(--ink); color: var(--paper); font-weight: 700; }
+  .workspace[data-step="resultado"] .pane { display: none; }
+  .workspace[data-step="dados"] .out-panel { display: none; }
+  .workspace[data-view="inicio"] .mobile-steps, .workspace[data-view="projetos"] .mobile-steps { display: none; }
+  .view-head h1 { font-size: 30px; }
+  .crumbs { padding: 10px 16px; }
+  .crumb-actions { width: 100%; }
+  .form-foot { flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; padding: 12px 16px 16px; border-top: 1px solid var(--ink); }
+  .form-foot .primary.big { flex: 1 1 100%; height: 48px; font-size: 16px; }
+  .form-foot .textbtn { height: 28px; padding: 0; font-size: 13px; }
+  .mobile-note { display: block; margin: 0; text-align: right; }
+  .out-panel { margin: 0; }
+}

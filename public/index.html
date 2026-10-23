@@ -92,7 +92,9 @@
     <div class="content">
       <header class="mobile-bar">
         <button id="menu-open-mobile" class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="sidebar"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <span class="brand-mark logo" aria-hidden="true"></span>
         <strong>GeradorOne</strong>
+        <button id="mobile-projects" class="menu-toggle" type="button" aria-label="Meus projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></button>
       </header>
       <div class="crumbs" id="crumbs" hidden>
             <p class="crumb-path"><button class="crumb-link" type="button" id="crumb-projects">Meus projetos</button><span class="help" aria-hidden="true">/</span><strong id="crumb-name">Novo projeto</strong><span class="help num" id="crumb-state">não salvo</span></p>
@@ -103,7 +105,11 @@
               <button class="textbtn small" type="button" id="save-project-new" hidden>Salvar como novo</button>
             </div>
           </div>
-      <main id="conteudo" class="workspace" data-view="inicio">
+      <main id="conteudo" class="workspace" data-view="inicio" data-step="dados">
+        <div class="mobile-steps" id="mobile-steps" role="group" aria-label="Etapas" hidden>
+          <button type="button" data-step="dados" aria-pressed="true">Dados</button>
+          <button type="button" data-step="resultado" aria-pressed="false">Resultado</button>
+        </div>
         <div class="pane" id="pane">
           <section class="view home" data-view="inicio" aria-label="Início">
             <span class="home-logo logo" role="img" aria-label="GeradorOne: cabeça com um mapa mental no lugar do cérebro"></span>
@@ -185,6 +191,7 @@
               <div class="form-foot">
                 <button id="generate-button" class="primary big" type="submit"><span class="generate-label">Gerar prompt completo</span></button>
                 <button class="textbtn" type="reset" id="reset-apostila">Limpar formulário</button>
+                <p class="help mobile-note">O resultado abre na aba Resultado.</p>
                 <p class="help form-note"><span id="completion-ring" hidden></span><strong id="completion">0%</strong> preenchido · O gerador não valida automaticamente conteúdos ou códigos curriculares.</p>
               </div>
             </form>
@@ -219,6 +226,7 @@
               <div class="form-foot">
                 <button id="generate-capa" class="primary big" type="submit"><span>Gerar prompt da capa</span></button>
                 <button class="textbtn" type="reset" id="reset-capa">Limpar formulário</button>
+                <p class="help mobile-note">O resultado abre na aba Resultado.</p>
                 <p class="help form-note">Capa em página única, sem mockup.</p>
               </div>
             </form>

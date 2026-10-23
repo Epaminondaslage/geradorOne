@@ -694,6 +694,20 @@ function setResultTab(tab) {
   previewButton.setAttribute('aria-pressed', String(tab === 'preview'));
 }
 
+const isMobileLayout = () => matchMedia('(max-width: 900px)').matches;
+// Celular: Dados e Resultado viram duas etapas, com o botão de gerar fixo no pé da tela.
+const mobileSteps = document.querySelector('#mobile-steps');
+function setStep(step) {
+  workspace.dataset.step = step;
+  mobileSteps.querySelectorAll('[data-step]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.step === step)));
+  if (isMobileLayout()) window.scrollTo({ top: 0 });
+}
+mobileSteps.addEventListener('click', event => {
+  const button = event.target.closest('[data-step]');
+  if (button) setStep(button.dataset.step);
+});
+document.querySelector('#mobile-projects').addEventListener('click', () => showView('projetos'));
+
 function showResult({ prompt, kind, badge, files = false }) {
   currentPrompt = prompt;
   currentKind = kind;
@@ -714,7 +728,8 @@ function showResult({ prompt, kind, badge, files = false }) {
   document.querySelector('#ai-block').hidden = kind !== 'apostila';
   setResultTab('prompt');
   syncSaveButtons();
-  if (matchMedia('(max-width: 1180px)').matches) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (isMobileLayout()) setStep('resultado');
+  else if (matchMedia('(max-width: 1180px)').matches) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 document.querySelector('#generate-ai').addEventListener('click', () => {
@@ -1156,7 +1171,6 @@ const shell = document.querySelector('#shell');
 const scrim = document.querySelector('#scrim');
 const menuToggle = document.querySelector('#menu-toggle');
 const menuOpenMobile = document.querySelector('#menu-open-mobile');
-const isMobileLayout = () => matchMedia('(max-width: 900px)').matches;
 
 function setCollapsed(collapsed) {
   shell.classList.toggle('collapsed', collapsed);
@@ -1191,6 +1205,8 @@ function showView(name) {
   if (!VIEWS.includes(name) || (name === 'usuarios' && currentUser?.role !== 'admin')) name = 'inicio';
   workspace.dataset.view = name;
   document.querySelector('#crumbs').hidden = name !== 'apostila' && name !== 'capa';
+  document.querySelector('#mobile-steps').hidden = name !== 'apostila' && name !== 'capa';
+  setStep('dados');
   document.querySelectorAll('.view').forEach(view => { view.hidden = view.dataset.view !== name; });
   document.querySelectorAll('.nav-item[data-view]').forEach(item => {
     if (item.dataset.view === name) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
