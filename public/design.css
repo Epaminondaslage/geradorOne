@@ -531,3 +531,6 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .home-text p { margin: 0; }
 .home-text a { color: var(--accent); text-decoration: underline; overflow-wrap: anywhere; }
 @media (max-width: 900px) { .home-title { font-size: 32px; } .home-tagline { font-size: 16px; } }
+
+/* Rodapé "O gerador não valida..." : maior e centralizado */
+.legal { margin: 24px 0 0; font-size: 15px; line-height: 1.5; text-align: center; }
