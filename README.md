@@ -94,6 +94,8 @@ Para executar os testes:
 npm test
 ```
 
+> **Rumo a SaaS:** veja o [roadmap](docs/ROADMAP.md) com o que falta em infraestrutura, produto e conformidade.
+
 ## Executar com Docker
 
 ```bash
@@ -159,6 +161,7 @@ Usuários e projetos ficam em um Postgres 17 (serviço `db` no `compose.yaml`), 
 ├── server.js
 ├── lib/                 # banco (Postgres), usuários, projetos, criptografia, limitador e e-mail
 ├── scripts/             # reset de senha, teste de SMTP, backup do banco, executor de testes
+├── docs/ROADMAP.md      # caminho até virar SaaS
 ├── docs/branding/       # foto original do logotipo
 ├── public/
 │   ├── index.html
