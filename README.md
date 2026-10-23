@@ -197,6 +197,8 @@ A produção roda num contêiner Linux (LXC) próprio, separado do desenvolvimen
 docker compose -f compose.prod.yaml up -d --build
 ```
 
+A porta 8123 também fica publicada na rede local (`http://IP-DO-CONTÊINER:8123`, HTTP sem criptografia) para acesso interno; o roteador não deve encaminhá-la para a internet.
+
 O backup diário do banco (`scripts/backup-db.sh`, 14 dias de retenção) roda pelo cron do contêiner às 03:15.
 
 ## Estrutura do projeto
