@@ -26,7 +26,7 @@ Tamanhos: texto 15 px; título de página 34 px; título de seção 20 px; texto
 
 ## Temas
 
-A escolha acontece na tela **Tema** (item "Tema: …" no rodapé do menu): uma galeria com a miniatura da tela em cada tema, a opção "Seguir o sistema" e a tabela de cores do tema em uso, com o contraste calculado na hora a partir das cores reais (`getComputedStyle`). A prancha de referência é `docs/design/Temas.dc.html`. Qualquer elemento com `data-theme-scope="nome"` recebe os tokens daquele tema sem mudar o resto da página; é assim que as miniaturas da galeria se pintam.
+A escolha acontece na tela **Tema** (item "Tema: …" no rodapé do menu): uma galeria com a miniatura da tela em cada tema, e a opção "Seguir o sistema". A tabela de cores e contraste que existe na prancha foi retirada do app a pedido (23/10/2026). A prancha de referência é `docs/design/Temas.dc.html`. Qualquer elemento com `data-theme-scope="nome"` recebe os tokens daquele tema sem mudar o resto da página; é assim que as miniaturas da galeria se pintam.
 
 São seis combinações de cores aplicadas ao mesmo app. O tema fica em `<html data-theme="...">` e a escolha fica salva **na conta**, na coluna `users.theme` (vazia = ainda não escolheu), pela rota `POST /api/auth/theme`. Ao entrar, o app aplica o tema da conta; "Seguir o sistema" grava vazio na conta. O `localStorage` (`apostila-theme`) só guarda uma cópia para a tela de login e para quem ainda não escolheu. Sem escolha, vale a preferência do sistema: escuro vira Grafite, claro vira Papel. Valores antigos (`light`, `dark`) são convertidos.
 
@@ -84,6 +84,8 @@ As telas seguem as pranchas de `docs/design/`. Os blocos reutilizáveis:
 - **Painel de resultado** (`.out-panel`): folha com borda de tinta. Cabeçalho "Resultado" com hora, abas Prompt/Prévia (`.out-tabs`), barra de ferramentas com o grupo segmentado Copiar/TXT/JSON/PDF (`.seg`) e "Melhorar com IA" (`.outline`), o prompt em serifa e, no fim, o bloco "Gerar o material com IA" (`.ai-block`), que escolhe o formato de entrega e dispara a geração.
 - **Tabela** (`.data-table`): cabeçalho em caixa-alta pequena com linha de tinta, linhas separadas por `--line`, ações em botões de contorno; a edição abre embaixo da linha.
 - **Login**: duas metades. À esquerda, marca, formulário sem cartão (título com linha, "Esqueci a senha" ao lado do rótulo, botão "Mostrar" junto do campo) e rodapé; à direita, painel sempre no tema Lousa (`data-theme-scope="lousa"`) com o logo e a frase de apresentação.
+- **Título de cada tela**: leva na frente o mesmo ícone do botão do menu. O `app.js` copia o `<svg>` do próprio item do menu (classe `.title-icon`), então os dois nunca divergem; ao criar uma tela nova, o ícone vem de graça se o item do menu tiver `data-view` igual ao da seção.
+- **FAQ**: caixa explicativa recolhível, busca, filtro por categoria e tabela Categoria/Pergunta; a resposta abre na própria linha. No celular a tabela vira lista.
 - **Menu lateral**: sem rótulos de grupo; rodapé com Tema (nome do tema à direita), Sair e o nome com o perfil.
 
 ## Miniaturas dos estilos de ilustração
@@ -107,4 +109,4 @@ Em `docs/design/` estão os arquivos do desenho feito no Artifact "GeradorOne �
 
 - `styles.css`, `theme.css` e `app.css` ainda carregam regras do desenho antigo, anuladas por `design.css`. O token `--field` era fundo de campo no desenho antigo e hoje é a cor da borda: ao mexer nessas folhas, nunca use `--field` como `background`.
 - A prancha Mobile usa menus suspensos para tipo e estilo; no app continuam a lista de opções e os cartões, que rolam normalmente no celular.
-- A prancha Temas tem também a seção "A mesma tela em três temas" (comparação lado a lado); no app só há a galeria e a tabela.
+- A prancha Temas tem também a seção "A mesma tela em três temas" (comparação lado a lado); no app só há a galeria. A tabela "cores e contraste" da prancha também ficou de fora.

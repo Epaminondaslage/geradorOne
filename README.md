@@ -59,6 +59,10 @@ Cada recurso possui uma miniatura que representa sua estrutura visual, além de 
 
 No modo **somente prompt**, o botão de PDF exporta o prompt/roteiro. No modo **IA**, o PDF contém o material didático completo produzido pelo modelo e renderizado pelo servidor.
 
+### Ajuda dentro do app
+
+O item **FAQ** do menu reúne perguntas e respostas sobre todos os recursos: primeiros passos, conta, Apostila, Capa, resultado e exportação, projetos, chave de IA (como criar a chave na OpenAI e no Google Gemini, com os links oficiais, e como protegê-la), tema, segurança e administração. Tem busca e filtro por categoria. O texto fica em `public/faq-data.js`; ao mudar um botão ou fluxo do app, atualize a FAQ junto. O GeradorOne aceita chaves da OpenAI e do Gemini; a Anthropic ainda não é um provedor aceito.
+
 ## Arquitetura
 
 ### Navegador

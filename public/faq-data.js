@@ -1,0 +1,327 @@
+// Perguntas e respostas da tela FAQ. Texto puro: parágrafos separados por linha em branco,
+// listas com "- " e passos com "1. ". Ao mudar um rótulo ou fluxo do app, atualize aqui junto.
+const FAQ_ITEMS = [
+  // ---------- Primeiros passos ----------
+  {
+    categoria: 'Primeiros passos',
+    pergunta: 'O que é o GeradorOne?',
+    resposta: 'Um aplicativo web que gera prompts de imagem para apostilas e capas didáticas. Você descreve o material (disciplina, assunto, público, estilo visual) e o app monta um briefing completo para colar na sua ferramenta de IA.\n\nSe quiser, a sua própria chave de IA pode produzir o material pronto, em PDF ou HTML.'
+  },
+  {
+    categoria: 'Primeiros passos',
+    pergunta: 'Preciso pagar para usar?',
+    resposta: 'Por enquanto não. O uso é gratuito, em fase de testes das funcionalidades. Está prevista uma assinatura mensal no futuro, sem data nem valor definidos.\n\nSe você usar a sua própria chave de IA, o custo das gerações com IA é cobrado pelo provedor, na sua conta (veja a categoria "IA e chave").'
+  },
+  {
+    categoria: 'Primeiros passos',
+    pergunta: 'Por onde eu começo?',
+    resposta: '1. Abra "Apostila" ou "Capa" no menu.\n2. Preencha os campos com * (são os obrigatórios).\n3. Escolha o estilo das ilustrações, a paleta e o formato.\n4. Clique em "Gerar prompt completo" (Apostila) ou "Gerar prompt da capa" (Capa).\n5. No painel "Resultado", clique em "Copiar" e cole o prompt na sua ferramenta de IA de imagens.'
+  },
+  {
+    categoria: 'Primeiros passos',
+    pergunta: 'Qual a diferença entre gerar só o prompt e gerar o material com IA?',
+    resposta: '- Só o prompt: o app monta o briefing e você o usa onde quiser. Funciona sem chave de IA e sem custo adicional.\n- Material com IA: o servidor usa a sua chave para produzir o material pronto (PDF ou HTML), com as imagens. Exige chave cadastrada em "Minha chave de IA" e é cobrado pelo provedor.\n\nO bloco "Gerar o material com IA" aparece na tela de Apostila.'
+  },
+
+  // ---------- Conta e acesso ----------
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Como crio minha conta?',
+    resposta: '1. Na tela de entrada, clique em "Criar conta".\n2. Informe nome, e-mail e senha (mínimo de 8 caracteres) e repita a senha.\n3. Clique em "Enviar código". Você recebe um código de 6 dígitos por e-mail.\n4. Digite o código em até 10 minutos (são 5 tentativas). A conta é criada e você já entra no app.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Não vejo o link "Criar conta". O que fazer?',
+    resposta: 'O link só aparece quando o administrador ativou o envio de e-mail do sistema. Sem ele, a tela de entrada mostra "Sem acesso? Peça ao administrador da sua escola para criar o seu usuário."\n\nPeça ao administrador para criar o seu usuário.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Não recebi o código por e-mail.',
+    resposta: '- Procure na caixa de spam ou lixo eletrônico.\n- Confira se digitou o e-mail certo. Se precisar, volte e refaça o cadastro: um novo pedido gera um novo código.\n- Se esse e-mail já tem conta, o app não envia código de cadastro (e não avisa, por segurança). Nesse caso entre normalmente ou use "Esqueci a senha".\n- Depois de muitos pedidos seguidos, o app pede para aguardar 15 minutos.\n\nO código vale por 10 minutos.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Esqueci minha senha. Como recupero?',
+    resposta: '1. Na tela de entrada, clique em "Esqueci a senha".\n2. Informe o e-mail e a nova senha.\n3. Digite o código de 6 dígitos que chegou por e-mail (vale 10 minutos).\n\nSe o link "Esqueci a senha" não aparece, o envio de e-mail está desligado: peça ao administrador para redefinir a sua senha.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Como troco minha senha?',
+    resposta: 'Abra "Minha conta", vá em "Trocar senha", informe a senha atual, a nova senha (mínimo de 8 caracteres) e repita a nova senha. Depois clique em "Trocar senha".\n\nAs sessões antigas são encerradas ao trocar a senha.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Como altero meu nome, telefone ou e-mail?',
+    resposta: 'Em "Minha conta", no bloco "Perfil", você edita o nome completo e o telefone e clica em "Salvar perfil".\n\nO e-mail aparece bloqueado para edição. Para trocá-lo, peça ao administrador.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Por que o app pede o meu telefone?',
+    resposta: 'O telefone faz parte do cadastro do usuário. Quem cria a conta sozinho pode completá-lo depois: se estiver faltando, o app leva você para "Minha conta" para preenchê-lo. Use DDD + número, por exemplo (35) 99999-8888.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Quanto tempo fico conectado?',
+    resposta: 'A sessão dura 7 dias. Ela é encerrada antes se você trocar a senha, se o administrador mudar o seu perfil ou e-mail, ou se a sua conta for desativada. Para sair na hora, use "Sair" no menu.'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'O app bloqueou meu login depois de algumas tentativas.',
+    resposta: 'Depois de 8 tentativas erradas, o login fica bloqueado por 15 minutos, para proteger a conta. Aguarde e tente de novo. Se não lembra a senha, use "Esqueci a senha".'
+  },
+  {
+    categoria: 'Conta e acesso',
+    pergunta: 'Como excluo minha conta?',
+    resposta: 'Ainda não existe um botão para isso. Peça ao administrador: ao excluir um usuário, os projetos dele também são removidos.'
+  },
+
+  // ---------- Apostila ----------
+  {
+    categoria: 'Apostila',
+    pergunta: 'O que preciso preencher para gerar uma apostila?',
+    resposta: 'Só três campos são obrigatórios, marcados com *:\n\n- Disciplina\n- Assunto principal\n- Público / faixa etária (escolha na lista; começa em "Selecione" e o prompt não é gerado sem escolher)\n\nTodo o resto tem um valor inicial ou é opcional. Uma faixa no fim do formulário mostra quanto já está preenchido.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'O que significam Profundidade e Estilo de escrita?',
+    resposta: '- Profundidade define até onde o conteúdo vai: Introdutório, Básico, Intermediário (padrão), Avançado ou Completo.\n- Estilo de escrita define o tom do texto: Didático (padrão), Acadêmico, Conversacional, Objetivo, Lúdico ou Técnico.\n\nO campo "Objetivo de aprendizagem" é livre e opcional: descreva o que o aluno deve saber ao final.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Quantas páginas posso pedir?',
+    resposta: 'De 1 a 12, nas opções 1, 2, 3, 4, 5, 6, 8, 10 e 12 páginas. O padrão é 1 página.\n\nCada página vira uma imagem. Com mais de uma página, o prompt traz o plano do material e pede uma página por vez.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Quais são os tipos de material?',
+    resposta: 'São 13 tipos: Apostila didática (padrão), Material preparatório, Caderno de atividades, Resumo visual, Material para concurso, Guia do professor, Material de revisão, Material complementar, Guia de estudos, Mapa mental, Material profissional, Sequência didática e Outro.\n\nO tipo muda a estrutura da página, não o assunto.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Como escolho o estilo das ilustrações e as cores?',
+    resposta: 'O estilo define o traço e o acabamento; as cores ficam em "Paleta", logo abaixo.\n\n- Estilos (12): Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático (padrão) e Colorido Infantil. Cada um tem uma miniatura de exemplo.\n- Paleta: Automática (padrão), Azul e turquesa, Terrosa e acolhedora, Vibrante infantil, Monocromática ou Alto contraste.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'O que é o "Formato prioritário"?',
+    resposta: 'Diz para onde o material vai: Impressão A4 (padrão), Tela e impressão, Somente tela ou Apresentação 16:9. O prompt leva essa escolha em conta.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Como funcionam os códigos da BNCC?',
+    resposta: '- "Códigos da BNCC (opcional)": coloque só códigos que você já conferiu. O app os inclui no prompt como foram digitados.\n- "Sugerir habilidades da BNCC": quando marcado, a IA só sugere habilidades se houver correspondência verificável.\n\nO GeradorOne não valida códigos nem inventa nenhum, e instrui a IA a fazer o mesmo. A conferência final é sempre sua.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Para que serve o campo de texto ou material de referência?',
+    resposta: 'Para colar definições, trechos, fontes ou observações obrigatórias que a IA deve respeitar. O app instrui a IA a não inventar códigos, fontes, normas ou dados fora do que você forneceu.\n\nNão inclua dados pessoais sensíveis nesse campo.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'O que são os recursos visuais?',
+    resposta: 'São os tipos de elementos gráficos que o material pode ter: Mapas mentais, Diagramas, Ilustrações, Infográficos, Gráficos, Quadros comparativos, Linhas do tempo e Ícones e sinalização.\n\nAs opções começam desmarcadas: marque só as que quiser, ou use "Selecionar todos" e "Limpar seleção". Os gráficos usam apenas dados verificáveis.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Como ajusto a quantidade de elementos visuais e de texto?',
+    resposta: '- Frequência visual: Essencial (1 por seção), Equilibrada (2 a 3 por seção, padrão) ou Intensa (4 ou mais por seção).\n- Profundidade visual: Simples, Detalhada (padrão) ou Avançada.\n- Densidade do texto: Enxuta, Equilibrada (padrão) ou Completa.\n\nHá ainda "Orientações visuais adicionais", um campo livre para pedidos específicos.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Em que formato saem os diagramas?',
+    resposta: 'Em "Formato dos diagramas" você escolhe entre Mermaid + descrição textual (padrão), SVG editável + descrição textual ou Somente especificação visual.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'O que faz a opção "Imagens por IA"?',
+    resposta: 'Define se o material com IA inclui imagens: "Gerar imagens reais e incorporar" (padrão) ou "Não usar imagens geradas por IA".\n\nNo modo com IA, as imagens são criadas e inseridas no HTML ou PDF, sem espaços reservados, e também ficam disponíveis como arquivos PNG separados. A frequência visual controla quantas imagens saem, de uma a três por material.'
+  },
+  {
+    categoria: 'Apostila',
+    pergunta: 'Como limpo o formulário e recomeço?',
+    resposta: 'Clique em "Limpar formulário", ao lado do botão de gerar. Se você já salvou o projeto, ele continua em "Meus projetos"; só o que está na tela é zerado.'
+  },
+
+  // ---------- Capa ----------
+  {
+    categoria: 'Capa',
+    pergunta: 'Que textos eu coloco na capa?',
+    resposta: 'Em "Textos da capa", escreva exatamente como devem aparecer na imagem. Só o "Título principal" é obrigatório. Os demais são opcionais: Disciplina, Texto superior (já vem "Material de Estudos"), Subtítulo, Frase inferior, Série ou turma, Professor(a), Instituição e Público / faixa etária.\n\nO prompt pede que cada texto saia letra por letra, com a acentuação indicada.'
+  },
+  {
+    categoria: 'Capa',
+    pergunta: 'Quais opções de estilo e formato a capa tem?',
+    resposta: '- Estilo da capa: os mesmos 12 estilos da Apostila.\n- Paleta: Automática, Azul e turquesa, Terrosa e acolhedora, Vibrante infantil, Monocromática ou Alto contraste.\n- Formato da capa: Impressão A4 (padrão), Somente tela ou Apresentação 16:9.\n- Elementos desejados na ilustração: campo livre e opcional, por exemplo "circuito elétrico, lâmpada, resistores e um multímetro".'
+  },
+  {
+    categoria: 'Capa',
+    pergunta: 'A capa também pode ser gerada pela IA do servidor?',
+    resposta: 'O bloco "Gerar o material com IA" aparece só na Apostila. Para a capa, o app gera o prompt (uma imagem única, em página única, sem mockup): copie-o e use na sua ferramenta de imagens. Se tiver chave de IA, "Melhorar com IA" ajusta o prompt antes.'
+  },
+
+  // ---------- Resultado e exportação ----------
+  {
+    categoria: 'Resultado e exportação',
+    pergunta: 'Onde aparece o prompt gerado e como copio?',
+    resposta: 'No painel "Resultado", ao lado do formulário (no celular, na aba "Resultado"). A aba "Prompt" mostra o texto e a aba "Prévia" mostra uma pré-visualização em HTML.\n\nClique em "Copiar" para levar o texto para a área de transferência. O formulário não é apagado ao gerar.'
+  },
+  {
+    categoria: 'Resultado e exportação',
+    pergunta: 'O que fazem os botões TXT, JSON e PDF?',
+    resposta: '- TXT: baixa o prompt em um arquivo de texto.\n- JSON: exporta o projeto, para guardar ou importar depois em "Meus projetos".\n- PDF: no modo só prompt, baixa o prompt/roteiro em PDF; no modo com IA, o PDF é o material didático completo produzido pelo modelo.'
+  },
+  {
+    categoria: 'Resultado e exportação',
+    pergunta: 'Como uso o "Melhorar com IA"?',
+    resposta: '1. Com um prompt gerado, clique em "Melhorar com IA".\n2. Marque um ou mais "Ajustes rápidos": Mais detalhado, Mais simples, Mais visual, Mais didático, Mais profissional, Adaptar para crianças, Aumentar dificuldade ou Diminuir dificuldade.\n3. Se quiser, escreva uma "Instrução personalizada" (até 1.000 caracteres).\n4. Clique em "Aplicar".\n\nCom chave de IA cadastrada, a IA reescreve o prompt aplicando os ajustes. Sem chave, os ajustes são anexados ao fim do prompt.'
+  },
+  {
+    categoria: 'Resultado e exportação',
+    pergunta: 'Como gero o material pronto com a IA?',
+    resposta: '1. Cadastre a sua chave em "Minha chave de IA".\n2. Na Apostila, preencha o formulário e gere o prompt.\n3. No bloco "Gerar o material com IA", escolha o "Formato de entrega": Arquivo PDF final ou Arquivo HTML autônomo.\n4. Clique em "Gerar material com IA".\n\nOs arquivos aparecem em uma janela, com nome, tipo e tamanho aproximado, e o botão "Salvar localmente". O PDF é um arquivo real, convertido pelo servidor. Se a IA não devolver as imagens obrigatórias, a entrega falha em vez de sair incompleta.'
+  },
+  {
+    categoria: 'Resultado e exportação',
+    pergunta: 'A geração com IA deu erro. O que faço?',
+    resposta: '- Leia a mensagem na tela: ela costuma dizer o motivo.\n- Confira em "Minha chave de IA" se a chave está salva e é do provedor escolhido.\n- Confira no site do provedor se a chave está ativa e se há saldo ou limite disponível.\n- Tente de novo; falhas temporárias do provedor acontecem.\n\nEnquanto isso, o prompt continua disponível: dá para copiá-lo e usar em outra ferramenta.'
+  },
+
+  // ---------- Projetos ----------
+  {
+    categoria: 'Projetos',
+    pergunta: 'Como salvo meu trabalho?',
+    resposta: 'No topo da Apostila e da Capa aparece o caminho "Meus projetos / nome do projeto" e o estado (por exemplo, "não salvo"). Clique em "Salvar projeto". Use "Renomear" para dar um nome claro, como "Lei de Ohm, 2º ano".\n\nPara guardar uma variação, use "Salvar como novo" (aparece quando o projeto já foi salvo).'
+  },
+  {
+    categoria: 'Projetos',
+    pergunta: 'Onde ficam meus projetos e quem os vê?',
+    resposta: 'Ficam salvos no servidor, na sua conta. Cada usuário vê somente os próprios projetos. Cada conta pode ter até 500 projetos.'
+  },
+  {
+    categoria: 'Projetos',
+    pergunta: 'Como abro ou excluo um projeto?',
+    resposta: 'Em "Meus projetos", cada projeto tem o botão "Abrir", que volta ao formulário de onde você parou, e o botão "Excluir".\n\nO "Excluir" pede confirmação, para ninguém apagar sem querer: o botão muda para "Confirmar exclusão" e você precisa clicar de novo em poucos segundos.'
+  },
+  {
+    categoria: 'Projetos',
+    pergunta: 'Posso exportar e importar projetos?',
+    resposta: 'Sim. No painel "Resultado", o botão "JSON" exporta o projeto. Em "Meus projetos", o botão "Importar arquivo JSON" traz um projeto exportado antes, por exemplo de outro computador.'
+  },
+
+  // ---------- IA e chave ----------
+  {
+    categoria: 'IA e chave',
+    pergunta: 'O que é BYOK?',
+    resposta: 'Significa "Bring Your Own Key": traga a sua própria chave. Em vez de o GeradorOne ter uma chave única paga por todos, cada pessoa usa a chave da própria conta no provedor de IA.\n\nSem chave, o app continua gerando prompts normalmente; só os recursos de IA (gerar o material pronto e "Melhorar com IA" reescrevendo) ficam desligados.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Como cadastro minha chave de IA?',
+    resposta: '1. Crie a chave no site do provedor (OpenAI ou Google AI Studio).\n2. No GeradorOne, abra "Minha chave de IA".\n3. Escolha o Provedor (OpenAI ou Google Gemini) e cole a chave em "Chave da API".\n4. Confira o "Modelo de texto" e o "Modelo de imagem" (há sugestões na lista).\n5. Clique em "Salvar configuração". Vale na hora, sem reiniciar.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Minha chave fica segura no GeradorOne?',
+    resposta: 'O app protege a chave de quatro formas:\n\n- Ela é guardada cifrada (AES-256-GCM) e ligada só à sua conta.\n- A chave usada para cifrar fica no arquivo de configuração do servidor, fora do banco de dados. Quem lesse só o banco veria texto ilegível.\n- Depois de salva, a chave nunca volta ao navegador. Você vê apenas os 4 últimos caracteres.\n- Outros usuários, inclusive administradores, só veem se você tem uma chave cadastrada, nunca o valor.\n\nA proteção tem um limite: quem administra o servidor tem acesso técnico ao banco e à chave de cifragem. Por isso vale seguir as dicas da próxima pergunta.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Como proteger minha chave de IA?',
+    resposta: '- Use uma chave só para o GeradorOne. Assim você a revoga sem afetar outros usos.\n- Defina um limite de gasto no painel do provedor.\n- Trate a chave como uma senha: não envie por e-mail ou mensagem, não cole em documentos compartilhados e não a publique em repositórios de código.\n- Cadastre-a apenas no endereço oficial do GeradorOne da sua instituição.\n- Os provedores mostram o valor completo só na criação. Guarde a chave em um gerenciador de senhas; se perder, crie outra.\n- Se desconfiar de vazamento, exclua a chave no painel do provedor primeiro e depois use "Remover chave" no GeradorOne.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Como revogo uma chave que criei?',
+    resposta: 'A revogação é feita no site do provedor, na mesma página onde você criou a chave. Na OpenAI, a página de chaves tem um ícone de lixeira ao lado de cada chave; aplicações que usam uma chave excluída podem deixar de funcionar. No Google AI Studio, use a página de chaves de API.\n\nDepois, no GeradorOne, abra "Minha chave de IA" e clique em "Remover chave", para não ficar uma chave inválida salva.'
+  },
+
+  // ---------- Obter a chave de IA ----------
+  {
+    categoria: 'Obter a chave de IA',
+    pergunta: 'Como crio uma chave de API na OpenAI?',
+    resposta: '1. Entre em https://platform.openai.com/api-keys. Faça login ou crie uma conta, se ainda não tiver.\n2. Crie uma nova chave. Se o painel pedir um nome, use um que identifique o uso, como "GeradorOne".\n3. Copie o valor completo na hora. A OpenAI mostra a chave inteira só uma vez; se perder, não dá para recuperar, e você precisa criar outra.\n4. No GeradorOne, abra "Minha chave de IA", escolha o provedor "OpenAI", cole a chave em "Chave da API" e clique em "Salvar configuração".\n\nO uso é cobrado pela OpenAI, na sua conta. Confira no painel dela o faturamento e defina um limite de gasto.\n\nAjuda oficial: https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key'
+  },
+  {
+    categoria: 'Obter a chave de IA',
+    pergunta: 'Como crio uma chave de API no Google Gemini?',
+    resposta: '1. Entre em https://aistudio.google.com/apikey com a sua conta Google (Google AI Studio).\n2. Clique em "Create API key" e copie a chave gerada.\n3. No GeradorOne, abra "Minha chave de IA", escolha o provedor "Google Gemini", cole a chave em "Chave da API" e clique em "Salvar configuração".\n\nToda chave do Gemini fica ligada a um projeto do Google Cloud, que cuida do faturamento e das permissões. Quem usa o AI Studio pela primeira vez recebe um projeto e uma chave padrão depois de aceitar os termos. Quem já tem conta no Google Cloud precisa importar o projeto no AI Studio, na seção Dashboard > Projects, antes de criar a chave. Se o botão de criar chave não estiver disponível, a sua conta provavelmente não tem permissão no projeto: fale com quem administra o Google Cloud da sua instituição.\n\nSobre custos e faturamento, consulte a página de preços do Gemini no site do Google. Ajuda oficial: https://ai.google.dev/gemini-api/docs/api-key'
+  },
+  {
+    categoria: 'Obter a chave de IA',
+    pergunta: 'O GeradorOne aceita chave da Anthropic (Claude)?',
+    resposta: 'Ainda não. Em "Minha chave de IA" só existem dois provedores, OpenAI e Google Gemini, e uma chave da Anthropic não funciona no app.\n\nSe você só tem a chave da Anthropic, há duas saídas: criar uma chave em um dos dois provedores aceitos (veja as duas perguntas anteriores) ou usar o GeradorOne só para gerar o prompt, que não precisa de chave. Depois, cole o prompt na ferramenta que você preferir.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Quanto custa usar a IA?',
+    resposta: 'O GeradorOne não cobra por isso. Cada geração com IA e cada "Melhorar com IA" é cobrada pelo provedor, na sua conta. Defina um limite de gasto no site do provedor.\n\nGerar apenas o prompt não usa a sua chave e não tem custo.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Posso trocar de provedor ou remover a chave?',
+    resposta: '- Remover: em "Minha chave de IA", clique em "Remover chave".\n- Trocar de provedor: escolha o novo provedor e informe a chave dele. Ao trocar, os modelos voltam ao padrão do novo provedor e a chave antiga é descartada se você não informar uma nova.\n\nPara apenas trocar a chave do mesmo provedor, cole a nova e salve. Deixar o campo em branco mantém a atual.'
+  },
+  {
+    categoria: 'IA e chave',
+    pergunta: 'Para onde vão os meus textos quando uso a IA?',
+    resposta: 'Para o provedor que você escolheu (OpenAI ou Google), que os processa conforme os termos dele. Só acontece quando você usa um recurso de IA com a sua chave. Para gerar apenas o prompt, nada é enviado a um provedor de IA.'
+  },
+
+  // ---------- Aparência e celular ----------
+  {
+    categoria: 'Aparência e celular',
+    pergunta: 'Como mudo o tema de cores?',
+    resposta: 'Abra "Tema", no fim do menu. São seis temas: Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste, além da opção de seguir o sistema. A troca vale na hora e fica guardada na sua conta, então vale em qualquer aparelho.'
+  },
+  {
+    categoria: 'Aparência e celular',
+    pergunta: 'Como uso o app no celular?',
+    resposta: 'A interface se adapta a telas pequenas. Na Apostila e na Capa, a tela se divide em duas abas, "Dados" e "Resultado": você preenche em "Dados" e, ao gerar, o app abre a aba "Resultado". O menu fica atrás do botão de menu no topo.'
+  },
+  {
+    categoria: 'Aparência e celular',
+    pergunta: 'Dá para esconder o menu lateral?',
+    resposta: 'Sim. Use o botão "Recolher menu", no topo do menu, para deixar só os ícones. O app lembra a sua escolha neste aparelho.'
+  },
+
+  // ---------- Segurança e privacidade ----------
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'O GeradorOne confere se o conteúdo está correto?',
+    resposta: 'Não. O app monta o briefing e instrui a IA a não inventar códigos, fontes, normas, citações ou dados, mas ele não valida o que a IA devolve. Confira sempre os códigos da BNCC, os dados e as fontes do material final.'
+  },
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'Outras pessoas veem meus projetos?',
+    resposta: 'Não. Cada usuário vê somente os próprios projetos, e a sua chave de IA não é visível para ninguém. O que você envia ao provedor de IA só sai do servidor quando você usa um recurso de IA.'
+  },
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'Minha senha é guardada de forma segura?',
+    resposta: 'A senha é guardada com um hash, nunca em texto aberto, e o login tem limite de tentativas. A sessão usa um cookie protegido (HttpOnly) e é encerrada quando a senha ou o perfil mudam.\n\nUse uma senha única e de pelo menos 8 caracteres.'
+  },
+
+  // ---------- Administração ----------
+  {
+    categoria: 'Administração',
+    pergunta: 'Como crio um usuário? (administradores)',
+    resposta: '1. Abra "Usuários" no menu (só administradores veem).\n2. Em "Novo usuário", informe nome completo, telefone, e-mail e o perfil (Usuário ou Administrador).\n3. Defina uma senha temporária (o botão "Gerar senha" cria uma) e clique em "Criar usuário".\n\nEntregue a senha temporária à pessoa com segurança. Ela precisa trocá-la no primeiro acesso.'
+  },
+  {
+    categoria: 'Administração',
+    pergunta: 'Como gerencio usuários existentes? (administradores)',
+    resposta: 'Na tabela de "Usuários" você busca por nome ou e-mail, filtra por perfil e, em cada linha, edita os dados, ativa ou desativa a conta, redefine a senha e exclui o usuário.\n\nAo redefinir, a nova senha temporária aparece uma única vez na tela, com o botão "Copiar senha", e a pessoa precisa trocá-la no próximo acesso. Excluir um usuário remove também os projetos dele. O sistema sempre mantém pelo menos um administrador ativo.'
+  },
+  {
+    categoria: 'Administração',
+    pergunta: 'Como configuro o e-mail que envia os códigos? (administradores)',
+    resposta: '1. Abra "E-mail (SMTP)" no menu.\n2. Informe servidor, porta, tipo de conexão (STARTTLS, TLS direto ou sem criptografia), usuário, senha e remetente.\n3. Clique em "Salvar". A mudança vale na hora, sem reiniciar.\n4. Use "Enviar teste" para conferir: o e-mail chega no endereço que você digitar (em branco, no seu).\n\nA senha fica cifrada e nunca volta para a tela; deixar o campo em branco mantém a atual. "Voltar ao .env" apaga a configuração do painel e volta ao que está no arquivo de configuração do servidor.'
+  },
+  {
+    categoria: 'Administração',
+    pergunta: 'Por que "Criar conta" e "Esqueci a senha" sumiram? (administradores)',
+    resposta: 'Os dois dependem do envio de e-mail. Se o e-mail estiver desligado ou sem configuração, eles ficam escondidos. Configure o servidor em "E-mail (SMTP)" e os links voltam a aparecer.'
+  }
+];
+
+if (typeof module !== 'undefined') module.exports = { FAQ_ITEMS };

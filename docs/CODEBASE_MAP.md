@@ -185,7 +185,8 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 | `projetos` | Listar, abrir, excluir e importar | `/api/projects` |
 | `ia` | BYOK: provedor, chave e modelos | `/api/ai/config` |
 | `conta` | Perfil e senha | `/api/auth/profile`, `change-password` |
-| `tema` | Galeria de temas, "Seguir o sistema" e tabela de cores com contraste | `/api/auth/theme` |
+| `tema` | Galeria de temas e "Seguir o sistema" | `/api/auth/theme` |
+| `faq` | Perguntas e respostas (dados em `public/faq-data.js`), com busca, filtro por categoria e resposta aberta na linha | nenhuma |
 | `usuarios` | Gestão de usuários em tabela, com busca, filtro e edição por linha (admin) | `/api/users*` |
 
 O painel de resultado só aparece nas páginas `apostila` e `capa` (regra de CSS por `data-view`).

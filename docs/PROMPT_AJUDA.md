@@ -24,7 +24,7 @@ Aplicativo web que gera prompts de imagem para apostilas e capas didáticas. Voc
 6. Esqueceu a senha? Use "Esqueci a senha" (também depende do envio de e-mail): informe e-mail e a nova senha, e confirme com o código de 6 dígitos.
 
 # Menu lateral
-Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta e, embaixo, Tema e Sair. Administradores também veem Usuários e E-mail (SMTP).
+Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta, FAQ (perguntas e respostas, com busca) e, embaixo, Tema e Sair. Administradores também veem Usuários e E-mail (SMTP).
 
 # Gerar o prompt de uma apostila
 1. Abra "Apostila". Os campos com * são obrigatórios.

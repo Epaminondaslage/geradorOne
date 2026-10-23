@@ -99,6 +99,7 @@
         <a class="nav-item" href="#projetos" data-view="projetos" title="Meus projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="nav-label">Meus projetos</span></a>
         <a class="nav-item" href="#ia" data-view="ia" title="Minha chave de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span class="nav-label">Minha chave de IA</span></a>
         <a class="nav-item" href="#conta" data-view="conta" title="Minha conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Minha conta</span></a>
+        <a class="nav-item" href="#faq" data-view="faq" title="FAQ"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span class="nav-label">FAQ</span></a>
         <a class="nav-item" href="#usuarios" data-view="usuarios" data-admin title="Usuários" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-label">Usuários</span></a>
         <a class="nav-item" href="#smtp" data-view="smtp" data-admin title="E-mail (SMTP)" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span class="nav-label">E-mail (SMTP)</span></a>
       </nav>
@@ -323,14 +324,6 @@
                 </div>
                 <div id="theme-gallery" class="theme-gallery" role="radiogroup" aria-label="Temas"></div>
               </div>
-              <div class="theme-tokens">
-                <h2><span id="theme-tokens-name">Papel</span>: cores e contraste</h2>
-                <table class="data-table token-table">
-                  <thead><tr><th scope="col">Nome</th><th scope="col">Cor</th><th scope="col" class="num-col">Contraste</th></tr></thead>
-                  <tbody id="theme-tokens-body"></tbody>
-                </table>
-                <p class="field-help">Os números são calculados na hora, com as cores do tema em uso. Texto e notas precisam de pelo menos 4,5:1; bordas de campo, de 3:1.</p>
-              </div>
             </div>
           </section>
           <section class="view" data-view="smtp" aria-label="E-mail (SMTP)" hidden>
@@ -357,6 +350,27 @@
               <p id="smtp-test-status" class="status" role="status"></p>
               <div class="ai-config-actions"><button class="primary" type="submit">Enviar teste</button></div>
             </form>
+          </section>
+
+          <section class="view" data-view="faq" aria-label="FAQ" hidden>
+            <div class="view-head"><h1>FAQ: perguntas frequentes</h1><p>Respostas sobre cada recurso do GeradorOne, de criar a conta a gerar a chave de IA. Digite para filtrar a lista.</p></div>
+            <details class="faq-intro">
+              <summary>O que é a FAQ?</summary>
+              <p>A FAQ reúne as dúvidas mais comuns sobre o GeradorOne, organizadas por tema. Em vez de procurar o administrador, você acha a resposta em segundos.</p>
+              <ul>
+                <li><strong>Busca:</strong> a lista filtra enquanto você digita, nas perguntas e nas respostas.</li>
+                <li><strong>Categorias:</strong> use o filtro ao lado da busca para ver só um tema, como Apostila, Capa ou IA e chave.</li>
+                <li><strong>Respostas:</strong> clique em uma pergunta para abrir a resposta e clique de novo para fechar.</li>
+              </ul>
+            </details>
+            <div class="table-tools">
+              <label class="sr-only" for="faq-search">Buscar pergunta</label>
+              <input id="faq-search" type="search" placeholder="Buscar uma pergunta" autocomplete="off">
+              <label class="sr-only" for="faq-category">Filtrar por categoria</label>
+              <select id="faq-category"><option value="">Todas as categorias</option></select>
+              <span id="faq-count" class="field-status" role="status"></span>
+            </div>
+            <div class="table-wrap"><table id="faq-list" class="data-table faq-table" aria-live="polite"></table></div>
           </section>
 
           <section class="view" data-view="usuarios" aria-label="Usuários" hidden>
@@ -438,6 +452,7 @@
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <script src="style-art.js"></script>
+  <script src="faq-data.js"></script>
   <script src="app.js" defer></script>
 </body>
 </html>

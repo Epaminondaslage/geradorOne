@@ -57,16 +57,6 @@ function followSystemTheme(on) {
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (themeFollowsSystem) setTheme(systemTheme(), { persist: false }); });
 
-function luminance(hex) {
-  const channels = hex.replace('#', '').match(/../g).map(part => parseInt(part, 16) / 255).map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
-}
-function contrastRatio(a, b) {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
-const formatRatio = ratio => `${ratio.toFixed(1).replace('.', ',')}:1`;
-
 function renderThemeView() {
   const gallery = document.querySelector('#theme-gallery');
   if (!gallery) return;
@@ -76,21 +66,6 @@ function renderThemeView() {
     <span class="theme-mini" data-theme-scope="${theme.id}" aria-hidden="true"><span class="mini-rail"><i></i><i></i><i></i><i></i></span><span class="mini-sheet"><b>Apostila</b><i class="mini-field"></i><i class="mini-field"></i><em>Gerar prompt</em></span></span>
     <span class="theme-meta"><span class="theme-line"><strong>${theme.nome}</strong><span class="theme-mark">${theme.id === current ? 'Em uso' : ''}</span></span><span class="field-help">${theme.desc}</span></span>
   </button>`).join('');
-  document.querySelector('#theme-tokens-name').textContent = themeNames[current];
-  const css = getComputedStyle(document.documentElement);
-  const token = name => css.getPropertyValue(name).trim();
-  const [paper, accent] = [token('--paper'), token('--accent')];
-  const rows = [
-    ['--bg', 'fundo'], ['--paper', 'folha e campos'],
-    ['--ink', formatRatio(contrastRatio(token('--ink'), paper))],
-    ['--muted', formatRatio(contrastRatio(token('--muted'), paper))],
-    ['--line', 'divisória'],
-    ['--field', formatRatio(contrastRatio(token('--field'), paper))],
-    ['--accent', formatRatio(contrastRatio(accent, paper))],
-    ['--accent-ink', `${formatRatio(contrastRatio(token('--accent-ink'), accent))} no acento`],
-    ['--danger', formatRatio(contrastRatio(token('--danger'), paper))]
-  ];
-  document.querySelector('#theme-tokens-body').innerHTML = rows.map(([name, note]) => `<tr><td><span class="token-name"><span class="token-chip tok${name.slice(1)}" aria-hidden="true"></span><strong>${name}</strong></span></td><td class="num">${token(name).toUpperCase()}</td><td class="num num-col">${note}</td></tr>`).join('');
 }
 document.querySelector('#theme-gallery').addEventListener('click', event => {
   const card = event.target.closest('[data-theme-pick]');
@@ -1199,7 +1174,7 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios', 'smtp'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'usuarios', 'smtp', 'faq'];
 
 function showView(name) {
   if (!VIEWS.includes(name) || (['usuarios', 'smtp'].includes(name) && currentUser?.role !== 'admin')) name = 'inicio';
@@ -1217,6 +1192,7 @@ function showView(name) {
   if (name === 'tema') renderThemeView();
   if (name === 'usuarios') loadUsers();
   if (name === 'smtp') loadSmtp();
+  if (name === 'faq') renderFaq();
   setMobileMenu(false);
   try { history.replaceState(null, '', `#${name}`); } catch {}
   window.scrollTo({ top: 0 });
@@ -1302,6 +1278,129 @@ document.querySelector('#login-form').addEventListener('submit', async event => 
   } finally {
     submit.disabled = false;
   }
+});
+
+// Cada título de tela ganha o mesmo ícone do botão correspondente no menu (copiado do próprio menu, para os dois nunca divergirem).
+document.querySelectorAll('.view[data-view] .view-head h1').forEach(title => {
+  const name = title.closest('.view').dataset.view;
+  const icon = document.querySelector(`.nav-item[data-view="${name}"] svg`);
+  if (!icon) return;
+  const copy = icon.cloneNode(true);
+  copy.removeAttribute('width');
+  copy.removeAttribute('height');
+  copy.classList.add('title-icon');
+  title.prepend(copy);
+});
+
+// FAQ: lista filtrável com resposta que abre na própria linha. O texto vem de faq-data.js e é montado por nós de texto (sem innerHTML).
+const faqSearch = document.querySelector('#faq-search');
+const faqCategory = document.querySelector('#faq-category');
+const faqList = document.querySelector('#faq-list');
+const faqCount = document.querySelector('#faq-count');
+let faqOpen = -1;
+let faqReady = false;
+
+const faqNormalize = text => String(text).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+function faqEl(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+// Troca endereços https:// por links; o resto continua texto puro.
+function faqInline(parent, text) {
+  text.split(/(https:\/\/[^\s)]*[^\s).,;:])/).forEach(part => {
+    if (/^https:\/\/[^\s)]*[^\s).,;:]$/.test(part)) {
+      const link = faqEl('a', '', part);
+      link.href = part;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      parent.append(link);
+    } else if (part) {
+      parent.append(part);
+    }
+  });
+}
+
+function faqAnswer(text) {
+  const box = faqEl('div', 'faq-answer');
+  text.split('\n\n').forEach(block => {
+    const lines = block.split('\n');
+    if (lines.every(line => line.startsWith('- '))) {
+      const list = faqEl('ul');
+      lines.forEach(line => { const item = faqEl('li'); faqInline(item, line.slice(2)); list.append(item); });
+      box.append(list);
+    } else if (lines.every(line => /^\d+\. /.test(line))) {
+      const list = faqEl('ol');
+      lines.forEach(line => { const item = faqEl('li'); faqInline(item, line.replace(/^\d+\. /, '')); list.append(item); });
+      box.append(list);
+    } else {
+      const paragraph = faqEl('p');
+      faqInline(paragraph, lines.join(' '));
+      box.append(paragraph);
+    }
+  });
+  return box;
+}
+
+function renderFaq() {
+  if (typeof FAQ_ITEMS === 'undefined') { faqList.replaceChildren(); faqCount.textContent = 'Não foi possível carregar a FAQ.'; return; }
+  if (!faqReady) {
+    [...new Set(FAQ_ITEMS.map(item => item.categoria))].forEach(name => faqCategory.append(new Option(name, name)));
+    faqReady = true;
+  }
+  const term = faqNormalize(faqSearch.value.trim());
+  const category = faqCategory.value;
+  const shown = FAQ_ITEMS.map((item, index) => ({ item, index })).filter(({ item }) => (!category || item.categoria === category) && (!term || faqNormalize(`${item.pergunta} ${item.resposta} ${item.categoria}`).includes(term)));
+  faqCount.textContent = `${shown.length} de ${FAQ_ITEMS.length} perguntas`;
+  const head = faqEl('thead');
+  const headRow = faqEl('tr');
+  ['Categoria', 'Pergunta'].forEach(label => headRow.append(faqEl('th', '', label)));
+  head.append(headRow);
+  const body = faqEl('tbody');
+  if (!shown.length) {
+    const row = faqEl('tr');
+    const cell = faqEl('td', 'table-empty', 'Nenhuma pergunta encontrada. Tente outras palavras ou escolha "Todas as categorias".');
+    cell.colSpan = 2;
+    row.append(cell);
+    body.append(row);
+  }
+  shown.forEach(({ item, index }) => {
+    const open = index === faqOpen;
+    const row = faqEl('tr', open ? 'faq-row open' : 'faq-row');
+    row.append(faqEl('td', 'faq-cat', item.categoria));
+    const cell = faqEl('td', 'faq-q');
+    const button = faqEl('button', 'faq-toggle');
+    button.type = 'button';
+    button.dataset.faq = String(index);
+    button.setAttribute('aria-expanded', String(open));
+    button.append(faqEl('span', 'faq-cat-inline', item.categoria), faqEl('span', 'faq-q-text', item.pergunta));
+    cell.append(button);
+    row.append(cell);
+    body.append(row);
+    if (open) {
+      const answerRow = faqEl('tr', 'faq-answer-row');
+      const answerCell = faqEl('td');
+      answerCell.colSpan = 2;
+      answerCell.append(faqAnswer(item.resposta));
+      answerRow.append(answerCell);
+      body.append(answerRow);
+    }
+  });
+  faqList.replaceChildren(head, body);
+}
+
+faqSearch.addEventListener('input', () => { faqOpen = -1; renderFaq(); });
+faqCategory.addEventListener('change', () => { faqOpen = -1; renderFaq(); });
+faqList.addEventListener('click', event => {
+  const button = event.target.closest('[data-faq]');
+  if (!button) return;
+  const index = Number(button.dataset.faq);
+  faqOpen = faqOpen === index ? -1 : index;
+  renderFaq();
+  faqList.querySelector(`[data-faq="${index}"]`)?.focus();
 });
 
 const smtpForm = document.querySelector('#smtp-form');

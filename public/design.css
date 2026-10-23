@@ -222,10 +222,10 @@ input, select, textarea { font-weight: 400; font-family: var(--sans); }
 .workspace[data-view="usuarios"] { grid-template-columns: minmax(0, 1180px); }
 
 /* Tela de tema: galeria com miniatura de cada tema e tabela de cores */
-.theme-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; align-items: start; }
+.theme-layout { display: grid; grid-template-columns: minmax(0, 1fr); }
 .theme-pick { display: grid; gap: 16px; }
 .theme-pick-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; }
-.theme-pick-head h2, .theme-tokens h2 { margin: 0; font-size: 22px; }
+.theme-pick-head h2 { margin: 0; font-size: 22px; }
 .theme-follow { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 400; }
 .theme-follow input { width: 18px; height: 18px; margin: 0; }
 .theme-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
@@ -245,16 +245,7 @@ input, select, textarea { font-weight: 400; font-family: var(--sans); }
 .theme-line strong { font-size: 15.5px; }
 .theme-mark { font-size: 12.5px; font-weight: 700; color: var(--accent); }
 .theme-meta .field-help { margin: 0; }
-.theme-tokens { display: grid; gap: 14px; }
-.token-table th, .token-table td { padding: 8px 0; }
-.token-name { display: flex; align-items: center; gap: 10px; }
-.token-chip { flex: none; width: 20px; height: 20px; border: 1px solid var(--field); }
-.tok-bg { background: var(--bg); } .tok-paper { background: var(--paper); } .tok-ink { background: var(--ink); } .tok-muted { background: var(--muted); }
-.tok-line { background: var(--line); } .tok-field { background: var(--field); } .tok-accent { background: var(--accent); }
-.tok-accent-ink { background: var(--accent-ink); } .tok-danger { background: var(--danger); }
-.num-col { text-align: right !important; color: var(--muted); }
 .workspace[data-view="tema"] { grid-template-columns: minmax(0, 1180px); }
-@media (max-width: 1100px) { .theme-layout { grid-template-columns: minmax(0, 1fr); } }
 
 /* ====================================================================
    Estrutura das telas, conforme as pranchas de docs/design
@@ -463,3 +454,38 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
   .mobile-note { display: block; margin: 0; text-align: right; }
   .out-panel { margin: 0; }
 }
+
+/* FAQ: caixa explicativa, tabela Categoria/Pergunta e resposta aberta na própria linha */
+.faq-intro { border: 1px solid var(--line); background: var(--paper); padding: 0 16px; }
+.faq-intro summary { padding: 12px 0; font-weight: 700; color: var(--ink); cursor: pointer; }
+.faq-intro[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.faq-intro p, .faq-intro ul { margin: 0 0 12px; color: var(--muted); line-height: 1.6; }
+.faq-intro ul { padding-left: 1.3em; }
+.faq-table .faq-cat { width: 220px; color: var(--muted); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.faq-table .faq-q { padding: 0; }
+.faq-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border: 0; border-radius: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+.faq-toggle::after { content: "+"; flex: none; color: var(--muted); font-weight: 700; }
+.faq-toggle[aria-expanded="true"]::after { content: "\2212"; }
+.faq-cat-inline { display: none; }
+.faq-row:hover, .faq-row.open { background: var(--bg); }
+.faq-row.open > td { border-bottom: 0; }
+.faq-answer-row > td { padding: 0 14px 16px; background: var(--bg); }
+.faq-answer { max-width: 72ch; color: var(--ink); line-height: 1.65; overflow-wrap: anywhere; }
+.faq-answer p { margin: .6em 0; }
+.faq-answer ul, .faq-answer ol { margin: .6em 0; padding-left: 1.4em; }
+.faq-answer li { margin: .25em 0; }
+.faq-answer a { color: var(--accent); text-decoration: underline; }
+@media (max-width: 900px) {
+  .faq-table { min-width: 0; }
+  .faq-table, .faq-table tbody, .faq-table tr, .faq-table td { display: block; }
+  .faq-table thead, .faq-table .faq-cat { display: none; }
+  .faq-cat-inline { display: block; flex: 1; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .faq-toggle { flex-wrap: wrap; }
+  .faq-q-text { flex: 1 1 100%; order: 2; }
+  .faq-toggle::after { order: 1; }
+  .table-tools input, .table-tools select { width: 100%; min-width: 0; }
+}
+
+/* Ícone do menu repetido na frente do título de cada tela */
+.view-head h1 { display: flex; align-items: center; gap: 12px; }
+.view-head h1 .title-icon { flex: none; width: .8em; height: .8em; min-width: 22px; min-height: 22px; color: var(--ink); }
