@@ -189,6 +189,16 @@ Usuários e projetos ficam em um Postgres 17 (serviço `db` no `compose.yaml`), 
 - Porta externa: `8123`
 - Rede local: `http://seu-servidor:8123`
 
+### Produção com HTTPS
+
+A produção roda num contêiner Linux (LXC) próprio, separado do desenvolvimento, com `compose.prod.yaml`: app, Postgres e Caddy. O Caddy publica as portas 80 e 443 e emite e renova o certificado Let's Encrypt do domínio informado em `DOMINIO` no `.env`. Para o certificado sair, o DNS do domínio precisa apontar para o IP público e as portas 80 e 443 precisam chegar ao contêiner.
+
+```sh
+docker compose -f compose.prod.yaml up -d --build
+```
+
+O backup diário do banco (`scripts/backup-db.sh`, 14 dias de retenção) roda pelo cron do contêiner às 03:15.
+
 ## Estrutura do projeto
 
 ```text
