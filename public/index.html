@@ -200,9 +200,29 @@
               <section class="sec" aria-labelledby="pedagogia-title">
                 <div class="sec-head"><h2 id="pedagogia-title">Configuração pedagógica</h2><p class="help">Referências e limites contra informações inventadas.</p></div>
                 <div class="grid two">
-                  <label>Códigos da BNCC (opcional)<input name="bncc" placeholder="Cole só códigos que você já conferiu"></label>
+                  <label>Códigos da BNCC (opcional)<input name="bncc" placeholder="Digite os códigos ou use o botão abaixo" autocomplete="off"></label>
                   <label class="opt opt-top"><input name="sugerirBncc" type="checkbox" checked><span><strong>Sugerir habilidades da BNCC</strong><small class="help">Somente quando houver correspondência verificável.</small></span></label>
                 </div>
+                <div class="bncc-actions">
+                  <button class="outline" type="button" id="bncc-open" aria-expanded="false" aria-controls="bncc-picker">Escolher habilidades da BNCC</button>
+                  <span id="bncc-hint" class="field-status" role="status"></span>
+                </div>
+                <section id="bncc-picker" class="bncc-picker" hidden aria-label="Escolher habilidades da BNCC">
+                  <div class="bncc-filters">
+                    <label>Etapa<select id="bncc-etapa"><option value="">Todas</option><option value="EI">Educação Infantil</option><option value="EF">Ensino Fundamental</option><option value="EM">Ensino Médio</option></select></label>
+                    <label><span id="bncc-recorte-label">Ano ou faixa etária</span><select id="bncc-recorte" disabled><option value="">Todos</option></select></label>
+                    <label><span id="bncc-grupo-label">Componente, área ou campo</span><select id="bncc-grupo"><option value="">Todos</option></select></label>
+                    <label>Buscar<input id="bncc-busca" type="search" placeholder="Palavra do texto ou código" autocomplete="off"></label>
+                  </div>
+                  <p id="bncc-status" class="field-status" role="status">Carregando as habilidades…</p>
+                  <ul id="bncc-list" class="bncc-list" aria-label="Habilidades encontradas"></ul>
+                  <div class="bncc-foot">
+                    <span id="bncc-selecionadas" class="field-status" role="status">Nenhuma selecionada</span>
+                    <button class="ghost" type="button" id="bncc-limpar">Limpar seleção</button>
+                    <button class="primary" type="button" id="bncc-usar">Usar as selecionadas</button>
+                  </div>
+                  <p class="help bncc-credit">Textos da BNCC (MEC/CNE), compilados por <a href="https://github.com/bncc-dev/bncc-dados" target="_blank" rel="noopener noreferrer">bncc.dev (Profy)</a>, licença CC BY 4.0, versão <span id="bncc-versao">…</span>. Confira sempre no documento oficial.</p>
+                </section>
                 <label>Texto ou material de referência<textarea name="referencias" rows="3" placeholder="Cole definições, trechos, fontes ou observações obrigatórias. Não inclua dados pessoais sensíveis."></textarea></label>
               </section>
 

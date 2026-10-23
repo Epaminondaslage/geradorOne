@@ -119,7 +119,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Apostila',
     pergunta: 'Como funcionam os códigos da BNCC?',
-    resposta: '- "Códigos da BNCC (opcional)": coloque só códigos que você já conferiu. O app os inclui no prompt como foram digitados.\n- "Sugerir habilidades da BNCC": quando marcado, a IA só sugere habilidades se houver correspondência verificável.\n\nO GeradorOne não valida códigos nem inventa nenhum, e instrui a IA a fazer o mesmo. A conferência final é sempre sua.'
+    resposta: '- "Códigos da BNCC (opcional)": digite os códigos ou use o botão "Escolher habilidades da BNCC" (veja a categoria "BNCC"). O app confere cada código na base de habilidades e avisa se algum não existir.\n- Os códigos reconhecidos entram no prompt junto com o texto oficial da habilidade. Códigos que o app não encontra entram marcados como "não encontrados", para a IA não tratá-los como válidos.\n- "Sugerir habilidades da BNCC": quando marcado, a IA só sugere habilidades se houver correspondência verificável.\n\nO GeradorOne não inventa códigos e instrui a IA a fazer o mesmo, mas a conferência final no documento oficial é sempre sua.'
   },
   {
     categoria: 'Apostila',
@@ -150,6 +150,48 @@ const FAQ_ITEMS = [
     categoria: 'Apostila',
     pergunta: 'Como limpo o formulário e recomeço?',
     resposta: 'Clique em "Limpar formulário", ao lado do botão de gerar. Se você já salvou o projeto, ele continua em "Meus projetos"; só o que está na tela é zerado.'
+  },
+
+  // ---------- BNCC ----------
+  {
+    categoria: 'BNCC',
+    pergunta: 'O que é a BNCC?',
+    resposta: 'A Base Nacional Comum Curricular (BNCC) é o documento nacional que define o que os estudantes da Educação Básica devem aprender. Duas resoluções do Conselho Nacional de Educação (CNE) a instituíram:\n\n- Resolução CNE/CP nº 2, de 22 de dezembro de 2017, para a Educação Infantil e o Ensino Fundamental. Segundo a ementa, ela "institui e orienta a implantação da Base Nacional Comum Curricular, a ser respeitada obrigatoriamente ao longo das etapas e respectivas modalidades no âmbito da Educação Básica".\n- Resolução CNE/CP nº 4, de 17 de dezembro de 2018, para o Ensino Médio.\n\nA base legal é a LDB (Lei nº 9.394/1996), cujo art. 26 determina que os currículos da educação básica tenham uma base nacional comum.\n\nFontes: https://www.gov.br/mec/pt-br/cne/pdf/resolucoes-do-cne/cp/2017/rcp002_17.pdf, https://www.gov.br/mec/pt-br/cne/pdf/resolucoes-do-cne/cp/2018/rcp004_18.pdf e https://www.planalto.gov.br/ccivil_03/leis/l9394.htm'
+  },
+  {
+    categoria: 'BNCC',
+    pergunta: 'O que é uma habilidade da BNCC?',
+    resposta: 'É uma das aprendizagens que a BNCC espera dos estudantes, escrita como uma ação. Exemplo, a habilidade EF06MA01 (Matemática, 6º ano): "Comparar, ordenar, ler e escrever números naturais e números racionais cuja representação decimal é finita, fazendo uso da reta numérica."\n\nNo Ensino Fundamental e no Ensino Médio, essas aprendizagens se chamam habilidades. Na Educação Infantil, são objetivos de aprendizagem e desenvolvimento. Cada uma tem um código próprio.\n\nO conjunto que o GeradorOne usa tem 1.721 aprendizagens: 93 da Educação Infantil, 1.304 do Ensino Fundamental, 183 do Ensino Médio e 141 do complemento de Computação.'
+  },
+  {
+    categoria: 'BNCC',
+    pergunta: 'Como leio o código de uma habilidade?',
+    resposta: 'O código junta a etapa, o recorte, o componente e o número de ordem:\n\n- EF67LP08: EF é o Ensino Fundamental, 67 indica 6º e 7º anos, LP é Língua Portuguesa e 08 é o número de ordem.\n- EF06MA01: EF, 06 é o 6º ano, MA é Matemática, 01 é o número de ordem.\n- EI02TS01: EI é a Educação Infantil, 02 é o grupo de crianças bem pequenas (01 são bebês, 03 são crianças pequenas), TS é o campo de experiências "Traços, sons, cores e formas" e 01 é o número de ordem.\n- EM13LGG103: EM é o Ensino Médio, 13 indica que não há divisão por ano, LGG é a área Linguagens e suas Tecnologias, 1 é a competência específica e 03 completa o número.\n\nNo Ensino Fundamental, as siglas dos componentes são AR (Arte), CI (Ciências), EF (Educação Física), ER (Ensino Religioso), GE (Geografia), HI (História), LI (Língua Inglesa), LP (Língua Portuguesa) e MA (Matemática). Computação usa CO.\n\nDois cuidados: a sigla EF aparece como etapa e como Educação Física, e o número de ordem não indica a ordem em que ensinar.\n\nFonte: descrição dos códigos no modelo de dados do projeto bncc.dev, https://github.com/bncc-dev/bncc-dados'
+  },
+  {
+    categoria: 'BNCC',
+    pergunta: 'Onde a BNCC se aplica?',
+    resposta: 'Nas três etapas da Educação Básica:\n\n- Educação Infantil, organizada em três grupos de crianças: bebês (0 a 1 ano e 6 meses), crianças bem pequenas (1 ano e 7 meses a 3 anos e 11 meses) e crianças pequenas (4 anos a 5 anos e 11 meses).\n- Ensino Fundamental, do 1º ao 9º ano. Algumas habilidades valem para um bloco de anos, como as de 6º e 7º anos.\n- Ensino Médio, que não tem divisão por ano na BNCC. A seriação fica com os currículos.\n\nA Resolução CNE/CP nº 2/2017 diz que a BNCC deve ser respeitada ao longo das etapas e modalidades da Educação Básica. O dataset que o GeradorOne usa trata a Educação de Jovens e Adultos como modalidade que atravessa o Ensino Fundamental e o Ensino Médio.\n\nA BNCC é uma referência nacional. O currículo da sua rede de ensino ou da sua escola pode detalhar e organizar essas aprendizagens, então confira também a orientação local.'
+  },
+  {
+    categoria: 'BNCC',
+    pergunta: 'O que é o complemento de Computação da BNCC?',
+    resposta: 'São as normas sobre Computação na Educação Básica, que complementam a BNCC. Vêm do Parecer CNE/CEB nº 2/2022 (aprovado em 17 de fevereiro de 2022) e da Resolução CNE/CEB nº 1, de 4 de outubro de 2022.\n\nSão 141 aprendizagens, com a sigla CO no código, como EF01CO01 ("Organizar objetos físicos ou digitais considerando diferentes características para esta organização, explicitando semelhanças (padrões) e diferenças."). No seletor do GeradorOne, Computação aparece como um componente de cada etapa.\n\nFontes: https://www.gov.br/mec/pt-br/cne/pdf/pareceres-do-cne/ceb/2022/pceb002_22.pdf e https://www.gov.br/mec/pt-br/cne/pdf/resolucoes-do-cne/ceb/2022/rceb001_22.pdf'
+  },
+  {
+    categoria: 'BNCC',
+    pergunta: 'Onde encontro o texto oficial da BNCC?',
+    resposta: 'No site oficial da BNCC, do Ministério da Educação (MEC): https://basenacionalcomum.mec.gov.br/\n\nOs atos que a instituem ficam no site do Conselho Nacional de Educação:\n\n- Parecer CNE/CP nº 15/2017 (Educação Infantil e Ensino Fundamental): https://www.gov.br/mec/pt-br/cne/pdf/pareceres-do-cne/cp/2017/pcp015_17.pdf\n- Resolução CNE/CP nº 2/2017: https://www.gov.br/mec/pt-br/cne/pdf/resolucoes-do-cne/cp/2017/rcp002_17.pdf\n- Resolução CNE/CP nº 4/2018 (Ensino Médio): https://www.gov.br/mec/pt-br/cne/pdf/resolucoes-do-cne/cp/2018/rcp004_18.pdf\n- Parecer CNE/CEB nº 2/2022 (Computação): https://www.gov.br/mec/pt-br/cne/pdf/pareceres-do-cne/ceb/2022/pceb002_22.pdf\n\nO texto oficial é a referência final. Use a cópia do GeradorOne para escolher as habilidades e confira no documento do MEC antes de publicar um material.'
+  },
+  {
+    categoria: 'BNCC',
+    pergunta: 'De onde o GeradorOne tira as habilidades da BNCC?',
+    resposta: 'De uma cópia do dataset aberto bncc.dev, mantido pela Profy. Ele reúne os textos oficiais da BNCC e do complemento de Computação, e o projeto informa que cada texto foi conferido contra o PDF homologado, com a página de origem de cada registro.\n\n- Versão dos dados no GeradorOne: dados-2026.08.\n- Licença: Creative Commons Atribuição 4.0 (CC BY 4.0), que exige dar o crédito. Por isso o seletor mostra a fonte.\n- Repositório: https://github.com/bncc-dev/bncc-dados\n- DOI: 10.5281/zenodo.21625233\n\nOs dados ficam no próprio servidor do GeradorOne. Nada que você digita vai para o bncc.dev. O dataset é de terceiros e não é um produto do MEC: em caso de diferença, vale o documento oficial.'
+  },
+  {
+    categoria: 'BNCC',
+    pergunta: 'Como escolho habilidades da BNCC no GeradorOne?',
+    resposta: '1. Na Apostila, em "Configuração pedagógica", clique em "Escolher habilidades da BNCC".\n2. Filtre por "Etapa" (Educação Infantil, Ensino Fundamental ou Ensino Médio). Depois use o ano ou a faixa etária e o componente, a área ou o campo de experiências. Se preferir, digite uma palavra ou um código em "Buscar".\n3. Marque as habilidades que quiser. A seleção continua marcada mesmo se você mudar os filtros.\n4. Clique em "Usar as selecionadas". Os códigos vão para o campo "Códigos da BNCC".\n\nA lista mostra até 150 resultados por vez: use os filtros para refinar. Ao gerar o prompt, o texto oficial de cada habilidade entra nele, e o app avisa se algum código digitado não existe na base.'
   },
 
   // ---------- Capa ----------

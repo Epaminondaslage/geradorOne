@@ -542,3 +542,26 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .danger-zone .danger { padding: 12px 16px; border: 1px solid var(--danger); border-radius: 2px; background: transparent; color: var(--danger); font: inherit; font-weight: 700; cursor: pointer; }
 .danger-zone .danger:hover:not(:disabled), .danger-zone .danger.armed { background: var(--danger); color: var(--bg); }
 .danger-zone .danger:disabled { opacity: .6; cursor: progress; }
+
+/* Seletor de habilidades da BNCC (Apostila) */
+.bncc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.bncc-actions .field-status { margin: 0; }
+.bncc-picker { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); background: var(--paper); }
+.bncc-picker[hidden] { display: none; }
+.bncc-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.bncc-filters label { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
+.bncc-filters select, .bncc-filters input { width: 100%; margin: 0; min-width: 0; }
+.bncc-picker .field-status { margin: 0; }
+.bncc-list { max-height: 380px; margin: 0; padding: 0; overflow: auto; list-style: none; border: 1px solid var(--line); background: var(--bg); }
+.bncc-list li { border-bottom: 1px solid var(--line); }
+.bncc-list li:last-child { border-bottom: 0; }
+.bncc-item { display: flex; flex-direction: row; align-items: flex-start; gap: 12px; padding: 10px 12px; font-size: 14px; font-weight: 400; cursor: pointer; }
+.bncc-item:hover { background: var(--paper); }
+.bncc-item input { flex: none; width: 18px; height: 18px; margin: 3px 0 0; }
+.bncc-code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 14px; color: var(--ink); }
+.bncc-meta { color: var(--muted); font-size: 12.5px; }
+.bncc-text { display: block; margin-top: 4px; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.bncc-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
+.bncc-foot .field-status { margin-right: auto; }
+.bncc-credit { margin: 0; font-size: 12.5px; }
+@media (max-width: 520px) { .bncc-filters { grid-template-columns: minmax(0, 1fr); } .bncc-list { max-height: 320px; } }

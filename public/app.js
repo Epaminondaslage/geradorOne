@@ -241,7 +241,7 @@ function generatePrompt(data) {
   const bnccInstruction = data.sugerirBncc
     ? 'Sugira habilidades da BNCC somente quando houver correspondência verificável com a etapa e o componente curricular. Informe código e descrição fiel; se não puder verificar, declare a limitação e não invente.'
     : 'Use apenas os códigos da BNCC fornecidos. Não acrescente códigos por inferência.';
-  return `ATENÇÃO: siga rigorosamente todas as especificações abaixo. NÃO misture o tipo de material ou o estilo visual com outros não solicitados, NÃO altere o formato pedido e NÃO presuma informações que não foram fornecidas.\n\nATUE COMO ESPECIALISTA EM EDUCAÇÃO, DESIGN INSTRUCIONAL, DIREÇÃO DE ARTE EDITORIAL E PRODUÇÃO DE MATERIAL DIDÁTICO.\n\nTAREFA\nCrie um material do tipo "${data.tipo}" (OBRIGATORIAMENTE este tipo, não outro) sobre "${text(data.assunto)}" para a disciplina "${text(data.disciplina)}". Entregue o conteúdo em português brasileiro, sem termos em inglês ou outras variações do português.\n\n1. PERFIL PEDAGÓGICO\n- Público-alvo: ${data.publico}.\n- Objetivo de aprendizagem: ${text(data.objetivo)}.\n- Profundidade do conteúdo: ${data.profundidade}.\n- Estilo de escrita: ${data.escrita}.\n- Densidade do texto: ${data.densidade}.\n- Extensão alvo: ${data.extensao}.\n- Adapte linguagem, exemplos, vocabulário e progressão ao público.\n- Declare hipóteses quando faltarem dados indispensáveis.\n\n2. CONFIGURAÇÃO CURRICULAR E FONTES\n- Códigos BNCC informados: ${text(data.bncc, 'Nenhum')}.\n- ${bnccInstruction}\n- Material de referência obrigatório:\n${text(data.referencias, 'Nenhum material fornecido. Não invente fontes, normas, números, citações ou resultados.')}\n- Diferencie explicitamente dados ilustrativos de dados medidos, documentados ou comprovados.\n\n3. ARQUITETURA DO MATERIAL\n- Apresente título, objetivos específicos, pré-requisitos e uma rota de aprendizagem.\n- Organize seções progressivas, com explicações completas, definições, exemplos resolvidos e aplicações contextualizadas quando pertinentes.\n- Inclua sínteses parciais, questões de verificação e indicações claras de transição entre assuntos.\n- Termine com síntese geral, atividades de fixação em dificuldade progressiva e gabarito comentado.\n- Respeite a extensão alvo definida no item 1 (${data.extensao}): dimensione o número de seções, a profundidade de cada uma e a quantidade de recursos visuais para que o material completo não ultrapasse o limite superior de páginas dessa faixa.\n- Faça revisão final de consistência pedagógica, conceitual, ortográfica e visual.\n\n4. SISTEMA VISUAL\n- Estilo visual: ${data.estiloVisual}.\n- Paleta: ${data.paleta}.\n- Formato prioritário: ${data.formato}.\n- Frequência: ${data.frequencia}.\n- Profundidade visual: ${data.profundidadeVisual}.\n- Recursos obrigatórios selecionados: ${visualItems.length ? visualItems.join(', ') : 'nenhum recurso obrigatório'}.\n- Use hierarquia tipográfica clara, espaçamento confortável, alto contraste, legendas e consistência visual. Garanta legibilidade em tela e impressão e não dependa apenas de cor para transmitir significado.\n- Não use figuras infantis ou personagens caso o público não seja infantil. Se houver personagens, eles devem ser da faixa etária de ${data.publico}, condizentes com o público-alvo.\n\n5. ESPECIFICAÇÃO DOS RECURSOS VISUAIS\nPara cada recurso visual, entregue: (a) objetivo pedagógico; (b) posição sugerida; (c) conteúdo exato; (d) título e legenda; (e) descrição de produção; (f) texto alternativo acessível.\n${data.mapasMentais ? '- MAPAS MENTAIS: crie estruturas ricas, com conceito central, 4 a 7 ramos principais, sub-ramos, palavras-chave curtas, relações nomeadas e uma legenda. Evite listas lineares disfarçadas de mapa.\n' : ''}${data.diagramas ? '- DIAGRAMAS: especifique nós, setas, relações, direção de leitura e uma versão textual equivalente. Quando útil, forneça código Mermaid válido e simples.\n' : ''}${data.ilustracoes ? '- ILUSTRAÇÕES: escreva briefings objetivos com cena, elementos, composição, enquadramento, estilo, paleta, diversidade e restrições. Não presuma que a imagem foi gerada.\n' : ''}${data.infograficos ? '- INFOGRÁFICOS: combine hierarquia, blocos informativos, ícones, números e percurso de leitura. Use somente informações presentes ou verificáveis.\n' : ''}${data.graficos ? '- GRÁFICOS: escolha o tipo adequado à comparação. Não fabrique dados. Se não houver dados reais, forneça apenas o modelo, os campos necessários e marque qualquer exemplo como ILUSTRATIVO.\n' : ''}${data.quadros ? '- QUADROS COMPARATIVOS: defina critérios consistentes, cabeçalhos claros e notas para exceções.\n' : ''}${data.linhas ? '- LINHAS DO TEMPO: inclua apenas datas verificáveis e diferencie ordem didática de cronologia histórica.\n' : ''}${data.icones ? '- ÍCONES: use um conjunto consistente com rótulos, sem substituir informação essencial somente por símbolos.\n' : ''}\nOrientações adicionais: ${text(data.orientacoes)}.\n\n6. SAÍDA E MARCAÇÕES TÉCNICAS\n- Escreva o material completo, não apenas um sumário.\n- Marque cada visual com blocos [VISUAL: tipo], [OBJETIVO], [CONTEÚDO], [INSTRUÇÃO GRÁFICA], [LEGENDA] e [TEXTO ALTERNATIVO].\n- Para diagramas Mermaid, use blocos de código separados. Para gráficos, entregue uma tabela de dados antes da especificação do gráfico.\n- Não declare que imagens ou gráficos foram renderizados se apenas descreveu sua produção.\n- Use unidades do SI e notação correta quando aplicável.\n\n7. MICROTEXTOS OBRIGATÓRIOS DE ABERTURA\n- Título em caixa alta com o assunto principal.\n- Linha de apoio: disciplina | tipo de material | público-alvo.\n- De 2 a 3 frases curtas explicando o que o leitor vai entender ao final.\n- Uma lista de 4 a 6 bullets resumindo os pontos-chave, cada um com no máximo uma linha.\n\n8. CHECKLIST DE QUALIDADE (VERIFIQUE ANTES DE ENTREGAR)\n- O tipo de material e o estilo visual pedidos foram respeitados sem mistura com outros?\n- A extensão ficou dentro do limite definido no item 1?\n- Todo dado, número, citação ou fonte sem comprovação está marcado como ILUSTRATIVO ou foi omitido?\n- Cada recurso visual selecionado tem objetivo pedagógico, posição, conteúdo, legenda e texto alternativo?\n- A progressão é lógica, sem presumir conhecimento ainda não apresentado?\n- Não há atividades, exercícios ou gabarito fora do que foi solicitado?\n- Todo o texto está em português do Brasil, sem erros de revisão?\n\nPRODUZA AGORA O MATERIAL SOLICITADO.`;
+  return `ATENÇÃO: siga rigorosamente todas as especificações abaixo. NÃO misture o tipo de material ou o estilo visual com outros não solicitados, NÃO altere o formato pedido e NÃO presuma informações que não foram fornecidas.\n\nATUE COMO ESPECIALISTA EM EDUCAÇÃO, DESIGN INSTRUCIONAL, DIREÇÃO DE ARTE EDITORIAL E PRODUÇÃO DE MATERIAL DIDÁTICO.\n\nTAREFA\nCrie um material do tipo "${data.tipo}" (OBRIGATORIAMENTE este tipo, não outro) sobre "${text(data.assunto)}" para a disciplina "${text(data.disciplina)}". Entregue o conteúdo em português brasileiro, sem termos em inglês ou outras variações do português.\n\n1. PERFIL PEDAGÓGICO\n- Público-alvo: ${data.publico}.\n- Objetivo de aprendizagem: ${text(data.objetivo)}.\n- Profundidade do conteúdo: ${data.profundidade}.\n- Estilo de escrita: ${data.escrita}.\n- Densidade do texto: ${data.densidade}.\n- Extensão alvo: ${data.extensao}.\n- Adapte linguagem, exemplos, vocabulário e progressão ao público.\n- Declare hipóteses quando faltarem dados indispensáveis.\n\n2. CONFIGURAÇÃO CURRICULAR E FONTES\n- Códigos BNCC informados: ${text(data.bncc, 'Nenhum')}.${data.bnccTextos ? `\n${data.bnccTextos}` : ''}\n- ${bnccInstruction}\n- Material de referência obrigatório:\n${text(data.referencias, 'Nenhum material fornecido. Não invente fontes, normas, números, citações ou resultados.')}\n- Diferencie explicitamente dados ilustrativos de dados medidos, documentados ou comprovados.\n\n3. ARQUITETURA DO MATERIAL\n- Apresente título, objetivos específicos, pré-requisitos e uma rota de aprendizagem.\n- Organize seções progressivas, com explicações completas, definições, exemplos resolvidos e aplicações contextualizadas quando pertinentes.\n- Inclua sínteses parciais, questões de verificação e indicações claras de transição entre assuntos.\n- Termine com síntese geral, atividades de fixação em dificuldade progressiva e gabarito comentado.\n- Respeite a extensão alvo definida no item 1 (${data.extensao}): dimensione o número de seções, a profundidade de cada uma e a quantidade de recursos visuais para que o material completo não ultrapasse o limite superior de páginas dessa faixa.\n- Faça revisão final de consistência pedagógica, conceitual, ortográfica e visual.\n\n4. SISTEMA VISUAL\n- Estilo visual: ${data.estiloVisual}.\n- Paleta: ${data.paleta}.\n- Formato prioritário: ${data.formato}.\n- Frequência: ${data.frequencia}.\n- Profundidade visual: ${data.profundidadeVisual}.\n- Recursos obrigatórios selecionados: ${visualItems.length ? visualItems.join(', ') : 'nenhum recurso obrigatório'}.\n- Use hierarquia tipográfica clara, espaçamento confortável, alto contraste, legendas e consistência visual. Garanta legibilidade em tela e impressão e não dependa apenas de cor para transmitir significado.\n- Não use figuras infantis ou personagens caso o público não seja infantil. Se houver personagens, eles devem ser da faixa etária de ${data.publico}, condizentes com o público-alvo.\n\n5. ESPECIFICAÇÃO DOS RECURSOS VISUAIS\nPara cada recurso visual, entregue: (a) objetivo pedagógico; (b) posição sugerida; (c) conteúdo exato; (d) título e legenda; (e) descrição de produção; (f) texto alternativo acessível.\n${data.mapasMentais ? '- MAPAS MENTAIS: crie estruturas ricas, com conceito central, 4 a 7 ramos principais, sub-ramos, palavras-chave curtas, relações nomeadas e uma legenda. Evite listas lineares disfarçadas de mapa.\n' : ''}${data.diagramas ? '- DIAGRAMAS: especifique nós, setas, relações, direção de leitura e uma versão textual equivalente. Quando útil, forneça código Mermaid válido e simples.\n' : ''}${data.ilustracoes ? '- ILUSTRAÇÕES: escreva briefings objetivos com cena, elementos, composição, enquadramento, estilo, paleta, diversidade e restrições. Não presuma que a imagem foi gerada.\n' : ''}${data.infograficos ? '- INFOGRÁFICOS: combine hierarquia, blocos informativos, ícones, números e percurso de leitura. Use somente informações presentes ou verificáveis.\n' : ''}${data.graficos ? '- GRÁFICOS: escolha o tipo adequado à comparação. Não fabrique dados. Se não houver dados reais, forneça apenas o modelo, os campos necessários e marque qualquer exemplo como ILUSTRATIVO.\n' : ''}${data.quadros ? '- QUADROS COMPARATIVOS: defina critérios consistentes, cabeçalhos claros e notas para exceções.\n' : ''}${data.linhas ? '- LINHAS DO TEMPO: inclua apenas datas verificáveis e diferencie ordem didática de cronologia histórica.\n' : ''}${data.icones ? '- ÍCONES: use um conjunto consistente com rótulos, sem substituir informação essencial somente por símbolos.\n' : ''}\nOrientações adicionais: ${text(data.orientacoes)}.\n\n6. SAÍDA E MARCAÇÕES TÉCNICAS\n- Escreva o material completo, não apenas um sumário.\n- Marque cada visual com blocos [VISUAL: tipo], [OBJETIVO], [CONTEÚDO], [INSTRUÇÃO GRÁFICA], [LEGENDA] e [TEXTO ALTERNATIVO].\n- Para diagramas Mermaid, use blocos de código separados. Para gráficos, entregue uma tabela de dados antes da especificação do gráfico.\n- Não declare que imagens ou gráficos foram renderizados se apenas descreveu sua produção.\n- Use unidades do SI e notação correta quando aplicável.\n\n7. MICROTEXTOS OBRIGATÓRIOS DE ABERTURA\n- Título em caixa alta com o assunto principal.\n- Linha de apoio: disciplina | tipo de material | público-alvo.\n- De 2 a 3 frases curtas explicando o que o leitor vai entender ao final.\n- Uma lista de 4 a 6 bullets resumindo os pontos-chave, cada um com no máximo uma linha.\n\n8. CHECKLIST DE QUALIDADE (VERIFIQUE ANTES DE ENTREGAR)\n- O tipo de material e o estilo visual pedidos foram respeitados sem mistura com outros?\n- A extensão ficou dentro do limite definido no item 1?\n- Todo dado, número, citação ou fonte sem comprovação está marcado como ILUSTRATIVO ou foi omitido?\n- Cada recurso visual selecionado tem objetivo pedagógico, posição, conteúdo, legenda e texto alternativo?\n- A progressão é lógica, sem presumir conhecimento ainda não apresentado?\n- Não há atividades, exercícios ou gabarito fora do que foi solicitado?\n- Todo o texto está em português do Brasil, sem erros de revisão?\n\nPRODUZA AGORA O MATERIAL SOLICITADO.`;
 }
 
 const imagePageFormats = {
@@ -478,6 +478,7 @@ function generateImagePrompt(data) {
   const extras = [
     data.objetivo?.trim() && `Objetivo: ${data.objetivo.trim()}`,
     data.bncc?.trim() && `Habilidades BNCC: ${data.bncc.trim()}`,
+    data.bnccTextos?.trim() && data.bnccTextos.trim(),
   ].filter(Boolean);
   const lines = [
     'ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.',
@@ -755,10 +756,182 @@ function projectTitle() {
   return (currentKind === 'capa' ? data.titulo : data.assunto) || 'Prompt GeradorOne';
 }
 
+// ---------- BNCC: seletor de habilidades ----------
+// Os textos vêm de public/data/bncc.json (dataset bncc.dev, CC BY 4.0, gerado por scripts/build-bncc-data.js) e são carregados só quando precisam.
+const bncc = { data: null, index: null, loading: null, selected: new Set() };
+const BNCC_CODE = /\bE[IFM]\d{2}[A-Z]{2,3}\d{2,3}\b/gi;
+const BNCC_RENDER_LIMIT = 150;
+const bnccCodesIn = value => [...new Set((String(value || '').match(BNCC_CODE) || []).map(code => code.toUpperCase()))];
+const bnccNormalize = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+function loadBncc() {
+  if (bncc.data) return Promise.resolve(bncc.data);
+  if (!bncc.loading) {
+    bncc.loading = fetch('data/bncc.json', { credentials: 'same-origin' })
+      .then(response => { if (!response.ok) throw new Error('falha'); return response.json(); })
+      .then(data => { bncc.data = data; bncc.index = new Map(data.itens.map(item => [item.c, item])); return data; })
+      .catch(error => { bncc.loading = null; throw error; });
+  }
+  return bncc.loading;
+}
+
+// Bloco com o texto oficial das habilidades digitadas, para a IA não precisar adivinhar nem inventar.
+async function bnccTextBlock(raw) {
+  const codes = bnccCodesIn(raw);
+  if (!codes.length) return '';
+  try { await loadBncc(); } catch { return ''; }
+  const known = codes.map(code => bncc.index.get(code)).filter(Boolean);
+  const unknown = codes.filter(code => !bncc.index.has(code));
+  const lines = [];
+  if (known.length) lines.push(`- Texto oficial das habilidades informadas (fonte: ${bncc.data.fonte.nome}, versão ${bncc.data.versao}):`, ...known.map(item => `  * ${item.c}: ${item.t}`));
+  if (unknown.length) lines.push(`- Códigos que não constam na base de habilidades usada pelo GeradorOne (não os trate como válidos sem conferir no documento oficial): ${unknown.join(', ')}.`);
+  return lines.join('\n');
+}
+
+const bnccEls = {
+  open: document.querySelector('#bncc-open'), panel: document.querySelector('#bncc-picker'), hint: document.querySelector('#bncc-hint'),
+  etapa: document.querySelector('#bncc-etapa'), recorte: document.querySelector('#bncc-recorte'), grupo: document.querySelector('#bncc-grupo'), busca: document.querySelector('#bncc-busca'),
+  recorteLabel: document.querySelector('#bncc-recorte-label'), grupoLabel: document.querySelector('#bncc-grupo-label'),
+  status: document.querySelector('#bncc-status'), list: document.querySelector('#bncc-list'), count: document.querySelector('#bncc-selecionadas'),
+  clear: document.querySelector('#bncc-limpar'), use: document.querySelector('#bncc-usar'), versao: document.querySelector('#bncc-versao'), input: form.elements.bncc
+};
+const BNCC_STAGE_SHORT = { EI: 'Ed. Infantil', EF: 'Ens. Fundamental', EM: 'Ens. Médio' };
+const BNCC_RECORTE = { EI: 'Faixa etária', EF: 'Ano', EM: '' };
+const BNCC_GRUPO = { EI: 'Campo de experiências', EF: 'Componente', EM: 'Área', '': 'Componente, área ou campo' };
+const BNCC_EF_YEARS = Array.from({ length: 9 }, (_, index) => `${index + 1}º ano`);
+
+function bnccFillSelect(select, values, placeholder = 'Todos') {
+  select.replaceChildren(new Option(placeholder, ''), ...values.map(value => new Option(value, value)));
+}
+
+function bnccRefreshOptions() {
+  const stage = bnccEls.etapa.value;
+  const items = bncc.data.itens.filter(item => !stage || item.e === stage);
+  const groups = [...new Set(items.map(item => item.g))].sort((a, b) => (a === 'Computação') - (b === 'Computação') || a.localeCompare(b, 'pt-BR'));
+  bnccFillSelect(bnccEls.grupo, groups);
+  bnccEls.grupoLabel.textContent = BNCC_GRUPO[stage];
+  const ranges = stage === 'EI' ? [...new Set(items.flatMap(item => item.r))] : stage === 'EF' ? BNCC_EF_YEARS : [];
+  bnccFillSelect(bnccEls.recorte, ranges);
+  bnccEls.recorte.disabled = !ranges.length;
+  bnccEls.recorteLabel.textContent = BNCC_RECORTE[stage] || (stage === 'EM' ? 'Sem seriação no Ensino Médio' : 'Ano ou faixa etária');
+}
+
+function bnccMatches() {
+  const stage = bnccEls.etapa.value;
+  const range = bnccEls.recorte.value;
+  const group = bnccEls.grupo.value;
+  const words = bnccNormalize(bnccEls.busca.value.trim()).split(/\s+/).filter(Boolean);
+  return bncc.data.itens.filter(item => {
+    if (stage && item.e !== stage) return false;
+    if (range && !item.r.includes(range)) return false;
+    if (group && item.g !== group) return false;
+    if (!words.length) return true;
+    const haystack = bnccNormalize(`${item.c} ${item.t} ${item.h || ''} ${item.k || ''}`);
+    return words.every(word => haystack.includes(word));
+  });
+}
+
+function bnccRender() {
+  if (!bncc.data) return;
+  const matches = bnccMatches();
+  const shown = matches.slice(0, BNCC_RENDER_LIMIT);
+  bnccEls.list.replaceChildren(...shown.map(item => {
+    const row = document.createElement('li');
+    const label = document.createElement('label');
+    label.className = 'bncc-item';
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.value = item.c;
+    box.checked = bncc.selected.has(item.c);
+    const body = document.createElement('span');
+    const code = document.createElement('strong');
+    code.className = 'bncc-code';
+    code.textContent = item.c;
+    const meta = document.createElement('small');
+    meta.className = 'bncc-meta';
+    meta.textContent = [BNCC_STAGE_SHORT[item.e], item.r.length ? item.r.join(', ') : '', item.g, item.h || ''].filter(Boolean).join(' · ');
+    const text = document.createElement('span');
+    text.className = 'bncc-text';
+    text.textContent = item.t;
+    body.append(code, ' ', meta, text);
+    label.append(box, body);
+    row.append(label);
+    return row;
+  }));
+  bnccEls.status.textContent = !matches.length
+    ? 'Nenhuma habilidade encontrada. Ajuste os filtros ou a busca.'
+    : matches.length > shown.length ? `Mostrando ${shown.length} de ${matches.length} habilidades. Use os filtros ou a busca para refinar.` : `${matches.length} ${matches.length === 1 ? 'habilidade' : 'habilidades'}.`;
+}
+
+function bnccUpdateCount() {
+  const total = bncc.selected.size;
+  bnccEls.count.textContent = total ? `${total} ${total === 1 ? 'selecionada' : 'selecionadas'}` : 'Nenhuma selecionada';
+  bnccEls.use.disabled = !total;
+}
+
+async function bnccCheckTyped() {
+  const codes = bnccCodesIn(bnccEls.input.value);
+  if (!codes.length) { bnccEls.hint.textContent = ''; bnccEls.hint.className = 'field-status'; return; }
+  try { await loadBncc(); } catch { bnccEls.hint.textContent = ''; return; }
+  const unknown = codes.filter(code => !bncc.index.has(code));
+  bnccEls.hint.textContent = unknown.length ? `Não encontrei na BNCC: ${unknown.join(', ')}. Confira o código.` : `${codes.length} ${codes.length === 1 ? 'código reconhecido' : 'códigos reconhecidos'} na BNCC. O texto oficial entra no prompt.`;
+  bnccEls.hint.className = `field-status ${unknown.length ? 'unavailable' : 'available'}`;
+}
+
+let bnccTypedTimer;
+bnccEls.input.addEventListener('input', () => { clearTimeout(bnccTypedTimer); bnccTypedTimer = setTimeout(bnccCheckTyped, 400); });
+
+bnccEls.open.addEventListener('click', async () => {
+  const open = bnccEls.panel.hidden;
+  bnccEls.panel.hidden = !open;
+  bnccEls.open.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  bnccEls.status.textContent = 'Carregando as habilidades…';
+  try {
+    await loadBncc();
+  } catch {
+    bnccEls.status.textContent = 'Não foi possível carregar as habilidades da BNCC agora. Você ainda pode digitar os códigos.';
+    return;
+  }
+  bnccEls.versao.textContent = bncc.data.versao;
+  bnccEls.etapa.value = '';
+  bnccRefreshOptions();
+  bnccEls.busca.value = '';
+  bnccRender();
+  bnccUpdateCount();
+  bnccEls.busca.focus();
+});
+
+bnccEls.etapa.addEventListener('change', () => { bnccRefreshOptions(); bnccRender(); });
+bnccEls.recorte.addEventListener('change', bnccRender);
+bnccEls.grupo.addEventListener('change', bnccRender);
+bnccEls.busca.addEventListener('input', bnccRender);
+bnccEls.busca.addEventListener('keydown', event => { if (event.key === 'Enter') event.preventDefault(); });
+bnccEls.list.addEventListener('change', event => {
+  const box = event.target.closest('input[type=checkbox]');
+  if (!box) return;
+  if (box.checked) bncc.selected.add(box.value); else bncc.selected.delete(box.value);
+  bnccUpdateCount();
+});
+bnccEls.clear.addEventListener('click', () => { bncc.selected.clear(); bnccRender(); bnccUpdateCount(); });
+bnccEls.use.addEventListener('click', () => {
+  const current = bnccEls.input.value.trim();
+  const already = new Set(bnccCodesIn(current));
+  const added = [...bncc.selected].filter(code => !already.has(code));
+  bnccEls.input.value = [current, ...added].filter(Boolean).join(', ');
+  bnccEls.input.dispatchEvent(new Event('input', { bubbles: true }));
+  bnccEls.panel.hidden = true;
+  bnccEls.open.setAttribute('aria-expanded', 'false');
+  bncc.selected.clear();
+  bnccEls.input.focus();
+  notify(added.length ? `${added.length} ${added.length === 1 ? 'habilidade adicionada' : 'habilidades adicionadas'}` : 'As habilidades escolhidas já estavam no campo');
+});
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!validateRequired(form)) return;
   const settings = dataObject(form);
+  settings.bnccTextos = await bnccTextBlock(settings.bncc);
   const pages = Math.max(1, Number.parseInt(settings.paginas, 10) || 1);
   settings.extensao = `${pages} ${pages === 1 ? 'página' : 'páginas'}, no máximo`;
   const aiMode = settings.modoGeracao === 'ai';

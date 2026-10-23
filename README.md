@@ -30,6 +30,7 @@ O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produ
 - Inclusão opcional de códigos e habilidades da BNCC.
 - Campo para textos e materiais de referência.
 - Instruções explícitas para não inventar códigos, fontes, normas ou dados.
+- Seletor de habilidades da BNCC: filtros por etapa, ano ou faixa etária e componente, área ou campo, com busca por texto. Os 1.721 códigos e textos oficiais (BNCC 2018 e complemento de Computação) ficam numa cópia local do dataset [bncc.dev](https://github.com/bncc-dev/bncc-dados) (CC BY 4.0, veja [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)). O app confere os códigos digitados e leva o texto oficial para o prompt.
 
 ### Direção visual
 

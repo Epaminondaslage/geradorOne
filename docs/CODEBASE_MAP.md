@@ -63,6 +63,7 @@ graph TB
 │   ├── reset-password.js     # senha temporária de emergência (docker exec)
 │   ├── test-smtp.js          # testa o SMTP (--verify só conecta e autentica)
 │   ├── backup-db.sh          # pg_dump comprimido, rotação de 14 dias
+│   ├── build-bncc-data.js    # converte o clone de bncc-dev/bncc-dados em public/data/bncc.json (com checagens de contagem)
 │   └── run-tests.js          # sobe um Postgres descartável e roda a suíte
 ├── public/                   # frontend estático servido com CSP restrita
 │   ├── index.html            # tela de login + app (menu, páginas, painel de resultado)
@@ -189,6 +190,7 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 | `ia` | BYOK: provedor, chave e modelos | `/api/ai/config` |
 | `conta` | Perfil, troca de senha, exportação dos dados (JSON) e exclusão da conta (senha atual + segundo clique em "Confirmar exclusão") | `/api/auth/profile`, `change-password`, `export`, `delete-account` |
 | `tema` | Galeria de temas e "Seguir o sistema" | `/api/auth/theme` |
+| `apostila` (seletor da BNCC) | No bloco "Configuração pedagógica": painel com filtros e busca sobre `public/data/bncc.json` (carregado só ao abrir o painel ou ao digitar códigos); "Usar as selecionadas" grava os códigos no campo `bncc`, e `bnccTextBlock` junta o texto oficial ao prompt | `GET /data/bncc.json` (estático) |
 | `faq` | Perguntas e respostas (dados em `public/faq-data.js`), com busca, filtro por categoria e resposta aberta na linha | nenhuma |
 | `usuarios` | Gestão de usuários em tabela, com busca, filtro e edição por linha (admin) | `/api/users*` |
 

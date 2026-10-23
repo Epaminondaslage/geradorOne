@@ -19,7 +19,7 @@ test('FAQ: perguntas não se repetem', () => {
 
 test('FAQ: cobre os temas principais do app', () => {
   const categorias = new Set(FAQ_ITEMS.map(item => item.categoria));
-  for (const nome of ['Primeiros passos', 'Conta e acesso', 'Apostila', 'Capa', 'Projetos', 'IA e chave', 'Obter a chave de IA', 'Administração']) {
+  for (const nome of ['Primeiros passos', 'Conta e acesso', 'Apostila', 'Capa', 'Projetos', 'IA e chave', 'Obter a chave de IA', 'BNCC', 'Administração']) {
     assert.ok(categorias.has(nome), `falta a categoria ${nome}`);
   }
 });
@@ -29,7 +29,7 @@ test('FAQ: links são https e apontam para as páginas oficiais conferidas', () 
   const links = textos.match(/https?:\/\/[^\s)]*[^\s).,;:]/g) || [];
   assert.ok(links.length >= 3);
   for (const link of links) assert.ok(link.startsWith('https://'), link);
-  for (const esperado of ['https://platform.openai.com/api-keys', 'https://aistudio.google.com/apikey', 'https://platform.claude.com/settings/keys']) {
+  for (const esperado of ['https://platform.openai.com/api-keys', 'https://aistudio.google.com/apikey', 'https://platform.claude.com/settings/keys', 'https://github.com/bncc-dev/bncc-dados', 'https://basenacionalcomum.mec.gov.br/']) {
     assert.ok(links.includes(esperado), `falta ${esperado}`);
   }
 });
