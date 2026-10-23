@@ -227,7 +227,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'IA e chave',
     pergunta: 'Como cadastro minha chave de IA?',
-    resposta: '1. Crie a chave no site do provedor (OpenAI ou Google AI Studio).\n2. No GeradorOne, abra "Minha chave de IA".\n3. Escolha o Provedor (OpenAI ou Google Gemini) e cole a chave em "Chave da API".\n4. Confira o "Modelo de texto" e o "Modelo de imagem" (há sugestões na lista).\n5. Clique em "Salvar configuração". Vale na hora, sem reiniciar.'
+    resposta: '1. Crie a chave no site do provedor (OpenAI, Google AI Studio ou Anthropic). As três próximas perguntas da categoria "Obter a chave de IA" mostram o passo a passo.\n2. No GeradorOne, abra "Minha chave de IA".\n3. Escolha o Provedor (OpenAI, Google Gemini ou Anthropic (Claude)) e cole a chave em "Chave da API".\n4. Confira o "Modelo de texto" e o "Modelo de imagem" (há sugestões na lista).\n5. Clique em "Salvar configuração". Vale na hora, sem reiniciar.'
   },
   {
     categoria: 'IA e chave',
@@ -273,12 +273,12 @@ const FAQ_ITEMS = [
   {
     categoria: 'IA e chave',
     pergunta: 'Posso ter chaves de mais de um provedor ao mesmo tempo?',
-    resposta: 'Não. Cada conta guarda uma configuração por vez: um provedor (OpenAI ou Google Gemini), uma chave e os modelos. Ao trocar de provedor, a chave anterior sai e você informa a do novo provedor.'
+    resposta: 'Não. Cada conta guarda uma configuração por vez: um provedor (OpenAI, Google Gemini ou Anthropic), uma chave e os modelos. Ao trocar de provedor, a chave anterior sai e você informa a do novo provedor.'
   },
   {
     categoria: 'IA e chave',
     pergunta: 'O que são o "Modelo de texto" e o "Modelo de imagem"?',
-    resposta: 'São os modelos que o provedor usa em cada tarefa. O modelo de texto escreve o material e reescreve o prompt em "Melhorar com IA". O modelo de imagem cria as ilustrações.\n\nOs campos trazem sugestões na lista. Se você deixar um campo em branco, o app usa o modelo padrão do provedor escolhido. Se o provedor aposentar um modelo ou a sua conta não tiver acesso a ele, troque pelo nome de um modelo disponível na documentação do provedor.'
+    resposta: 'São os modelos que o provedor usa em cada tarefa. O modelo de texto escreve o material e reescreve o prompt em "Melhorar com IA". O modelo de imagem cria as ilustrações (a Anthropic não tem modelo de imagem).\n\nOs campos trazem sugestões na lista. Se você deixar um campo em branco, o app usa o modelo padrão do provedor escolhido. Se o provedor aposentar um modelo ou a sua conta não tiver acesso a ele, troque pelo nome de um modelo disponível na documentação do provedor.'
   },
   {
     categoria: 'IA e chave',
@@ -304,8 +304,13 @@ const FAQ_ITEMS = [
   },
   {
     categoria: 'Obter a chave de IA',
-    pergunta: 'O GeradorOne aceita chave da Anthropic (Claude)?',
-    resposta: 'Ainda não. Em "Minha chave de IA" só existem dois provedores, OpenAI e Google Gemini, e uma chave da Anthropic não funciona no app.\n\nSe você só tem a chave da Anthropic, há duas saídas: criar uma chave em um dos dois provedores aceitos (veja as duas perguntas anteriores) ou usar o GeradorOne só para gerar o prompt, que não precisa de chave. Depois, cole o prompt na ferramenta que você preferir.'
+    pergunta: 'Como crio uma chave de API na Anthropic (Claude)?',
+    resposta: '1. Entre em https://platform.claude.com/ com a sua conta, ou crie uma, e abra a página de chaves: https://platform.claude.com/settings/keys.\n2. Clique em "Create key", dê um nome (por exemplo, "GeradorOne") e escolha a validade da chave.\n3. Em "Linked account", deixe a sua conta. Se o painel oferecer a escolha de um workspace para a chave, escolha um (veja o aviso abaixo).\n4. Copie a chave na hora. O painel mostra o valor completo, que começa com sk-ant-, só uma vez. Se perder, crie outra.\n5. No GeradorOne, abra "Minha chave de IA", escolha o provedor "Anthropic (Claude)", cole a chave em "Chave da API" e clique em "Salvar configuração".\n\nAviso sobre workspace: uma chave que não está vinculada a um workspace só funciona se cada pedido informar o ID dele, e o GeradorOne não envia esse dado. Nesse caso a Anthropic responde com um erro dizendo que a chave não está vinculada a um workspace. Crie a chave de novo, vinculada a um workspace.\n\nO uso é cobrado pela Anthropic, na sua conta. Ajuda oficial: https://platform.claude.com/docs/en/get-api-key'
+  },
+  {
+    categoria: 'Obter a chave de IA',
+    pergunta: 'O que muda ao usar uma chave da Anthropic?',
+    resposta: 'A Anthropic gera só texto. Por isso, com uma chave dela:\n\n- "Melhorar com IA" funciona normalmente.\n- "Gerar material com IA" funciona se, em "Imagens por IA", você escolher "Não usar imagens geradas por IA". O material sai sem ilustrações geradas, com os elementos visuais em CSS e SVG.\n- Se "Imagens por IA" estiver em "Gerar imagens reais e incorporar", o app avisa e não faz o pedido. Para ter imagens, use uma chave da OpenAI ou do Gemini.\n\nNa tela "Minha chave de IA", o campo "Modelo de imagem" fica desligado para a Anthropic. O "Modelo de texto" vem com claude-sonnet-5-5, e a lista traz também claude-opus-5-5, claude-haiku-5-5 e claude-fable-5-1.'
   },
   {
     categoria: 'IA e chave',
@@ -320,7 +325,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'IA e chave',
     pergunta: 'Para onde vão os meus textos quando uso a IA?',
-    resposta: 'Para o provedor que você escolheu (OpenAI ou Google), que os processa conforme os termos dele. Só acontece quando você usa um recurso de IA com a sua chave. Para gerar apenas o prompt, nada é enviado a um provedor de IA.'
+    resposta: 'Para o provedor que você escolheu (OpenAI, Google ou Anthropic), que os processa conforme os termos dele. Só acontece quando você usa um recurso de IA com a sua chave. Para gerar apenas o prompt, nada é enviado a um provedor de IA.'
   },
 
   // ---------- Aparência e celular ----------

@@ -72,7 +72,7 @@ No modo **somente prompt**, o botão de PDF exporta o prompt/roteiro. No modo **
 
 ### Ajuda dentro do app
 
-O item **FAQ** do menu reúne perguntas e respostas sobre todos os recursos: primeiros passos, conta, Apostila, Capa, resultado e exportação, projetos, chave de IA (como criar a chave na OpenAI e no Google Gemini, com os links oficiais, e como protegê-la), tema, segurança e administração. Tem busca e filtro por categoria. O texto fica em `public/faq-data.js`; ao mudar um botão ou fluxo do app, atualize a FAQ junto. O GeradorOne aceita chaves da OpenAI e do Gemini; a Anthropic ainda não é um provedor aceito.
+O item **FAQ** do menu reúne perguntas e respostas sobre todos os recursos: primeiros passos, conta, Apostila, Capa, resultado e exportação, projetos, chave de IA (como criar a chave na OpenAI e no Google Gemini, com os links oficiais, e como protegê-la), tema, segurança e administração. Tem busca e filtro por categoria. O texto fica em `public/faq-data.js`; ao mudar um botão ou fluxo do app, atualize a FAQ junto. O GeradorOne aceita chaves da OpenAI, do Google Gemini e da Anthropic (Claude). A Anthropic gera só texto: com ela, "Gerar material com IA" exige "Imagens por IA" em "Não usar imagens geradas por IA".
 
 ## Código aberto e licença
 
@@ -86,7 +86,7 @@ Copyright (C) 2026 Fulano.
 
 - **Retenção:** os dados ficam enquanto a conta existir. Ao excluir a conta, ela sai do banco na hora. As cópias de segurança do banco (`scripts/backup-db.sh`) são mantidas por 14 dias e depois apagadas; uma conta excluída pode constar nelas por até 14 dias.
 - **Contato oficial** para dúvidas e pedidos sobre dados pessoais: Fulano, <fulano@dominio.com.br>.
-- Os textos enviados a um recurso de IA vão ao provedor escolhido pelo usuário (OpenAI ou Google Gemini), com a chave dele.
+- Os textos enviados a um recurso de IA vão ao provedor escolhido pelo usuário (OpenAI, Google Gemini ou Anthropic), com a chave dele.
 
 ## Arquitetura
 

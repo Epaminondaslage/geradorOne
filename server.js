@@ -23,9 +23,15 @@ const RUNTIME_DIR = process.env.RUNTIME_DIR || path.join(__dirname, 'runtime');
 const MAX_BODY = 1_000_000;
 const execFileAsync = promisify(execFile);
 
-const PROVIDERS = ['openai', 'gemini'];
-const DEFAULT_MODEL = { openai: 'gpt-6-astra', gemini: 'gemini-3.8-flash' };
-const DEFAULT_IMAGE_MODEL = { openai: 'gpt-image-2.5-flare', gemini: 'gemini-3-pro-image-preview' };
+const PROVIDERS = ['openai', 'gemini', 'anthropic'];
+const PROVIDER_LABEL = { openai: 'OpenAI', gemini: 'Gemini', anthropic: 'Anthropic' };
+const DEFAULT_MODEL = { openai: 'gpt-6-astra', gemini: 'gemini-3.8-flash', anthropic: 'claude-sonnet-5-5' };
+// A Anthropic só devolve texto; sem modelo de imagem padrão.
+const DEFAULT_IMAGE_MODEL = { openai: 'gpt-image-2.5-flare', gemini: 'gemini-3-pro-image-preview', anthropic: '' };
+const PROVIDERS_WITH_IMAGES = ['openai', 'gemini'];
+const NO_IMAGES_MESSAGE = 'A Anthropic gera só texto. Em "Imagens por IA", escolha "Não usar imagens geradas por IA", ou use uma chave da OpenAI ou do Gemini.';
+const ANTHROPIC_VERSION = '2026-10-21';
+const ANTHROPIC_MAX_TOKENS = 16_000;
 
 const API_KEY_RE = /^[\w\-.:~+/=]{8,512}$/;
 
@@ -326,12 +332,31 @@ async function requestGeminiText(config, instructions, input, signal) {
   return { text: extractGeminiText(body), model: config.model };
 }
 
+async function requestAnthropicText(config, instructions, input, signal) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    signal,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}`, 'anthropic-version': ANTHROPIC_VERSION },
+    body: JSON.stringify({ model: config.model, max_tokens: ANTHROPIC_MAX_TOKENS, system: instructions, messages: [{ role: 'user', content: input }] })
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'O provedor de IA recusou a solicitação.'), { status: response.status >= 500 ? 502 : 400 });
+  if (body.stop_reason === 'refusal') throw Object.assign(new Error('A Anthropic recusou gerar esta resposta. Ajuste o pedido e tente de novo.'), { status: 400 });
+  if (body.stop_reason === 'max_tokens') throw Object.assign(new Error('A resposta passou do limite de tamanho e foi cortada. Peça um material menor (menos páginas) e tente de novo.'), { status: 502 });
+  // A resposta vem em blocos; só os de tipo "text" interessam (o raciocínio interno vem em blocos à parte).
+  const text = (body.content || []).filter(block => block?.type === 'text' && typeof block.text === 'string').map(block => block.text).join('\n');
+  if (!text.trim()) throw Object.assign(new Error('A Anthropic não devolveu texto. Tente de novo.'), { status: 502 });
+  return { text, model: body.model || config.model };
+}
+
+const TEXT_REQUESTERS = { openai: requestOpenAiText, gemini: requestGeminiText, anthropic: requestAnthropicText };
+
 async function requestAiText(config, instructions, input, timeoutMs, timeoutMessage) {
   if (!config.apiKey) throw Object.assign(new Error('Configure sua chave de API em "Modelo de IA" para usar este recurso.'), { status: 503 });
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await (config.provider === 'gemini' ? requestGeminiText : requestOpenAiText)(config, instructions, input, controller.signal);
+    return await TEXT_REQUESTERS[config.provider](config, instructions, input, controller.signal);
   } catch (error) {
     if (error.name === 'AbortError') throw Object.assign(new Error(timeoutMessage), { status: 504 });
     throw error;
@@ -400,6 +425,7 @@ async function requestGeminiImage(config, prompt, position, total, signal) {
 
 async function requestAiImage(config, prompt, position, total) {
   if (!config.apiKey) throw Object.assign(new Error('Configure sua chave de API em "Modelo de IA" para usar este recurso.'), { status: 503 });
+  if (!PROVIDERS_WITH_IMAGES.includes(config.provider)) throw Object.assign(new Error(NO_IMAGES_MESSAGE), { status: 400 });
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180_000);
   try {
@@ -723,7 +749,7 @@ async function handleSettingsApi(req, res, pathname, user) {
 async function handleAppApi(req, res, pathname, user) {
   if (req.method === 'GET' && pathname === '/api/ai/status') {
     const config = aiConfigFor(user);
-    return json(res, 200, { available: Boolean(config.apiKey), provider: config.provider === 'gemini' ? 'Gemini' : 'OpenAI', model: config.apiKey ? config.model : null });
+    return json(res, 200, { available: Boolean(config.apiKey), provider: PROVIDER_LABEL[config.provider], model: config.apiKey ? config.model : null, images: PROVIDERS_WITH_IMAGES.includes(config.provider) });
   }
   if (req.method === 'GET' && pathname === '/api/ai/config') return json(res, 200, publicAiConfig(user));
   if (req.method === 'POST' && pathname === '/api/ai/config') {
@@ -801,6 +827,7 @@ async function handleAppApi(req, res, pathname, user) {
       if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
       if (!['pdf', 'html'].includes(payload.format)) return json(res, 400, { error: 'Formato de saída inválido.' });
       const config = aiConfigFor(user);
+      if (payload.generateImages && !PROVIDERS_WITH_IMAGES.includes(config.provider)) return json(res, 400, { error: NO_IMAGES_MESSAGE });
       const generated = await requestAiHtml(config, payload.prompt);
       const imageCount = payload.generateImages ? Math.max(1, Math.min(3, Number(payload.imageCount) || 1)) : 0;
       const images = imageCount ? await Promise.all(Array.from({ length: imageCount }, (_, index) => requestAiImage(config, payload.prompt, index + 1, imageCount))) : [];

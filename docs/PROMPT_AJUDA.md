@@ -54,7 +54,7 @@ Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minh
 - Os projetos ficam salvos no servidor, só para a sua conta. Em "Meus projetos" você abre um projeto para continuar de onde parou.
 
 # Usar a sua própria IA (opcional, BYOK)
-- Em "Minha chave de IA" escolha o provedor (OpenAI ou Google Gemini), cole a chave e escolha os modelos de texto e de imagem. A mudança vale na hora.
+- Em "Minha chave de IA" escolha o provedor (OpenAI, Google Gemini ou Anthropic (Claude)), cole a chave e escolha os modelos de texto e de imagem (a Anthropic gera só texto, sem modelo de imagem). A mudança vale na hora.
 - A chave fica cifrada e ligada só à sua conta. Depois de salva, aparecem apenas os 4 últimos caracteres. Nem administradores a veem. Você pode removê-la quando quiser.
 - O custo é seu: cada geração é cobrada pelo provedor, na sua conta. Defina um limite de gasto lá.
 - Seus textos vão ao provedor que você escolheu.

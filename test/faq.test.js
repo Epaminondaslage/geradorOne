@@ -29,7 +29,7 @@ test('FAQ: links são https e apontam para as páginas oficiais conferidas', () 
   const links = textos.match(/https?:\/\/[^\s)]*[^\s).,;:]/g) || [];
   assert.ok(links.length >= 3);
   for (const link of links) assert.ok(link.startsWith('https://'), link);
-  for (const esperado of ['https://platform.openai.com/api-keys', 'https://aistudio.google.com/apikey']) {
+  for (const esperado of ['https://platform.openai.com/api-keys', 'https://aistudio.google.com/apikey', 'https://platform.claude.com/settings/keys']) {
     assert.ok(links.includes(esperado), `falta ${esperado}`);
   }
 });

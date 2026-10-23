@@ -96,7 +96,7 @@ graph TB
 | `handleRequest` | Converte a URL (400 se inválida), manda `/api/*` para `handleApi` e serve arquivos de `public/` com CSP, `nosniff` e `Referrer-Policy`. Qualquer erro vira 500, sem derrubar o processo. |
 | `handleApi` | Ordem de guardas: saúde pública, verificação de origem em métodos que não são GET, rotas públicas de autenticação, sessão, troca de senha obrigatória, e então usuários (admin) ou rotas do app. |
 | Sessão | Cookie `g1_session` (HttpOnly, SameSite=Lax, `Secure` com HTTPS, caminho vindo de `X-Forwarded-Prefix`). Token assinado `{uid, v, exp}`; `v` é a versão da senha. |
-| IA | `aiConfigFor(user)` decifra a chave do usuário. Texto, imagem e "melhorar prompt" para OpenAI e Gemini, com tempo limite. |
+| IA | `aiConfigFor(user)` decifra a chave do usuário. Texto, imagem e "melhorar prompt" para OpenAI e Gemini; a Anthropic (`requestAnthropicText`, `POST https://api.anthropic.com/v1/messages`, cabeçalho `anthropic-version: 2026-10-21`) só faz texto, e `/api/generate` recusa pedido com imagens para ela. Todos com tempo limite. |
 | PDF e HTML | `renderPdf` (pdfkit, só do prompt), `renderDocument` (prévia), `cleanGeneratedHtml` (sanitizador), `embedImages`, `htmlToPdf` (Chromium). |
 
 ### Rotas da API

@@ -285,7 +285,7 @@
                 <h2>O que é BYOK?</h2>
                 <p><strong>BYOK</strong> significa <em>Bring Your Own Key</em>: traga a sua própria chave. Em vez de o GeradorOne ter uma chave única paga por todos, cada pessoa usa a chave da própria conta no provedor de IA.</p>
                 <ol>
-                  <li><strong>Crie a chave</strong> no provedor (OpenAI ou Google AI Studio) e cole no campo abaixo.</li>
+                  <li><strong>Crie a chave</strong> no provedor (OpenAI, Google AI Studio ou Anthropic) e cole no campo abaixo.</li>
                   <li><strong>Ela é guardada cifrada</strong> (AES-256-GCM) no servidor e ligada só à sua conta. Depois de salva, nunca mais aparece inteira: você vê apenas os 4 últimos caracteres.</li>
                   <li><strong>Só você a usa.</strong> Outros usuários, inclusive administradores, veem apenas se você tem uma chave cadastrada, nunca o valor.</li>
                   <li><strong>O custo é seu.</strong> Cada geração com IA e cada "Melhorar com IA" é cobrada pelo provedor na sua conta. Defina um limite de gasto lá.</li>
@@ -293,10 +293,11 @@
                 </ol>
                 <p>Sem chave, gerar o prompt continua funcionando; só os recursos de IA ficam desligados. Você pode remover a chave quando quiser.</p>
               </aside>
-              <label>Provedor<select id="ai-config-provider" name="provider"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option></select></label>
+              <label>Provedor<select id="ai-config-provider" name="provider"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option><option value="anthropic">Anthropic (Claude)</option></select></label>
               <label>Chave da API<input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual"></label>
               <label>Modelo de texto<input id="ai-config-model" name="model" type="text" list="ai-text-models" placeholder="gpt-6-astra" autocomplete="off"></label>
               <datalist id="ai-text-models-openai"><option value="gpt-6-astra">Mais capaz (recomendado)</option><option value="gpt-6.1-sol">Programação e trabalho profissional, custo menor</option><option value="gpt-6-sol"></option><option value="gpt-6-luna">Menor custo da família GPT-6</option><option value="gpt-5.6-sol"></option><option value="gpt-5.6-terra">Equilíbrio inteligência/custo</option><option value="gpt-5.6-luna">Alto volume e eficiência</option></datalist>
+              <datalist id="ai-text-models-anthropic"><option value="claude-sonnet-5-5">Velocidade e inteligência (recomendado)</option><option value="claude-opus-5-5">Trabalho longo e de conhecimento</option><option value="claude-haiku-5-5">Alto volume e menor custo</option><option value="claude-fable-5-1">Raciocínio mais exigente</option></datalist>
               <datalist id="ai-text-models-gemini"><option value="gemini-3.8-flash">Recomendado</option><option value="gemini-2.5-pro">Mais capaz, mais lento</option><option value="gemini-2.5-flash">Rápido e barato</option></datalist>
               <label>Modelo de imagem<input id="ai-config-image-model" name="imageModel" type="text" list="ai-image-models" placeholder="gpt-image-2.5-flare" autocomplete="off"></label>
               <datalist id="ai-image-models-openai"><option value="gpt-image-2.5-flare">Geração rápida no dia a dia (recomendado)</option><option value="gpt-image-2.5-sunburst">Edições com mais precisão</option><option value="gpt-image-2"></option><option value="gpt-image-1.5"></option><option value="gpt-image-1"></option><option value="gpt-image-1-mini">Versão mais econômica</option></datalist>

@@ -328,6 +328,65 @@ test('exportar a conta: exige sessão, traz conta e projetos e não vaza senha n
   assert.equal(doAdmin.data.account.email, 'admin@teste.com');
 });
 
+test('provedor Anthropic: usa a API de mensagens, lê só os blocos de texto e não gera imagens', async () => {
+  const ana = await loginAs('ana@teste.com', 'OutraSenha123');
+  const saved = await ana('POST', '/api/ai/config', { provider: 'anthropic', apiKey: 'sk-ant-api03-TESTE1234567890' });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.data.provider, 'anthropic');
+  assert.equal(saved.data.hasApiKey, true);
+  assert.equal(saved.data.model, 'claude-sonnet-5-5');
+  assert.equal(saved.data.imageModel, '');
+  const status = (await ana('GET', '/api/ai/status')).data;
+  assert.equal(status.provider, 'Anthropic');
+  assert.equal(status.images, false);
+
+  const calls = [];
+  let reply = { status: 200, body: { content: [{ type: 'thinking', thinking: 'raciocínio interno', signature: 'x' }, { type: 'text', text: 'PROMPT MELHORADO' }], model: 'claude-sonnet-5-5', stop_reason: 'end_turn' } };
+  const realFetch = global.fetch;
+  global.fetch = async (url, options) => {
+    if (!String(url).startsWith('https://api.anthropic.com/')) return realFetch(url, options);
+    calls.push({ url: String(url), headers: options.headers, body: JSON.parse(options.body) });
+    return new Response(JSON.stringify(reply.body), { status: reply.status, headers: { 'Content-Type': 'application/json' } });
+  };
+  try {
+    const improved = await ana('POST', '/api/improve', { prompt: 'PROMPT ORIGINAL', adjustments: ['Mais simples'], instruction: '' });
+    assert.equal(improved.status, 200);
+    assert.equal(improved.data.prompt, 'PROMPT MELHORADO');
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, 'https://api.anthropic.com/v1/messages');
+    assert.equal(calls[0].headers.Authorization, 'Bearer sk-ant-api03-TESTE1234567890');
+    assert.equal(calls[0].headers['anthropic-version'], '2026-10-21');
+    assert.equal(calls[0].body.model, 'claude-sonnet-5-5');
+    assert.equal(calls[0].body.max_tokens, 16000);
+    assert.equal(typeof calls[0].body.system, 'string');
+    assert.deepEqual(calls[0].body.messages.map(message => message.role), ['user']);
+    assert.ok(!('temperature' in calls[0].body));
+
+    const withImages = await ana('POST', '/api/generate', { prompt: 'P', format: 'html', generateImages: true, imageCount: 1 });
+    assert.equal(withImages.status, 400);
+    assert.match(withImages.data.error, /gera só texto/);
+    assert.equal(calls.length, 1, 'não chama a API quando o pedido exige imagens');
+
+    reply = { status: 200, body: { content: [{ type: 'text', text: '<!doctype html><html><body>Material</body></html>' }], model: 'claude-sonnet-5-5', stop_reason: 'end_turn' } };
+    const generated = await ana('POST', '/api/generate', { prompt: 'P', format: 'html', generateImages: false });
+    assert.equal(generated.status, 200);
+    assert.match(generated.data.files[0].name, /\.html$/);
+
+    reply = { status: 401, body: { type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' }, request_id: 'req_1' } };
+    const refused = await ana('POST', '/api/improve', { prompt: 'P', adjustments: ['Mais simples'], instruction: '' });
+    assert.equal(refused.status, 400);
+    assert.equal(refused.data.error, 'invalid x-api-key');
+
+    reply = { status: 200, body: { content: [{ type: 'text', text: 'cortado' }], model: 'claude-sonnet-5-5', stop_reason: 'max_tokens' } };
+    const cut = await ana('POST', '/api/improve', { prompt: 'P', adjustments: ['Mais simples'], instruction: '' });
+    assert.equal(cut.status, 502);
+    assert.match(cut.data.error, /cortada/);
+  } finally {
+    global.fetch = realFetch;
+  }
+  assert.equal((await ana('POST', '/api/ai/config', { provider: 'openai', apiKey: 'x'.repeat(2) })).status, 400);
+});
+
 test('excluir a própria conta: exige sessão e senha, protege o último administrador e apaga os projetos', async () => {
   assert.equal((await client()('POST', '/api/auth/delete-account', { password: 'qualquer123' })).status, 401);
   const admin = await loginAs('admin@teste.com', 'NovaSenha12');

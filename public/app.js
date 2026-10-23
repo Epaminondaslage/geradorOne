@@ -180,6 +180,7 @@ function updateGenerationMode() {
 }
 
 let aiAvailable = false;
+let aiImages = true;
 
 async function checkAiAvailability() {
   const label = document.querySelector('#ai-availability');
@@ -187,7 +188,8 @@ async function checkAiAvailability() {
     const response = await apiFetch('api/ai/status');
     const data = await response.json();
     aiAvailable = Boolean(data.available);
-    label.textContent = data.available ? `${data.provider} · texto ${data.model}` : 'Sem chave de IA: salve a sua em "Minha chave de IA" para gerar o material pronto. O prompt continua disponível.';
+    aiImages = data.images !== false;
+    label.textContent = data.available ? `${data.provider} · texto ${data.model}${aiImages ? '' : ' · sem imagens por IA'}` : 'Sem chave de IA: salve a sua em "Minha chave de IA" para gerar o material pronto. O prompt continua disponível.';
     label.className = `field-status ${data.available ? 'available' : 'unavailable'}`;
   } catch {
     label.textContent = 'Não foi possível verificar a IA.';
@@ -740,6 +742,7 @@ function showResult({ prompt, kind, badge, files = false }) {
 
 document.querySelector('#generate-ai').addEventListener('click', () => {
   if (!aiAvailable) { notify('Salve a sua chave em "Minha chave de IA" para gerar o material.'); return; }
+  if (!aiImages && form.elements.modoImagem.value === 'gerar') { notify(AI_NO_IMAGES_MESSAGE); return; }
   const mode = form.elements.modoGeracao;
   mode.value = 'ai';
   form.requestSubmit();
@@ -1104,10 +1107,19 @@ const aiConfigProvider = document.querySelector('#ai-config-provider');
 const aiConfigModelInput = document.querySelector('#ai-config-model');
 const aiConfigImageModelInput = document.querySelector('#ai-config-image-model');
 
+const AI_PROVIDER_LABEL = { openai: 'OpenAI', gemini: 'Gemini', anthropic: 'Anthropic' };
+const AI_NO_IMAGES_MESSAGE = 'A Anthropic gera só texto. Em "Imagens por IA", escolha "Não usar imagens geradas por IA", ou use uma chave da OpenAI ou do Gemini.';
+
 function applyAiConfigDatalists() {
   const provider = aiConfigProvider.value;
   aiConfigModelInput.setAttribute('list', `ai-text-models-${provider}`);
   aiConfigImageModelInput.setAttribute('list', `ai-image-models-${provider}`);
+  // A Anthropic não gera imagens: o campo de modelo de imagem fica desligado.
+  const noImages = provider === 'anthropic';
+  aiConfigImageModelInput.disabled = noImages;
+  aiConfigImageModelInput.placeholder = noImages ? 'Não se aplica: a Anthropic gera só texto' : 'gpt-image-2.5-flare';
+  if (noImages) aiConfigImageModelInput.value = '';
+  aiConfigModelInput.placeholder = provider === 'anthropic' ? 'claude-sonnet-5-5' : provider === 'gemini' ? 'gemini-3.8-flash' : 'gpt-6-astra';
 }
 aiConfigProvider.addEventListener('change', () => {
   applyAiConfigDatalists();
@@ -1122,7 +1134,7 @@ async function loadAiConfig() {
   try {
     const response = await apiFetch('api/ai/config');
     const data = await response.json();
-    const providerLabel = data.provider === 'gemini' ? 'Gemini' : 'OpenAI';
+    const providerLabel = AI_PROVIDER_LABEL[data.provider] || 'OpenAI';
     aiConfigCurrent.textContent = data.hasApiKey ? `Sua chave está salva (${data.keyHint}) · ${providerLabel} · modelo ${data.model}` : `Você ainda não salvou uma chave (${providerLabel}). Gerar com IA e Melhorar com IA exigem a sua chave.`;
     aiConfigCurrent.className = `field-status ${data.hasApiKey ? 'available' : 'unavailable'}`;
     aiConfigProvider.value = data.provider || 'openai';
