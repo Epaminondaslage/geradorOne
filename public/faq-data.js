@@ -279,7 +279,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Projetos',
     pergunta: 'Como abro ou excluo um projeto?',
-    resposta: 'Em "Meus projetos", cada projeto tem o botão "Abrir", que volta ao formulário de onde você parou, e o botão "Excluir".\n\nO "Excluir" pede confirmação, para ninguém apagar sem querer: o botão muda para "Confirmar exclusão" e você precisa clicar de novo em poucos segundos.'
+    resposta: 'Em "Meus projetos", cada projeto tem dois botões de ícone: o lápis ("Abrir projeto"), que volta ao formulário de onde você parou, e a lixeira ("Excluir projeto"). Passe o mouse sobre o ícone para ver o nome.\n\nA lixeira pede confirmação, para ninguém apagar sem querer: o botão muda para "Confirmar exclusão" e você precisa clicar de novo em poucos segundos.'
   },
   {
     categoria: 'Projetos',
@@ -466,7 +466,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Administração',
     pergunta: 'Como gerencio usuários existentes? (administradores)',
-    resposta: 'Na aba "Usuários" de "Configurações" você busca por nome ou e-mail, filtra por perfil e, em cada linha, edita os dados, ativa ou desativa a conta, redefine a senha e exclui o usuário.\n\nAo redefinir, a nova senha temporária aparece uma única vez na tela, com o botão "Copiar senha", e a pessoa precisa trocá-la no próximo acesso. Excluir um usuário remove também os projetos dele. O sistema sempre mantém pelo menos um administrador ativo.'
+    resposta: 'Na aba "Usuários" de "Configurações" você busca por nome ou e-mail, filtra por perfil e, em cada linha, usa os botões de ícone: o lápis edita os dados (e ativa ou desativa a conta), a chave redefine a senha e a lixeira exclui o usuário. A lixeira pede um segundo clique para confirmar.\n\nAo redefinir, a nova senha temporária aparece uma única vez na tela, com o botão "Copiar senha", e a pessoa precisa trocá-la no próximo acesso. Excluir um usuário remove também os projetos dele. O sistema sempre mantém pelo menos um administrador ativo.'
   },
   {
     categoria: 'Administração',

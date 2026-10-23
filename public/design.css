@@ -627,3 +627,15 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .eye-toggle { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 100%; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; }
 .eye-toggle:hover, .eye-toggle:focus-visible { color: var(--ink); }
 .eye-toggle svg[hidden] { display: none; }
+
+/* Botões de ação das listas no padrão do outro produto: ícone Feather 16 px, caixa 30x30 tonal (borda e fundo 30% e 9% da cor da ação). */
+.data-table .row-actions .act, .project-buttons .act { --act: var(--accent); display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 30px; height: 30px; margin-left: 6px; padding: 0; border: 1px solid color-mix(in srgb, var(--act) 30%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--act) 9%, transparent); color: var(--act); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.project-buttons .act { margin-left: 0; }
+.data-table .row-actions .act:hover, .project-buttons .act:hover { background: color-mix(in srgb, var(--act) 18%, transparent); color: var(--act); }
+/* Cor por natureza da ação (só tokens do tema): --accent edita, abre, cria, ativa, exporta e atualiza; --ink só vê; --danger exclui. */
+.act-neutral, .act-view, .act-off { --act: var(--ink) !important; }
+.act-edit, .act-add, .act-on, .act-sync, .act-exp { --act: var(--accent) !important; }
+.act-del { --act: var(--danger) !important; }
+.act .act-label { display: none; }
+.data-table .row-actions .act.armed, .project-buttons .act.armed { padding: 0 10px; border-color: var(--danger); background: var(--danger); color: var(--bg); }
+.act.armed .act-label { display: inline; white-space: nowrap; }

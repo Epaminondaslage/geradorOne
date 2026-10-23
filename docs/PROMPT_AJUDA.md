@@ -71,7 +71,7 @@ Em Apostila e Capa a tela se divide em duas abas: "Dados" e "Resultado". Ao gera
 "Tema" oferece seis temas (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste) ou seguir o sistema. A primeira entrada é no Papel. A escolha fica na sua conta.
 
 # Só para administradores
-- Configurações, aba "Usuários": criar, editar, ativar/desativar, redefinir senha (temporária, com troca obrigatória) e excluir. Sempre sobra pelo menos um administrador ativo.
+- Configurações, aba "Usuários" (as ações de cada linha são botões só de ícone: lápis, chave e lixeira): criar, editar, ativar/desativar, redefinir senha (temporária, com troca obrigatória) e excluir. Sempre sobra pelo menos um administrador ativo.
 - Configurações, aba "E-mail (SMTP)": servidor, porta, tipo de conexão, usuário, senha e remetente da conta que envia os códigos. "Salvar" vale na hora; há "Enviar teste" e "Voltar ao .env". Sem e-mail ativo, "Criar conta" e "Esqueci a senha" ficam escondidos.
 - Configurações, aba "Backup": só mostra a situação. "Protegido" quando o banco (todo dia às 03:15) e a cópia externa do servidor inteiro (03:30) rodaram nas últimas 26 horas; senão, "Atenção" com o motivo. Lista as cópias do banco e as do PBS, com tamanho, e o log das execuções. Não faz nem restaura cópias. No desenvolvimento avisa que não há registro de backup.
 

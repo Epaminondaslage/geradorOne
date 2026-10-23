@@ -653,8 +653,34 @@ const improveBox = document.querySelector('#improve-box');
 const improveOpen = document.querySelector('#improve-open');
 const showPromptButton = document.querySelector('#show-prompt');
 const previewButton = document.querySelector('#preview');
-const ICON_OPEN = '<svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>';
-const ICON_TRASH = '<svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>';
+// Botões de ação no padrão do outro produto: SVG estilo Feather, 16 px, traço 2, caixa 30×30 tonal, só o ícone com título.
+// Na exclusão (dois cliques), o botão mostra o texto de confirmação enquanto está "armado".
+const ACTION_ICONS = {
+  edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+  trash: '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/>',
+  key: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>',
+  view: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  power: '<path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>',
+  sync: '<path d="M23 4v6h-6M1 20v-6h6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>',
+  grid: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>'
+};
+function actionButton(kind, icon, title, attrs = '') {
+  return `<button type="button" class="act act-${kind}" title="${title}" aria-label="${title}" ${attrs}><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ACTION_ICONS[icon]}</svg><span class="act-label"></span></button>`;
+}
+function armAction(button, confirmText, idleTitle, ms) {
+  button.classList.add('armed');
+  button.lastElementChild.textContent = confirmText;
+  button.title = confirmText;
+  button.setAttribute('aria-label', confirmText);
+  setTimeout(() => {
+    button.classList.remove('armed');
+    button.lastElementChild.textContent = '';
+    button.title = idleTitle;
+    button.setAttribute('aria-label', idleTitle);
+  }, ms);
+}
 const KIND_LABEL = { apostila: 'Apostila', capa: 'Capa' };
 const RESULT_BADGE = { apostila: 'Prompt da apostila', capa: 'Prompt da capa' };
 
@@ -1203,7 +1229,7 @@ async function loadProjects() {
       projectsList.innerHTML = '<div class="projects-empty"><strong>Nenhum projeto salvo</strong><span>Gere uma apostila ou capa e use "Salvar em Meus projetos" no resultado.</span></div>';
       return;
     }
-    projectsList.innerHTML = data.projects.map(project => `<article class="project-card"><div class="project-main"><strong>${escapeUi(project.name)}</strong><small><span class="project-kind">${escapeUi(KIND_LABEL[project.kind] || project.kind)}</span>${escapeUi(new Date(project.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</small></div><div class="project-buttons"><button type="button" data-open-project="${escapeUi(project.id)}">${ICON_OPEN}Abrir</button><button type="button" class="danger" data-delete-project="${escapeUi(project.id)}">${ICON_TRASH}Excluir</button></div></article>`).join('');
+    projectsList.innerHTML = data.projects.map(project => `<article class="project-card"><div class="project-main"><strong>${escapeUi(project.name)}</strong><small><span class="project-kind">${escapeUi(KIND_LABEL[project.kind] || project.kind)}</span>${escapeUi(new Date(project.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</small></div><div class="project-buttons">${actionButton('edit', 'edit', 'Abrir projeto', `data-open-project="${escapeUi(project.id)}"`)}${actionButton('del', 'trash', 'Excluir projeto', `data-delete-project="${escapeUi(project.id)}"`)}</div></article>`).join('');
   } catch (error) {
     projectsList.innerHTML = `<p class="field-status unavailable">${escapeUi(error.message)}</p>`;
   }
@@ -1251,9 +1277,7 @@ projectsList.addEventListener('click', event => {
   const del = event.target.closest('[data-delete-project]');
   if (!del) return;
   if (del.classList.contains('armed')) { deleteProject(del.dataset.deleteProject); return; }
-  del.classList.add('armed');
-  del.lastChild.textContent = 'Confirmar exclusão';
-  setTimeout(() => { del.classList.remove('armed'); del.lastChild.textContent = 'Excluir'; }, 3500);
+  armAction(del, 'Confirmar exclusão', 'Excluir projeto', 3500);
 });
 
 const projectFile = document.querySelector('#project-file');
@@ -2182,9 +2206,9 @@ function userGroupHtml(user) {
       <td>${user.role === 'admin' ? 'Administrador' : 'Usuário'}</td>
       <td>${user.active ? 'Ativo' : 'Inativo'}</td>
       <td class="row-actions">
-        <button type="button" data-edit-user="${id}">Editar</button>
-        <button type="button" data-reset-user="${id}">Redefinir senha</button>
-        <button type="button" class="danger" data-delete-user="${id}">${ICON_TRASH}<span>Excluir</span></button>
+        ${actionButton('edit', 'edit', 'Editar usuário', `data-edit-user="${id}"`)}
+        ${actionButton('neutral', 'key', 'Redefinir senha', `data-reset-user="${id}"`)}
+        ${actionButton('del', 'trash', 'Excluir usuário', `data-delete-user="${id}"`)}
       </td>
     </tr>
     <tr class="user-edit-row" hidden>
@@ -2283,9 +2307,7 @@ usersList.addEventListener('click', async event => {
   }
   if (!del) return;
   if (!del.classList.contains('armed')) {
-    del.classList.add('armed');
-    del.lastElementChild.textContent = 'Confirmar (apaga os projetos)';
-    setTimeout(() => { del.classList.remove('armed'); del.lastElementChild.textContent = 'Excluir'; }, 4000);
+    armAction(del, 'Confirmar (apaga os projetos)', 'Excluir usuário', 4000);
     return;
   }
   const response = await apiFetch(`api/users/${encodeURIComponent(del.dataset.deleteUser)}`, { method: 'DELETE' });
