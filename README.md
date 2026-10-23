@@ -1,4 +1,10 @@
-# GeradorOne
+<p align="center">
+  <img src="public/assets/icons/mapa-mental.png" alt="Logotipo do GeradorOne: cabeça com um mapa mental no lugar do cérebro" width="170">
+</p>
+
+<h1 align="center">GeradorOne</h1>
+
+<p align="center">Prompts visuais para apostilas, capas e materiais didáticos.</p>
 
 Plataforma web para planejar materiais didáticos visualmente ricos e gerar prompts completos para ferramentas de inteligência artificial. O GeradorOne organiza intenção pedagógica, referências, identidade visual e recursos gráficos em um briefing estruturado, acessível e exportável.
 
@@ -117,10 +123,13 @@ ADMIN_EMAIL=voce@exemplo.com
 # SMTP_HOST=smtp.exemplo.com
 # SMTP_PORT=587
 # SMTP_SECURE=false        true para TLS direto (porta 465)
+# SMTP_REQUIRE_TLS=false   true para exigir STARTTLS na porta 587 (Zimbra costuma usar)
 # SMTP_USER=
 # SMTP_PASS=
 # SMTP_FROM="GeradorOne <no-reply@exemplo.com>"
 ```
+
+Para conferir o SMTP sem esperar um pedido de recuperação, envie um e-mail de teste: `docker exec gerador-one node scripts/test-smtp.js destino@exemplo.com`.
 
 Os dados ficam em `runtime/` (volume do contêiner, fora do Git): `users.json`, `projects.json` e `secret.key`. A chave que cifra as chaves de IA fica na mesma pasta; faça backup da pasta inteira e restrinja o acesso ao servidor. Perder `secret.key` (ou o `APP_SECRET`) torna as chaves de IA salvas ilegíveis, e cada pessoa precisa cadastrar a sua de novo.
 
@@ -141,6 +150,7 @@ Os dados ficam em `runtime/` (volume do contêiner, fora do Git): `users.json`, 
 ├── package.json
 ├── server.js
 ├── lib/                 # criptografia, usuários, projetos, limitador e e-mail
+├── docs/branding/       # foto original do logotipo
 ├── public/
 │   ├── index.html
 │   ├── app.js
