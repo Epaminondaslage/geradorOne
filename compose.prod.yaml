@@ -1,4 +1,4 @@
-# Produção (LXC dedicado no Proxmox): app + Postgres + Caddy com HTTPS automático.
+# Hospedagem própria: app + Postgres + Caddy com HTTPS automático.
 # Uso: docker compose -f compose.prod.yaml --env-file .env up -d --build
 # O compose.yaml continua sendo o do desenvolvimento (rede do Coolify e Traefik).
 services:
