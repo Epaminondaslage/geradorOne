@@ -1091,9 +1091,11 @@ document.querySelector('.nav').addEventListener('click', event => {
 
 try { if (localStorage.getItem('g1-sidebar') === 'collapsed') setCollapsed(true); } catch {}
 
-function setError(form, message) {
+function setError(form, message, ok = false) {
   const slot = form.querySelector('.auth-error');
-  if (slot) slot.textContent = message || '';
+  if (!slot) return;
+  slot.textContent = message || '';
+  slot.classList.toggle('ok', ok);
 }
 
 function showAuth(panel = 'login', message = '') {
@@ -1177,8 +1179,7 @@ document.querySelector('#confirm-form').addEventListener('submit', async event =
   if (!result.ok) { setError(formEl, result.data.error || 'Código inválido ou expirado.'); return; }
   formEl.code.value = '';
   showAuth('login');
-  setError(authScreen.querySelector('#login-form'), '');
-  authScreen.querySelector('#login-form .auth-error').textContent = result.data.message;
+  setError(authScreen.querySelector('#login-form'), result.data.message, true);
 });
 
 document.querySelector('#first-form').addEventListener('submit', async event => {

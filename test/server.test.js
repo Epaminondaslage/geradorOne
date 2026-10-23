@@ -55,3 +55,35 @@ test('valida projetos recebidos', () => {
   assert.equal(clean.name, 'Capa');
   assert.deepEqual(clean.settings, { titulo: 'A' });
 });
+
+test('sanitizador do HTML da IA bloqueia variações de script, eventos e endereços perigosos', () => {
+  const wrap = body => cleanGeneratedHtml(`<html><head><meta charset="utf-8"><style>${body.css || ''}</style></head><body>${body.html || ''}</body></html>`);
+  const dirty = {
+    'evento sem espaço': '<img/onerror=alert(1) src="data:image/png;base64,AAAA">',
+    'javascript:': '<a href="javascript:alert(1)">x</a>',
+    'javascript: com entidade': '<a href="java&#x73;cript:alert(1)">x</a>',
+    'file:': '<img src="file:///etc/passwd">',
+    'data html': '<a href="data:text/html;base64,PHNjcmlwdD4=">x</a>',
+    'http': '<img src="http://evil.example/x.png">',
+    'protocolo relativo': '<link rel="stylesheet" href="//evil.example/x.css">',
+    'base': '<base href="https://evil.example/">',
+    'refresh': '<meta http-equiv="refresh" content="0;url=//evil.example">',
+    'script sem fechar': '<script>alert(1)',
+    'svg com script': '<svg><script>alert(1)</script></svg>',
+    'srcset': '<img srcset="//evil.example/a.png 1x">',
+    'iframe': '<iframe src="x"></iframe>',
+    'form action': '<form action="//evil.example"><button formaction="//evil.example">x</button></form>',
+  };
+  for (const [name, html] of Object.entries(dirty)) {
+    const result = wrap({ html });
+    assert.doesNotMatch(result, /javascript:|file:|evil\.example|onerror|<script|<iframe|<base|http-equiv|java&#x73;|data:text/i, name);
+  }
+  const css = wrap({ css: 'body{background:url(http://evil.example/a.png)} .a{background:url("file:///etc/passwd")} @import url(//evil.example/x.css); .b{fill:url(#grad)} .c{background:url(data:image/png;base64,AAAA)}' });
+  assert.doesNotMatch(css, /evil\.example|file:|@import/);
+  assert.match(css, /url\(#grad\)/);
+  assert.match(css, /url\(data:image\/png;base64,AAAA\)/);
+  const clean = wrap({ html: '<a href="#topo">ir</a><img src="data:image/png;base64,AAAA" alt="ok"><p>Texto com online = 3</p>' });
+  assert.match(clean, /href="#topo"/);
+  assert.match(clean, /src="data:image\/png;base64,AAAA"/);
+  assert.match(clean, /<meta charset="utf-8">/);
+});

@@ -287,6 +287,29 @@ test('endereços malformados e arquivos fora de public/ são recusados sem derru
   assert.equal((await client()('GET', '/api/health')).status, 200);
 });
 
+test('corpo maior que o limite recebe 413 sem derrubar o servidor', async () => {
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  const huge = 'x'.repeat(1_200_000);
+  const response = await admin('POST', '/api/render', { prompt: huge });
+  assert.equal(response.status, 413);
+  assert.equal((await admin('GET', '/api/projects')).status, 200);
+  const small = await admin('POST', '/api/render', { prompt: 'ok' });
+  assert.equal(small.status, 200);
+});
+
+test('chave de IA que não pode mais ser decifrada não aparece como cadastrada', async () => {
+  const admin = await loginAs('admin@teste.com', 'NovaSenha12');
+  await admin('POST', '/api/ai/config', { provider: 'openai', apiKey: 'sk-teste-ZZZZ0000AAAA' });
+  const adminId = (await admin('GET', '/api/auth/me')).data.user.id;
+  assert.equal((await admin('GET', '/api/auth/me')).data.user.hasApiKey, true);
+  assert.equal((await admin('GET', '/api/users')).data.users.find(user => user.id === adminId).hasApiKey, true);
+  await app.db.query(`UPDATE users SET ai = jsonb_set(ai, '{keyEnc}', '"v1.AAAA.BBBB.CCCC"') WHERE id = $1`, [adminId]);
+  assert.equal((await admin('GET', '/api/auth/me')).data.user.hasApiKey, false);
+  assert.equal((await admin('GET', '/api/users')).data.users.find(user => user.id === adminId).hasApiKey, false);
+  assert.equal((await admin('GET', '/api/ai/status')).data.available, false);
+  assert.equal((await admin('POST', '/api/ai/config', { clearApiKey: true })).data.hasApiKey, false);
+});
+
 test('script de emergência redefine a senha e exige troca', async () => {
   const { execFileSync } = require('node:child_process');
   const output = execFileSync('node', [path.join(__dirname, '..', 'scripts', 'reset-password.js'), 'ADMIN@teste.com'], { env: { ...process.env, RUNTIME_DIR: runtime, DATABASE_URL: testDb.url } }).toString();

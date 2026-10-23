@@ -41,6 +41,10 @@ function publicAiConfig(user) {
   return { provider: config.provider, hasApiKey: Boolean(config.apiKey), keyHint: config.apiKey ? `••••${config.apiKey.slice(-4)}` : '', model: config.model, imageModel: config.imageModel };
 }
 
+function userView(user) {
+  return { ...publicUser(user), hasApiKey: Boolean(aiConfigFor(user).apiKey) };
+}
+
 function nextAiSettings(user, partial) {
   const current = user.ai || {};
   const currentProvider = PROVIDERS.includes(current.provider) ? current.provider : 'openai';
@@ -77,6 +81,11 @@ const mailer = createMailer({ host: process.env.SMTP_HOST, port: process.env.SMT
 const loginLimiter = createLimiter({ max: 8, windowMs: 15 * 60_000 });
 const resetLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
 const resets = new Map();
+const MAX_PENDING_RESETS = 1000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [email, entry] of resets) if (entry.expiresAt < now) resets.delete(email);
+}, 5 * 60_000).unref();
 
 function clientIp(req) {
   return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
@@ -179,13 +188,21 @@ function json(res, status, body, headers = {}) {
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    let data = '';
-    req.setEncoding('utf8');
+    const chunks = [];
+    let size = 0;
+    let tooBig = false;
     req.on('data', chunk => {
-      data += chunk;
-      if (data.length > MAX_BODY) reject(Object.assign(new Error('Corpo muito grande'), { status: 413 }));
+      if (tooBig) return;
+      size += chunk.length;
+      if (size > MAX_BODY) {
+        tooBig = true;
+        chunks.length = 0;
+        reject(Object.assign(new Error('Corpo muito grande'), { status: 413 }));
+        return;
+      }
+      chunks.push(chunk);
     });
-    req.on('end', () => resolve(data));
+    req.on('end', () => { if (!tooBig) resolve(Buffer.concat(chunks).toString('utf8')); });
     req.on('error', reject);
   });
 }
@@ -226,18 +243,25 @@ function extractOutputText(response) {
   return (response?.output || []).flatMap(item => item.content || []).filter(item => item.type === 'output_text').map(item => item.text || '').join('\n');
 }
 
+// Só endereços internos (#âncora) e imagens embutidas passam; qualquer outro valor em atributos de URL é removido.
+// Lista de permissão, e não de bloqueio, para não depender de adivinhar disfarces (entidades HTML, maiúsculas, espaços).
+const SAFE_URL = /^\s*(?:#|data:image\/(?:png|jpe?g|gif|webp);base64,)/i;
+const URL_ATTRIBUTES = /\s(?:src|srcset|href|xlink:href|action|formaction|poster|background|ping)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
+
 function cleanGeneratedHtml(value) {
   let html = String(value || '').trim().replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '');
   const first = html.search(/<!doctype html|<html/i);
   if (first > 0) html = html.slice(first);
   if (!/<html[\s>]/i.test(html)) throw Object.assign(new Error('A IA não devolveu um documento HTML válido.'), { status: 502 });
   return html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<(?:iframe|object|embed)\b[^>]*>[\s\S]*?<\/(?:iframe|object|embed)>/gi, '')
-    .replace(/<(?:iframe|object|embed)\b[^>]*\/?>/gi, '')
-    .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replace(/(?:src|href)\s*=\s*(["'])\s*(?:https?:)?\/\/[^"']*\1/gi, '')
-    .replace(/url\(\s*(["']?)(?:https?:)?\/\/[^)]*\)/gi, 'none')
+    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
+    .replace(/<\/?script\b[^>]*>/gi, '')
+    .replace(/<(iframe|frame|frameset|object|embed|applet)\b[\s\S]*?<\/\1\s*>/gi, '')
+    .replace(/<\/?(?:iframe|frame|frameset|object|embed|applet|base|link)\b[^>]*>/gi, '')
+    .replace(/<meta\b[^>]*http-equiv[^>]*>/gi, '')
+    .replace(/[\s/]on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, ' ')
+    .replace(URL_ATTRIBUTES, (attribute, double, single, bare) => (SAFE_URL.test(double ?? single ?? bare ?? '') ? attribute : ''))
+    .replace(/url\(\s*(["']?)\s*(?!data:image\/(?:png|jpe?g|gif|webp);base64,|#)[^)]*\)/gi, 'none')
     .replace(/@import\s+[^;]+;/gi, '');
 }
 
@@ -374,9 +398,10 @@ async function htmlToPdf(html) {
   try {
     await fs.promises.writeFile(htmlPath, html, { mode: 0o600 });
     await execFileAsync(process.env.CHROMIUM_PATH || '/usr/bin/chromium-browser', [
-      '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--disable-background-networking',
+      '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--disable-background-networking', '--disable-extensions',
+      '--host-resolver-rules=MAP * ~NOTFOUND',
       `--user-data-dir=${path.join(workDir, 'chrome')}`, '--no-pdf-header-footer', `--print-to-pdf=${pdfPath}`, `file://${htmlPath}`
-    ], { timeout: 90_000, maxBuffer: 1_000_000, env: { ...process.env, HOME: os.tmpdir() } });
+    ], { timeout: 90_000, maxBuffer: 1_000_000, env: { PATH: process.env.PATH, HOME: os.tmpdir(), LANG: 'C.UTF-8' } });
     return await fs.promises.readFile(pdfPath);
   } finally {
     await fs.promises.rm(workDir, { recursive: true, force: true });
@@ -400,7 +425,7 @@ async function handleAuthApi(req, res, pathname, user) {
       return json(res, 401, { error: 'Credenciais inválidas.' });
     }
     keys.forEach(key => loginLimiter.reset(key));
-    return json(res, 200, { user: publicUser(found) }, issueSession(req, found));
+    return json(res, 200, { user: userView(found) }, issueSession(req, found));
   }
   if (method === 'POST' && pathname === '/api/auth/logout') {
     return json(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(req, '', 0) });
@@ -419,6 +444,7 @@ async function handleAuthApi(req, res, pathname, user) {
     const found = email ? await userStore.getByEmail(email) : null;
     if (found && found.active) {
       const code = appCrypto.randomCode();
+      if (resets.size >= MAX_PENDING_RESETS && !resets.has(email)) resets.delete(resets.keys().next().value);
       resets.set(email, { codeHash: appCrypto.hmacHex(code, resetKey), passwordHash: await appCrypto.hashPassword(body.password), expiresAt: Date.now() + RESET_MINUTES * 60_000, attempts: 0 });
       try { await mailer.sendResetCode(found.email, code, RESET_MINUTES); } catch (error) { console.error('Falha ao enviar e-mail de redefinição:', error.message); }
     }
@@ -442,7 +468,7 @@ async function handleAuthApi(req, res, pathname, user) {
     return json(res, 200, { ok: true, message: 'Senha redefinida. Entre com a nova senha.' });
   }
   if (method === 'GET' && pathname === '/api/auth/me') {
-    return json(res, 200, { user: publicUser(user), emailReset: mailer.enabled });
+    return json(res, 200, { user: userView(user), emailReset: mailer.enabled });
   }
   if (method === 'POST' && pathname === '/api/auth/change-password') {
     const body = await readJson(req);
@@ -450,13 +476,13 @@ async function handleAuthApi(req, res, pathname, user) {
     checkPassword(body.password);
     if (body.password === body.current) return json(res, 400, { error: 'A nova senha precisa ser diferente da atual.' });
     const updated = await userStore.update(user.id, { passwordHash: await appCrypto.hashPassword(body.password), mustChangePassword: false });
-    return json(res, 200, { user: publicUser(updated) }, issueSession(req, updated));
+    return json(res, 200, { user: userView(updated) }, issueSession(req, updated));
   }
   if (method === 'POST' && pathname === '/api/auth/profile') {
     const body = await readJson(req);
     if (!normalizePhone(body.phone)) throw fail('Informe o telefone.');
     const updated = await userStore.update(user.id, { name: body.name, phone: body.phone, keepSessions: true });
-    return json(res, 200, { user: publicUser(updated) });
+    return json(res, 200, { user: userView(updated) });
   }
   return false;
 }
@@ -465,13 +491,13 @@ async function handleUsersApi(req, res, pathname, user) {
   if (user.role !== 'admin') return json(res, 403, { error: 'Apenas administradores podem gerenciar usuários.' });
   const method = req.method;
   const [, , , id, action] = pathname.split('/');
-  if (method === 'GET' && !id) return json(res, 200, { users: (await userStore.list()).map(publicUser) });
+  if (method === 'GET' && !id) return json(res, 200, { users: (await userStore.list()).map(userView) });
   if (method === 'POST' && !id) {
     const body = await readJson(req);
     if (!body.password) throw fail('Informe a senha temporária do usuário.');
     const password = checkPassword(body.password);
     const created = await userStore.create({ name: body.name, email: body.email, phone: body.phone, role: body.role || 'user', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
-    return json(res, 200, { user: publicUser(created) });
+    return json(res, 200, { user: userView(created) });
   }
   const target = id ? await userStore.getById(id) : null;
   if (!target) return json(res, 404, { error: 'Usuário não encontrado.' });
@@ -484,14 +510,14 @@ async function handleUsersApi(req, res, pathname, user) {
     if (losesAdmin && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'É preciso manter ao menos um administrador ativo.' });
     if (body.role !== undefined) patch.role = body.role;
     if (body.active !== undefined) patch.active = Boolean(body.active);
-    return json(res, 200, { user: publicUser(await userStore.update(target.id, patch)) });
+    return json(res, 200, { user: userView(await userStore.update(target.id, patch)) });
   }
   if (method === 'POST' && action === 'reset-password') {
     const body = await readJson(req);
     const generated = !body.password;
     const password = generated ? appCrypto.randomPassword() : checkPassword(body.password);
     const updated = await userStore.update(target.id, { passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
-    return json(res, 200, { user: publicUser(updated), temporaryPassword: generated ? password : undefined });
+    return json(res, 200, { user: userView(updated), temporaryPassword: generated ? password : undefined });
   }
   if (method === 'DELETE' && !action) {
     if (target.id === user.id) return json(res, 409, { error: 'Você não pode excluir a própria conta.' });
@@ -546,7 +572,7 @@ async function handleAppApi(req, res, pathname, user) {
       const payload = JSON.parse(raw || '{}');
       if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
       const html = renderDocument(payload);
-      return json(res, 200, { html, renderer: 'preview', note: 'Prévia segura. A geração por IA e o PDF devem ser conectados no servidor.' });
+      return json(res, 200, { html, renderer: 'preview', note: 'Prévia segura do prompt, sem execução de conteúdo.' });
     } catch (error) {
       return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'JSON inválido.' });
     }

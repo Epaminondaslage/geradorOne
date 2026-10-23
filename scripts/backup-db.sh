@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 # Backup do Postgres do GeradorOne (SQL comprimido, permissão 600) com rotação de 14 dias.
 # Uso: scripts/backup-db.sh        (agende no cron; a pasta é BACKUP_DIR ou ./backups)
-set -eu
+set -euo pipefail
 cd "$(dirname "$0")/.."
 DIR="${BACKUP_DIR:-$PWD/backups}"
 mkdir -p "$DIR"

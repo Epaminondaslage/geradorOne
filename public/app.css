@@ -199,3 +199,4 @@ body { margin: 0; background: var(--bg); }
 .home { min-height: calc(100vh - 44px); place-items: center; align-content: center; }
 .home-logo { width: min(327px, 62vw); height: auto; }
 @media (max-width: 900px) { .home { min-height: calc(100vh - 140px); } }
+.auth-error.ok { color: var(--teal-dark); }
