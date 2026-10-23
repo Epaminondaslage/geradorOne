@@ -1,0 +1,7 @@
+# Proxy HTTPS de produção: o Caddy emite e renova o certificado Let's Encrypt sozinho.
+# O domínio vem de DOMINIO no .env (ex.: geradorone.com.br).
+{$DOMINIO} {
+	encode zstd gzip
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy gerador-one:3000
+}
