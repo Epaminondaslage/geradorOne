@@ -268,6 +268,25 @@ test('administrador inicial nasce sem telefone e é obrigado a informá-lo no pe
   assert.equal((await admin('POST', '/api/auth/profile', { name: 'Fulano', phone: '(35) 99999-0000' })).data.user.phone, '35999990000');
 });
 
+test('endereços malformados e arquivos fora de public/ são recusados sem derrubar o servidor', async () => {
+  const http = require('node:http');
+  const raw = (requestPath, headers = {}) => new Promise((resolve, reject) => {
+    const request = http.request({ host: '127.0.0.1', port: app.server.address().port, path: requestPath, headers }, response => {
+      response.resume();
+      response.on('end', () => resolve(response.statusCode));
+    });
+    request.on('error', reject);
+    request.end();
+  });
+  assert.equal(await raw('/%E0%A4%A'), 400);
+  assert.equal(await raw('/%'), 400);
+  assert.equal(await raw('/..%2f..%2fetc/passwd'), 403);
+  assert.equal(await raw('/%2e%2e/server.js'), 404);
+  assert.equal(await raw('/index.html', { Host: 'host invalido' }), 400);
+  assert.equal(await raw('/nao-existe.png'), 404);
+  assert.equal((await client()('GET', '/api/health')).status, 200);
+});
+
 test('script de emergência redefine a senha e exige troca', async () => {
   const { execFileSync } = require('node:child_process');
   const output = execFileSync('node', [path.join(__dirname, '..', 'scripts', 'reset-password.js'), 'ADMIN@teste.com'], { env: { ...process.env, RUNTIME_DIR: runtime, DATABASE_URL: testDb.url } }).toString();

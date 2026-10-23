@@ -212,6 +212,24 @@ const typeProfiles = {
     microtextos: ['Contexto de aplicação profissional em 1 a 2 frases.', 'Procedimento em 4 a 6 passos numerados.', 'Caixa "Atenção / Segurança" com os cuidados essenciais.', 'Caixa "Na prática" com 1 situação real de trabalho.'],
     restricao: 'Cite normas técnicas somente com número e conteúdo corretos; se houver dúvida, escreva "consulte a norma vigente".',
   },
+  'Material preparatório': {
+    apoio: 'Material Preparatório',
+    foco: 'preparar para uma prova ou etapa com o que é essencial e o que praticar',
+    microtextos: ['Objetivo da preparação em 1 frase.', 'Mapa dos conteúdos mais cobrados: 4 a 6 tópicos em ordem de prioridade.', 'Caixa "Como estudar" com 3 passos.', 'Caixa "Atenção" com 3 erros comuns.', 'Mini-checklist de domínio com 4 itens marcáveis.'],
+    restricao: 'NÃO inclua questões resolvidas extensas nem gabarito; indique o que praticar. NÃO invente estatísticas de provas.',
+  },
+  'Material complementar': {
+    apoio: 'Material Complementar',
+    foco: 'ampliar o tema com curiosidades, aplicações e contexto além do conteúdo básico',
+    microtextos: ['Pergunta instigante de abertura.', 'Texto-resumo curto (2 a 3 frases) que amplia o conteúdo.', 'Caixa "Você sabia?" com 2 curiosidades corretas e verificáveis.', 'Caixa "Na vida real" com 1 aplicação prática.', 'Caixa "Para ir além" com 2 sugestões de aprofundamento, sem citar sites, livros ou autores específicos.'],
+    restricao: 'NÃO invente curiosidades, datas, fontes ou números: use só fatos amplamente conhecidos e corretos.',
+  },
+  'Outro': {
+    apoio: 'Material Didático',
+    foco: 'apresentar o tema conforme as orientações adicionais indicadas',
+    microtextos: ['2 a 3 frases curtas de abertura.', '4 a 6 bullets com os pontos-chave.', '1 exemplo prático curto.'],
+    restricao: 'Siga as orientações adicionais indicadas e NÃO inclua gabarito.',
+  },
   'Guia do professor': {
     apoio: 'Guia do Professor',
     foco: 'apoiar o professor a conduzir a aula sobre o tema',
@@ -258,6 +276,13 @@ const typeLayouts = {
   ],
   'Material de revisão': [
     'Layout de ficha de revisão: blocos compactos e escaneáveis, com destaque para fórmulas e regras.',
+  ],
+  'Material preparatório': [
+    'Layout de painel de preparação: tópicos em cartões ordenados por prioridade, cada um com um selo de prioridade (alta, média ou baixa).',
+    'Caixas "Como estudar", "Atenção" e o checklist de domínio em faixa própria, bem visíveis.',
+  ],
+  'Material complementar': [
+    'Layout de página de revista educativa: pergunta de abertura em destaque, uma ilustração principal grande e caixas laterais "Você sabia?", "Na vida real" e "Para ir além".',
   ],
 };
 
@@ -414,7 +439,7 @@ function generateImagePrompt(data) {
     'Fórmulas, unidades, símbolos e valores numéricos devem estar corretos e coerentes entre si.',
     'Os textos de ensino são a prioridade: conteúdo correto, legível e focado no aprendizado.',
     'Todo o texto em português do Brasil, sem termos em inglês. Sem mockup e sem marca d\'água.',
-    ...(typeLayouts[data.tipo] ? ['', `REGRA DE LAYOUT — ${data.tipo.toUpperCase()} (prevalece sobre qualquer outra instrução de layout)`, ...typeLayouts[data.tipo].map(rule => `- ${rule}`)] : []),
+    ...(typeLayouts[data.tipo] ? ['', `REGRA DE LAYOUT — ${data.tipo.toUpperCase()} (prevalece sobre qualquer outra instrução de layout)`, ...typeLayouts[data.tipo].map(rule => `- ${rule}`), ...(data.tipo === 'Mapa mental' && ['Doodle', 'Hand-drawn'].includes(data.estiloVisual) ? ['- Fundo de folha de caderno: pauta sutil azul-clara, margem vermelha à esquerda e espiral metálica na lateral; traço de caneta ou marcador e pequenos adesivos (estrelas, setas, lâmpadas) ao lado dos nós principais.'] : [])] : []),
     '',
     '2) MICROTEXTOS DENTRO DA IMAGEM',
     `Título em caixa alta: ${assunto.toUpperCase()}`,
@@ -608,8 +633,8 @@ form.addEventListener('submit', async event => {
     const deliveryInstruction = settings.formatoEntrega === 'pdf'
       ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
       : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
-    prompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n8. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
-    if (settings.modoImagem === 'gerar') prompt += '\n\n9. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final, se a plataforma usada tiver ferramenta própria de geração de imagem.\n- Se a plataforma não tiver ferramenta de geração de imagem raster, produza ilustrações vetoriais em SVG acessível e renderizadas no próprio arquivo, seguindo a mesma especificação do briefing.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se nenhum visual estiver de fato renderizado (raster ou vetorial) no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
+    prompt = `${generatePrompt(settings)}\n\n9. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n10. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
+    if (settings.modoImagem === 'gerar') prompt += '\n\n11. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final, se a plataforma usada tiver ferramenta própria de geração de imagem.\n- Se a plataforma não tiver ferramenta de geração de imagem raster, produza ilustrações vetoriais em SVG acessível e renderizadas no próprio arquivo, seguindo a mesma especificação do briefing.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se nenhum visual estiver de fato renderizado (raster ou vetorial) no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
   }
   showResult({ prompt, kind: 'apostila', badge: aiMode ? 'Material gerado com IA' : RESULT_BADGE.apostila, files: aiMode });
   if (!currentProjectId) projectName.value = settings.assunto;
@@ -714,7 +739,7 @@ document.querySelector('#copy').addEventListener('click', async () => {
     setTimeout(() => { button.classList.remove('copied'); copyIcon.innerHTML = defaultIconHtml; button.querySelector('.copy-label').textContent = 'Copiar'; }, 2200);
   } catch { status.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'; }
 });
-document.querySelector('#export-txt').addEventListener('click', () => { download('prompt-apostila.txt', currentPrompt, 'text/plain;charset=utf-8'); notify('Arquivo TXT preparado'); });
+document.querySelector('#export-txt').addEventListener('click', () => { download(`prompt-${currentKind}.txt`, currentPrompt, 'text/plain;charset=utf-8'); notify('Arquivo TXT preparado'); });
 document.querySelector('#export-json').addEventListener('click', () => { download('projeto-geradorone.json', JSON.stringify({ version: 3, kind: currentKind, createdAt: new Date().toISOString(), settings: dataObject(formFor(currentKind)), prompt: currentPrompt }, null, 2), 'application/json'); notify('Projeto JSON preparado'); });
 previewButton.addEventListener('click', async () => {
   status.textContent = 'Preparando prévia…';
@@ -773,7 +798,7 @@ improveOpen.addEventListener('click', () => {
   improveStatus.textContent = '';
   document.querySelector('#improve-mode').textContent = aiAvailable
     ? 'A IA configurada no servidor vai reescrever o prompt aplicando os ajustes.'
-    : 'IA não configurada: os ajustes serão anexados ao fim do prompt. Configure a chave em "Modelo de IA" para a IA reescrever o prompt.';
+    : 'IA não configurada: os ajustes serão anexados ao fim do prompt. Configure a chave em "Minha chave de IA" para a IA reescrever o prompt.';
   improveBox.hidden = false;
   improveOpen.setAttribute('aria-expanded', 'true');
 });

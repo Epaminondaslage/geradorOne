@@ -624,8 +624,13 @@ async function handleAppApi(req, res, pathname, user) {
   return false;
 }
 
-const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+async function handleRequest(req, res) {
+  let url;
+  try {
+    url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  } catch {
+    return json(res, 400, { error: 'Endereço inválido.' });
+  }
   if (url.pathname.startsWith('/api/')) {
     const handled = await handleApi(req, res, url.pathname);
     if (handled === false) json(res, 404, { error: 'Rota não encontrada.' });
@@ -633,7 +638,12 @@ const server = http.createServer(async (req, res) => {
   }
 
   const requested = url.pathname === '/' ? '/index.html' : url.pathname;
-  const decoded = decodeURIComponent(requested);
+  let decoded;
+  try {
+    decoded = decodeURIComponent(requested);
+  } catch {
+    return json(res, 400, { error: 'Endereço inválido.' });
+  }
   const filePath = path.resolve(PUBLIC_DIR, `.${decoded}`);
   if (!filePath.startsWith(`${PUBLIC_DIR}${path.sep}`)) return json(res, 403, { error: 'Acesso negado.' });
   fs.readFile(filePath, (error, data) => {
@@ -645,6 +655,15 @@ const server = http.createServer(async (req, res) => {
       'Content-Security-Policy': "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
     });
     res.end(data);
+  });
+}
+
+// Nenhuma falha em uma requisição pode derrubar o processo: erro inesperado vira 500.
+const server = http.createServer((req, res) => {
+  handleRequest(req, res).catch(error => {
+    console.error('Falha ao atender a requisição:', error.message);
+    if (!res.headersSent) json(res, 500, { error: 'Erro interno. Tente novamente.' });
+    else res.end();
   });
 });
 
