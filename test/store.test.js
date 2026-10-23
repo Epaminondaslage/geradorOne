@@ -18,7 +18,7 @@ let projects;
 test.before(async () => {
   testDb = await createTestDatabase();
   db = createDb(testDb.url);
-  assert.deepEqual(await db.migrate(), [1, 2, 3, 4]);
+  assert.deepEqual(await db.migrate(), [1, 2, 3, 4, 5]);
   users = createUserStore(db);
   projects = createProjectStore(db);
 });
@@ -32,7 +32,7 @@ const person = (n, extra = {}) => ({ name: `Pessoa ${n}`, email: `pessoa${n}@tes
 test('migração roda uma vez só e pode ser repetida sem erro', async () => {
   assert.deepEqual(await db.migrate(), []);
   const { rows } = await db.query('SELECT version FROM schema_migrations');
-  assert.deepEqual(rows.map(row => row.version), [1, 2, 3, 4]);
+  assert.deepEqual(rows.map(row => row.version), [1, 2, 3, 4, 5]);
 });
 
 test('usuários: cria, normaliza, impede e-mail repetido (mesmo em corrida) e valida campos', async () => {

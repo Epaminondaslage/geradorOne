@@ -8,6 +8,7 @@ const { URL } = require('node:url');
 const PDFDocument = require('pdfkit');
 const crypto = require('node:crypto');
 const appCrypto = require('./lib/crypto');
+const { LEGAL_VERSION } = require('./lib/legal');
 const { createUserStore, publicUser, normalizeEmail, normalizePhone, isValidPhone, EMAIL_RE, THEMES } = require('./lib/users');
 const { createProjectStore, validateProject } = require('./lib/projects');
 const { createLimiter } = require('./lib/rate-limit');
@@ -53,7 +54,7 @@ function publicAiConfig(user) {
 }
 
 function userView(user) {
-  return { ...publicUser(user), hasApiKey: Boolean(aiConfigFor(user).apiKey) };
+  return { ...publicUser(user), hasApiKey: Boolean(aiConfigFor(user).apiKey), termsCurrent: user.termsVersion === LEGAL_VERSION, legalVersion: LEGAL_VERSION };
 }
 
 function nextAiSettings(user, partial) {
@@ -541,12 +542,13 @@ async function handleAuthApi(req, res, pathname, user) {
     if (!EMAIL_RE.test(email) || email.length > 200) throw fail('E-mail inválido.');
     if (phone && !isValidPhone(phone)) throw fail('Telefone inválido. Use DDD + número, por exemplo (35) 99999-8888.');
     checkPassword(body.password);
+    if (body.acceptTerms !== true) throw fail('Para criar a conta, aceite os Termos de uso e a Política de privacidade.');
     signupEmailLimiter.hit(emailKey);
     signupIpLimiter.hit(ipKey);
     if (!await userStore.getByEmail(email)) {
       const code = appCrypto.randomCode();
       if (signups.size >= MAX_PENDING_RESETS && !signups.has(email)) signups.delete(signups.keys().next().value);
-      signups.set(email, { name, phone, codeHash: appCrypto.hmacHex(code, resetKey), passwordHash: await appCrypto.hashPassword(body.password), expiresAt: Date.now() + RESET_MINUTES * 60_000, attempts: 0 });
+      signups.set(email, { name, phone, termsVersion: LEGAL_VERSION, codeHash: appCrypto.hmacHex(code, resetKey), passwordHash: await appCrypto.hashPassword(body.password), expiresAt: Date.now() + RESET_MINUTES * 60_000, attempts: 0 });
       try { await mailer.sendSignupCode(email, name, code, RESET_MINUTES); } catch (error) { console.error('Falha ao enviar e-mail de cadastro:', error.message); }
     }
     return json(res, 200, { ok: true, message: `Se o e-mail puder ser cadastrado, enviamos um código de 6 dígitos válido por ${RESET_MINUTES} minutos.` });
@@ -566,7 +568,7 @@ async function handleAuthApi(req, res, pathname, user) {
     signups.delete(email);
     let created;
     try {
-      created = await userStore.create({ name: entry.name, email, phone: entry.phone, role: 'user', passwordHash: entry.passwordHash, mustChangePassword: false, phoneOptional: true });
+      created = await userStore.create({ name: entry.name, email, phone: entry.phone, role: 'user', passwordHash: entry.passwordHash, mustChangePassword: false, phoneOptional: true, termsVersion: entry.termsVersion });
     } catch (error) {
       if (error.status === 409) return invalid();
       throw error;
@@ -585,6 +587,12 @@ async function handleAuthApi(req, res, pathname, user) {
     const updated = await userStore.update(user.id, { passwordHash: await appCrypto.hashPassword(body.password), mustChangePassword: false });
     return json(res, 200, { user: userView(updated) }, issueSession(req, updated));
   }
+  if (method === 'POST' && pathname === '/api/auth/accept-terms') {
+    const body = await readJson(req);
+    if (body.accept !== true) throw fail('Marque que leu e aceita os Termos de uso e a Política de privacidade.');
+    const updated = await userStore.acceptTerms(user.id, LEGAL_VERSION);
+    return json(res, 200, { user: userView(updated) });
+  }
   if (method === 'GET' && pathname === '/api/auth/export') {
     const ai = aiConfigFor(user);
     const exportedAt = new Date().toISOString();
@@ -592,7 +600,7 @@ async function handleAuthApi(req, res, pathname, user) {
       format: 'geradorone-account',
       version: 1,
       exportedAt,
-      account: { id: user.id, name: user.name, email: user.email, phone: user.phone || '', role: user.role, active: user.active, theme: user.theme || '', createdAt: user.createdAt, updatedAt: user.updatedAt },
+      account: { id: user.id, name: user.name, email: user.email, phone: user.phone || '', role: user.role, active: user.active, theme: user.theme || '', createdAt: user.createdAt, updatedAt: user.updatedAt, termsVersion: user.termsVersion || '', termsAcceptedAt: user.termsAcceptedAt || '' },
       ai: { provider: ai.provider, hasApiKey: Boolean(ai.apiKey), model: ai.model, imageModel: ai.imageModel },
       projects: await projectStore.listAll(user.id),
       supportMessages: await supportStore.listFor(user.id),

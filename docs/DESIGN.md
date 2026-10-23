@@ -69,6 +69,8 @@ Todos usam só os tokens, então funcionam em qualquer tema.
 - **Linha de caminho do projeto** (`.crumbs`, só na Apostila e na Capa): "Meus projetos / nome do projeto · salvo às HH:MM" à esquerda; Renomear, Salvar projeto (ou Atualizar projeto) e Salvar como novo à direita. Substituiu a linha de salvar que ficava dentro do painel de resultado. O botão avisa se ainda não há prompt gerado.
 - **Celular (até 900 px)**: cabeçalho com menu, logo, nome e atalho para Meus projetos; abas Dados | Resultado (`.mobile-steps`, a ativa em tinta cheia); o formulário mostra só os dados e o painel só o resultado. Ao gerar, abre sozinho na aba Resultado. O botão "Gerar prompt" (48 px) fica fixo no pé da tela, com a nota "O resultado abre na aba Resultado.". Entre 901 e 1180 px a tela empilha formulário e resultado, sem abas.
 - **Menu lateral**: fundo `--bg`; item ativo com fundo `--paper` e contorno fino de `--line`, sem barra colorida.
+- **Caixa de aceite** (`.terms-check`): caixa de seleção de 20 px à esquerda e texto em peso 400 com links sublinhados em `--accent`; usada no cadastro e na tela de aceite dos Termos.
+- **Páginas de texto longo** (`termos.html`, `privacidade.html`, estilo em `legal.css`): coluna de 780 px, títulos em serifa, nota de rascunho com filete em `--accent`; `legal.js` aplica o tema guardado no navegador.
 - **Painel de resultado**: o prompt em serifa 15 px com entrelinha 1,7, dentro de uma folha com borda.
 - **Aviso e erro**: texto em `--danger` ou `--accent`, nunca só pela cor (acompanha texto claro).
 - **Logo**: o mesmo desenho (`assets/icons/mapa-mental.png`) pintado por máscara CSS na classe `.logo`, assumindo a cor do tema. Use `<span class="logo">` e defina largura e `aspect-ratio: 897 / 1000`.

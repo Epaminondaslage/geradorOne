@@ -57,6 +57,7 @@ graph TB
 │   ├── crypto.js             # scrypt, AES-256-GCM, HKDF, token de sessão, códigos
 │   ├── secret-check.js       # impressão digital da chave mestra (recusa iniciar se mudar)
 │   ├── mailer.js             # nodemailer: envio dos e-mails; setConfig troca o SMTP sem reiniciar e setBrand define endereço e contato do rodapé
+│   ├── legal.js              # LEGAL_VERSION: versão vigente dos Termos e da Política (mudar a data exige novo aceite de todos)
 │   ├── support.js            # validação da mensagem e dos anexos, protocolo e tabela support_messages
 │   ├── email-template.js     # modelo HTML (tabelas e estilos inline) e texto puro dos e-mails; logotipo embutido por cid
 │   └── rate-limit.js         # limitador em memória (janela deslizante)
@@ -119,6 +120,7 @@ graph TB
 | POST | `/api/auth/change-password` | sessão | Troca a senha e emite sessão nova |
 | POST | `/api/auth/profile` | sessão | Nome e telefone (telefone obrigatório) |
 | GET | `/api/auth/export` | sessão | Baixa um JSON (`Content-Disposition: attachment`) com a conta, as preferências de IA (sem o valor da chave) e todos os projetos do usuário; nunca inclui hash de senha |
+| POST | `/api/auth/accept-terms` | sessão | Registra o aceite (`{accept: true}`): grava `terms_version` = `LEGAL_VERSION` e `terms_accepted_at`, sem mexer em `pwd_version` (não derruba sessões). `userView` devolve `termsCurrent` e `legalVersion`; o frontend bloqueia o app (painel `terms`) enquanto `termsCurrent` for falso |
 | POST | `/api/support` | sessão | "Fale com o suporte": valida tipo, texto (5 a 2.000), e-mail e anexos (até 5, 5 MB cada, 8 MB no total, conferindo extensão e primeiros bytes), guarda em `support_messages`, envia ao `mailer.supportAddress()` com `replyTo` na pessoa e manda a confirmação com protocolo. Corpo de até 12 MB só nesta rota; 5 por hora por conta (429); campo isca `site` devolve sucesso sem enviar |
 | POST | `/api/auth/delete-account` | sessão | Exclui a própria conta. Exige a senha atual (erros contam no limite de login); 409 se for o único administrador ativo; apaga os projetos em cascata, devolve `removedProjects` e limpa o cookie |
 | POST | `/api/auth/theme` | sessão | Tema de cores da conta (`papel`, `grafite`, `lousa`, `azul-tinta`, `sepia`, `alto-contraste`; vazio = seguir o sistema) |
@@ -272,6 +274,7 @@ sequenceDiagram
 | Arquivo | Cobre |
 |---|---|
 | `auth.test.js` | Fluxo HTTP completo: sessão, login, troca de senha, usuários, BYOK, isolamento, recuperação por e-mail, origem, URLs malformadas, corpo grande. **Os testes dependem uns dos outros e a ordem importa**; o do script de emergência troca a senha do admin e precisa ser o último. |
+| `auth.test.js` (termos) | Cadastro sem `acceptTerms: true` dá 400; aceite de conta antiga, nova versão exige novo aceite, exportação traz versão e data, e as páginas `termos.html` e `privacidade.html` são públicas. |
 | `store.test.js` | Armazenamento: migração, corridas (e-mail duplicado, limite de projetos), cascata, transação, importação dos JSONs. |
 | `crypto.test.js` | Senha, AES-GCM, token, limitador, chave mestra. |
 | `secret.test.js` | Impressão digital da chave e recusa de iniciar (sobe o servidor como processo filho). |

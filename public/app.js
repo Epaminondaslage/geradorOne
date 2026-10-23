@@ -1453,6 +1453,7 @@ function startApp(user) {
   const switched = currentUser && currentUser.id !== user.id;
   currentUser = user;
   if (switched) { location.hash = ''; location.reload(); return; }
+  if (!user.termsCurrent) { showAuth('terms'); return; }
   if (user.theme && themeNames[user.theme]) { themeFollowsSystem = false; setTheme(user.theme); } else { themeFollowsSystem = true; setTheme(systemTheme(), { persist: false }); }
   document.querySelector('#user-name').textContent = user.name;
   document.querySelector('#user-email').textContent = user.role === 'admin' ? 'Administrador' : 'Usuário';
@@ -1822,11 +1823,12 @@ document.querySelector('#signup-form').addEventListener('submit', async event =>
   if (!name || !email) { setError(formEl, 'Informe o nome e o e-mail.'); return; }
   if (formEl.password.value.length < 8) { setError(formEl, 'A senha precisa ter ao menos 8 caracteres.'); return; }
   if (formEl.password.value !== formEl.repeat.value) { setError(formEl, 'As senhas não conferem.'); return; }
+  if (!formEl.terms.checked) { setError(formEl, 'Para criar a conta, aceite os Termos de uso e a Política de privacidade.'); return; }
   setError(formEl, '');
   const submit = formEl.querySelector('[type=submit]');
   submit.disabled = true;
   try {
-    const result = await postJson('api/auth/signup', { name, email, password: formEl.password.value });
+    const result = await postJson('api/auth/signup', { name, email, password: formEl.password.value, acceptTerms: true });
     if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível enviar o código.'); return; }
     signupEmail = email;
     formEl.password.value = '';
@@ -1890,6 +1892,35 @@ async function logout() {
 }
 document.querySelector('#logout-button').addEventListener('click', logout);
 document.querySelector('#first-logout').addEventListener('click', logout);
+document.querySelector('#terms-logout').addEventListener('click', logout);
+
+// Texto do bloco "Termos e privacidade" em Minha conta: versão e data do aceite.
+function fillLegalAccount() {
+  const info = document.querySelector('#legal-account-info');
+  if (!info || !currentUser) return;
+  if (!currentUser.termsAcceptedAt) { info.textContent = 'Os documentos que regem o uso do GeradorOne e o tratamento dos seus dados.'; return; }
+  const at = new Date(currentUser.termsAcceptedAt);
+  const day = at.toLocaleDateString('pt-BR');
+  const hour = at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  info.textContent = `Você aceitou a versão de ${currentUser.termsVersion.split('-').reverse().join('/')} em ${day}, às ${hour}.`;
+}
+
+document.querySelector('#terms-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  if (!formEl.terms.checked) { setError(formEl, 'Marque que leu e aceita os documentos para continuar.'); return; }
+  setError(formEl, '');
+  const submit = formEl.querySelector('[type=submit]');
+  submit.disabled = true;
+  try {
+    const result = await postJson('api/auth/accept-terms', { accept: true });
+    if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível registrar o aceite.'); return; }
+    formEl.terms.checked = false;
+    startApp(result.data.user);
+  } finally {
+    submit.disabled = false;
+  }
+});
 
 function fillAccount() {
   if (!currentUser) return;
@@ -1897,6 +1928,7 @@ function fillAccount() {
   profile.name.value = currentUser.name;
   profile.phone.value = formatPhone(currentUser.phone);
   profile.email.value = currentUser.email;
+  fillLegalAccount();
   document.querySelector('#account-summary').textContent = `${currentUser.role === 'admin' ? 'Administrador' : 'Usuário'} · ${currentUser.email}`;
   document.querySelector('#profile-status').textContent = '';
   document.querySelector('#password-status').textContent = '';

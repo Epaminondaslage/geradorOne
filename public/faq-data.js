@@ -441,6 +441,22 @@ const FAQ_ITEMS = [
     resposta: 'A senha é guardada com um hash, nunca em texto aberto, e o login tem limite de tentativas. A sessão usa um cookie protegido (HttpOnly) e é encerrada quando a senha ou o perfil mudam.\n\nUse uma senha única e de pelo menos 8 caracteres.'
   },
 
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'Onde leio os Termos de uso e a Política de privacidade?',
+    resposta: 'Em três lugares: no rodapé da tela de login, no bloco "Termos e privacidade" de "Minha conta" e na caixa de aceite do cadastro. Cada link abre uma página pública, que você lê sem precisar entrar.\n\n- Termos de uso: cadastro, uso permitido, chave de IA, conteúdo gerado, assinatura futura e responsabilidades.\n- Política de privacidade: quais dados o GeradorOne guarda, para quê, com quem compartilha, por quanto tempo e como você exerce seus direitos pela LGPD.\n\nOs dois textos são um rascunho do responsável pelo projeto e ainda não passaram por revisão jurídica. As páginas dizem isso logo no topo.'
+  },
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'Preciso aceitar os termos para criar a conta?',
+    resposta: 'Sim. Na tela "Criar conta", marque "Li e aceito os Termos de uso e a Política de privacidade". Sem a marca, o app não envia o código de confirmação.\n\nO GeradorOne guarda a versão que você aceitou e a data e hora do aceite. Essas duas informações aparecem em "Minha conta", no bloco "Termos e privacidade", e entram no arquivo de "Baixar meus dados".'
+  },
+  {
+    categoria: 'Segurança e privacidade',
+    pergunta: 'Apareceu a tela "Termos de uso e privacidade" depois do login. Por quê?',
+    resposta: 'Isso acontece em dois casos: a sua conta foi criada antes de os termos existirem no app, ou os textos mudaram desde o seu último aceite. Os documentos têm uma versão, e o app pede um novo aceite quando ela muda.\n\nLeia os dois documentos, marque a caixa e clique em "Aceitar e continuar". Não há cobrança nem mudança nos seus projetos. Se não quiser aceitar, clique em "Sair". Para apagar os seus dados, entre em contato pelo e-mail fulano@dominio.com.br.'
+  },
+
   // ---------- Administração ----------
   {
     categoria: 'Administração',

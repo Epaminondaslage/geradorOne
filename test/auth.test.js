@@ -224,7 +224,7 @@ test('autocadastro: código por e-mail cria conta de usuário e abre a sessão',
   assert.equal((await anon('POST', '/api/auth/signup', { name: 'Novo', email: 'invalido', password: 'SenhaNova123' })).status, 400);
   assert.equal((await anon('POST', '/api/auth/signup', { name: 'Novo', email: 'novo@teste.com', password: 'curta' })).status, 400);
   assert.equal(sent.length, 0);
-  const asked = await anon('POST', '/api/auth/signup', { name: 'Novo Usuário', email: 'Novo@Teste.com', password: 'SenhaNova123' });
+  const asked = await anon('POST', '/api/auth/signup', { name: 'Novo Usuário', email: 'Novo@Teste.com', password: 'SenhaNova123', acceptTerms: true });
   assert.equal(asked.status, 200);
   assert.equal(sent.length, 1);
   assert.equal(sent[0].to, 'novo@teste.com');
@@ -235,6 +235,8 @@ test('autocadastro: código por e-mail cria conta de usuário e abre a sessão',
   assert.equal(confirmed.status, 200);
   assert.equal(confirmed.data.user.role, 'user');
   assert.equal(confirmed.data.user.mustChangePassword, false);
+  assert.equal(confirmed.data.user.termsCurrent, true);
+  assert.ok(confirmed.data.user.termsAcceptedAt);
   assert.equal((await anon('GET', '/api/auth/me')).status, 200);
   assert.equal((await anon('POST', '/api/auth/signup/confirm', { email: 'novo@teste.com', code })).status, 400);
   assert.equal((await client()('POST', '/api/auth/login', { email: 'novo@teste.com', password: 'SenhaNova123' })).status, 200);
@@ -243,8 +245,8 @@ test('autocadastro: código por e-mail cria conta de usuário e abre a sessão',
 test('autocadastro: e-mail já cadastrado recebe a mesma resposta e nenhum e-mail', async () => {
   const anon = client();
   sent.length = 0;
-  const fresh = await anon('POST', '/api/auth/signup', { name: 'Outro', email: 'outro@teste.com', password: 'SenhaNova123' });
-  const dup = await anon('POST', '/api/auth/signup', { name: 'Ana', email: 'ana@teste.com', password: 'SenhaNova123' });
+  const fresh = await anon('POST', '/api/auth/signup', { name: 'Outro', email: 'outro@teste.com', password: 'SenhaNova123', acceptTerms: true });
+  const dup = await anon('POST', '/api/auth/signup', { name: 'Ana', email: 'ana@teste.com', password: 'SenhaNova123', acceptTerms: true });
   assert.equal(dup.status, 200);
   assert.deepEqual(dup.data, fresh.data);
   assert.equal(sent.length, 1);
@@ -254,13 +256,54 @@ test('autocadastro: e-mail já cadastrado recebe a mesma resposta e nenhum e-mai
 test('autocadastro: código trava após 5 tentativas erradas', async () => {
   const anon = client();
   sent.length = 0;
-  await anon('POST', '/api/auth/signup', { name: 'Trava', email: 'trava@teste.com', password: 'SenhaNova123' });
+  await anon('POST', '/api/auth/signup', { name: 'Trava', email: 'trava@teste.com', password: 'SenhaNova123', acceptTerms: true });
   const code = /\b(\d{6})\b/.exec(sent[0].text)[1];
   const wrong = code === '123456' ? '654321' : '123456';
   for (let i = 0; i < 5; i += 1) await anon('POST', '/api/auth/signup/confirm', { email: 'trava@teste.com', code: wrong });
   const late = await anon('POST', '/api/auth/signup/confirm', { email: 'trava@teste.com', code });
   assert.ok([400, 429].includes(late.status), `status ${late.status}`);
   assert.equal((await anon('POST', '/api/auth/login', { email: 'trava@teste.com', password: 'SenhaNova123' })).status, 401);
+});
+
+test('termos e privacidade: cadastro exige aceite, conta anterior aceita depois e as páginas são públicas', async () => {
+  const anon = client();
+  sent.length = 0;
+  const semAceite = { name: 'Sem Aceite', email: 'semaceite@teste.com', password: 'SenhaNova123' };
+  assert.equal((await anon('POST', '/api/auth/signup', semAceite)).status, 400);
+  assert.equal((await anon('POST', '/api/auth/signup', { ...semAceite, acceptTerms: 'true' })).status, 400);
+  assert.equal((await anon('POST', '/api/auth/signup', { ...semAceite, acceptTerms: false })).status, 400);
+  assert.equal(sent.length, 0);
+
+  const { LEGAL_VERSION } = require('../lib/legal');
+  const ana = await loginAs('ana@teste.com', 'OutraSenha123');
+  const antes = (await ana('GET', '/api/auth/me')).data.user;
+  assert.equal(antes.termsCurrent, false);
+  assert.equal(antes.termsAcceptedAt, '');
+  assert.equal(antes.legalVersion, LEGAL_VERSION);
+  assert.equal((await client()('POST', '/api/auth/accept-terms', { accept: true })).status, 401);
+  assert.equal((await ana('POST', '/api/auth/accept-terms', {})).status, 400);
+  assert.equal((await ana('POST', '/api/auth/accept-terms', { accept: false })).status, 400);
+  const aceito = await ana('POST', '/api/auth/accept-terms', { accept: true });
+  assert.equal(aceito.status, 200);
+  assert.equal(aceito.data.user.termsCurrent, true);
+  assert.equal(aceito.data.user.termsVersion, LEGAL_VERSION);
+  assert.ok(Date.parse(aceito.data.user.termsAcceptedAt) > 0);
+  assert.equal((await ana('GET', '/api/auth/me')).status, 200, 'aceitar não derruba a sessão');
+  const exported = (await ana('GET', '/api/auth/export')).data;
+  assert.equal(exported.account.termsVersion, LEGAL_VERSION);
+
+  // Se o texto mudar (nova versão), quem aceitou a anterior precisa aceitar de novo.
+  await app.db.query("UPDATE users SET terms_version = '2000-01-01' WHERE email = 'ana@teste.com'");
+  assert.equal((await ana('GET', '/api/auth/me')).data.user.termsCurrent, false);
+  assert.equal((await ana('POST', '/api/auth/accept-terms', { accept: true })).data.user.termsCurrent, true);
+
+  for (const page of ['termos.html', 'privacidade.html']) {
+    const response = await fetch(`${base}/${page}`);
+    assert.equal(response.status, 200, page);
+    const html = await response.text();
+    assert.ok(html.includes('fulano@dominio.com.br'), page);
+    assert.ok(html.includes('rascunho'), `${page} deve avisar que falta a revisão jurídica`);
+  }
 });
 
 test('configuração de SMTP: só administrador, senha cifrada e aplicada na hora', async () => {

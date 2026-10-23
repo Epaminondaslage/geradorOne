@@ -64,9 +64,9 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 - [ ] Proteção contra robôs no cadastro (captcha ou equivalente). Hoje só há limite de tentativas por e-mail e por IP; o uso é dentro de rede protegida por firewall.
 - [ ] Política de senha mais forte e verificação de senhas vazadas.
 - [ ] Verificação em duas etapas (opcional para o usuário).
-- [ ] Termos de uso e política de privacidade, com aceite registrado no cadastro.
+- [x] Termos de uso e política de privacidade, com aceite registrado no cadastro (23/10/2026): páginas públicas `termos.html` e `privacidade.html`, caixa de aceite no cadastro, tela de aceite para contas anteriores e para cada nova versão (`lib/legal.js`), versão e data gravadas na conta e na exportação. É rascunho: falta a revisão jurídica abaixo.
 - [x] LGPD, parte técnica (23/10/2026): exportar os dados da conta (`GET /api/auth/export`, botão "Baixar meus dados (JSON)" em Minha conta), excluir a conta, prazo de retenção (a conta sai do banco na hora; as cópias de segurança são mantidas por 14 dias e depois apagadas) e canal do responsável (Fulano, fulano@dominio.com.br). Os textos vão ao provedor de IA escolhido, e o app avisa isso.
-- [ ] LGPD, parte jurídica: revisar o texto da política de privacidade e dos termos com quem entende da lei, antes de abrir ao público em geral.
+- [ ] LGPD, parte jurídica: revisar (com advogado) o texto da política de privacidade e dos termos com quem entende da lei, antes de abrir ao público em geral.
 - [ ] Registro de auditoria das ações de administrador (criar, desativar, redefinir senha, excluir).
 - [ ] Modelos de e-mail transacional (boas-vindas, verificação, recuperação) com a identidade do GeradorOne.
 - [ ] Página de suporte e de status.

@@ -17,9 +17,10 @@ Aplicativo web que gera prompts de imagem para apostilas e capas didáticas. Voc
 
 # Primeiro acesso
 1. Na tela de entrada, clique em "Criar conta". O link só aparece se o administrador ativou o envio de e-mail. Sem ele, aparece "Sem acesso? Peça ao administrador da sua escola para criar o seu usuário."
-2. Informe nome, e-mail e senha (mínimo de 8 caracteres) e repita a senha.
+2. Informe nome, e-mail e senha (mínimo de 8 caracteres), repita a senha e marque "Li e aceito os Termos de uso e a Política de privacidade" (os dois nomes são links para as páginas). Sem a marca, o código não é enviado.
 3. Você recebe um código de 6 dígitos por e-mail, válido por 10 minutos (até 5 tentativas). Digite o código. A conta é criada e você já entra no app.
-4. Se o administrador criou seu usuário, ele define uma senha temporária; o app exige trocá-la no primeiro acesso.
+4. Quem já tinha conta antes dos termos, ou quando os textos mudam, vê a tela "Termos de uso e privacidade" depois do login: marque "Li e aceito os Termos de uso e a Política de privacidade" e clique em "Aceitar e continuar" (ou em "Sair"). Em "Minha conta", o bloco "Termos e privacidade" mostra a versão e a data do aceite e os links.
+5. Se o administrador criou seu usuário, ele define uma senha temporária; o app exige trocá-la no primeiro acesso.
 5. Se o app levar você para "Minha conta" pedindo telefone, complete o telefone.
 5a. Para baixar todos os seus dados, abra "Minha conta" e clique em "Baixar meus dados (JSON)", no bloco "Exportar meus dados" (conta, preferências de IA e todos os projetos; sem senha nem chave).
 5b. Para excluir a própria conta, abra "Minha conta", vá a "Excluir minha conta", digite a senha atual e clique duas vezes ("Excluir minha conta" e depois "Confirmar exclusão", em até 5 segundos). Isso apaga a conta, os projetos e a chave de IA salva, e não dá para desfazer.
