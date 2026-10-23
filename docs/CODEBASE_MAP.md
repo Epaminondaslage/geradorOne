@@ -56,7 +56,7 @@ graph TB
 │   ├── legacy-import.js      # importa os JSONs antigos uma única vez
 │   ├── crypto.js             # scrypt, AES-256-GCM, HKDF, token de sessão, códigos
 │   ├── secret-check.js       # impressão digital da chave mestra (recusa iniciar se mudar)
-│   ├── mailer.js             # nodemailer: código de recuperação de senha
+│   ├── mailer.js             # nodemailer: códigos de recuperação de senha e de cadastro
 │   └── rate-limit.js         # limitador em memória (janela deslizante)
 ├── scripts/
 │   ├── reset-password.js     # senha temporária de emergência (docker exec)
@@ -105,9 +105,11 @@ graph TB
 | GET | `/api/health` | público | `{ok, db}`; 503 se o banco não responde |
 | POST | `/api/auth/login` | público | Entrar; erro genérico; 429 após 8 falhas em 15 min |
 | POST | `/api/auth/logout` | público | Apaga o cookie |
-| GET | `/api/auth/config` | público | `{emailReset}` (mostra "Esqueci minha senha") |
+| GET | `/api/auth/config` | público | `{emailReset, signup}` (mostram "Esqueci minha senha" e "Criar conta"; ambos dependem do SMTP) |
 | POST | `/api/auth/forgot` | público | Guarda código e nova senha pendentes e envia o e-mail; resposta sempre genérica |
 | POST | `/api/auth/confirm` | público | Confere o código (5 tentativas, 10 min) e aplica a senha |
+| POST | `/api/auth/signup` | público | Autocadastro: valida nome, e-mail e senha, guarda o pedido na memória e envia código de 6 dígitos; resposta sempre genérica (e-mail já cadastrado não recebe código); 503 sem SMTP |
+| POST | `/api/auth/signup/confirm` | público | Confere o código (5 tentativas, 10 min), cria o usuário com perfil `user` sem troca obrigatória de senha e abre a sessão |
 | GET | `/api/auth/me` | sessão | Usuário atual |
 | POST | `/api/auth/change-password` | sessão | Troca a senha e emite sessão nova |
 | POST | `/api/auth/profile` | sessão | Nome e telefone (telefone obrigatório) |
@@ -278,7 +280,7 @@ sequenceDiagram
 - Sem estilos nem scripts inline (CSP). Endereços da API sempre relativos e sem barra inicial; `AUTH_PUBLIC` compara essas strings exatas.
 - `styles.css` parece legado, mas ainda define `.card`, `.option`, `.resource`, `.action-bar` e `.primary`; não apague.
 - `currentProjectId` persiste entre gerações do mesmo tipo.
-- Os limites de login, os códigos de recuperação e o rate limit ficam na memória do processo: não valem com mais de uma instância.
+- Os limites de login, os códigos de recuperação, os cadastros pendentes e o rate limit ficam na memória do processo: não valem com mais de uma instância.
 - `hasApiKey` reflete uma chave que ainda pode ser decifrada; se a chave mestra for trocada, as chaves salvas somem da interface sem apagar o dado.
 - O teste do script de emergência e os testes de `auth.test.js` compartilham estado.
 

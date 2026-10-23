@@ -26,7 +26,26 @@
         </div>
         <p class="auth-error" role="alert"></p>
         <button class="primary" type="submit">Entrar</button>
-        <p class="help">Sem acesso? Peça ao administrador da sua escola para criar o seu usuário.</p>
+        <p class="help">Ainda não tem conta? <button class="link" type="button" data-auth-go="signup" id="signup-link" hidden>Criar conta</button><span id="signup-off">Peça ao administrador da sua escola para criar o seu usuário.</span></p>
+      </form>
+      <form id="signup-form" class="auth-panel" data-panel="signup" hidden novalidate>
+        <h1>Criar conta</h1>
+        <p>Informe seus dados. Enviaremos um código de 6 dígitos para confirmar o seu e-mail.</p>
+        <label>Nome<input name="name" autocomplete="name" maxlength="120" required></label>
+        <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
+        <label>Senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Repita a senha<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+        <p class="auth-error" role="alert"></p>
+        <button class="primary" type="submit">Enviar código</button>
+        <button class="link" type="button" data-auth-go="login">Voltar para o login</button>
+      </form>
+      <form id="signup-confirm-form" class="auth-panel" data-panel="signup-confirm" hidden novalidate>
+        <h1>Confirme o seu e-mail</h1>
+        <p id="signup-confirm-info">Enviamos um código de 6 dígitos para o seu e-mail. Ele vale por 10 minutos.</p>
+        <label>Código<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
+        <p class="auth-error" role="alert"></p>
+        <button class="primary" type="submit">Confirmar e entrar</button>
+        <button class="link" type="button" data-auth-go="signup">Voltar</button>
       </form>
       <form id="forgot-form" class="auth-panel" data-panel="forgot" hidden novalidate>
         <h1>Redefinir senha</h1>

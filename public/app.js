@@ -128,7 +128,7 @@ const formFor = kind => (kind === 'capa' ? capaForm : form);
 let currentUser = null;
 const authScreen = document.querySelector('#auth-screen');
 const appShell = document.querySelector('#shell');
-const AUTH_PUBLIC = ['api/auth/login', 'api/auth/forgot', 'api/auth/confirm', 'api/auth/logout', 'api/auth/config'];
+const AUTH_PUBLIC = ['api/auth/login', 'api/auth/forgot', 'api/auth/confirm', 'api/auth/signup', 'api/auth/signup/confirm', 'api/auth/logout', 'api/auth/config'];
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, { credentials: 'same-origin', ...options });
@@ -1303,6 +1303,40 @@ document.querySelector('#login-form').addEventListener('submit', async event => 
   }
 });
 
+let signupEmail = '';
+document.querySelector('#signup-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const name = formEl.name.value.trim();
+  const email = formEl.email.value.trim();
+  if (!name || !email) { setError(formEl, 'Informe o nome e o e-mail.'); return; }
+  if (formEl.password.value.length < 8) { setError(formEl, 'A senha precisa ter ao menos 8 caracteres.'); return; }
+  if (formEl.password.value !== formEl.repeat.value) { setError(formEl, 'As senhas não conferem.'); return; }
+  setError(formEl, '');
+  const submit = formEl.querySelector('[type=submit]');
+  submit.disabled = true;
+  try {
+    const result = await postJson('api/auth/signup', { name, email, password: formEl.password.value });
+    if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível enviar o código.'); return; }
+    signupEmail = email;
+    formEl.password.value = '';
+    formEl.repeat.value = '';
+    document.querySelector('#signup-confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido.`;
+    showAuth('signup-confirm');
+  } finally {
+    submit.disabled = false;
+  }
+});
+
+document.querySelector('#signup-confirm-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const result = await postJson('api/auth/signup/confirm', { email: signupEmail, code: formEl.code.value.trim() });
+  if (!result.ok) { setError(formEl, result.data.error || 'Código inválido ou expirado.'); return; }
+  formEl.code.value = '';
+  startApp(result.data.user);
+});
+
 let resetEmail = '';
 document.querySelector('#forgot-form').addEventListener('submit', async event => {
   event.preventDefault();
@@ -1542,6 +1576,8 @@ async function bootstrapAuth() {
   try {
     const config = await (await fetch('api/auth/config')).json();
     authScreen.querySelector('[data-auth-go="forgot"]').hidden = !config.emailReset;
+    authScreen.querySelector('#signup-link').hidden = !config.signup;
+    authScreen.querySelector('#signup-off').hidden = Boolean(config.signup);
   } catch {}
   try {
     const response = await fetch('api/auth/me', { credentials: 'same-origin' });

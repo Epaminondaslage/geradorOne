@@ -216,6 +216,53 @@ test('código de recuperação trava após 5 tentativas erradas', async () => {
   assert.equal((await anon('POST', '/api/auth/login', { email: 'ana@teste.com', password: 'MaisUmaSenha12' })).status, 401);
 });
 
+test('autocadastro: código por e-mail cria conta de usuário e abre a sessão', async () => {
+  const anon = client();
+  sent.length = 0;
+  assert.equal((await anon('GET', '/api/auth/config')).data.signup, true);
+  assert.equal((await anon('POST', '/api/auth/signup', { name: '', email: 'novo@teste.com', password: 'SenhaNova123' })).status, 400);
+  assert.equal((await anon('POST', '/api/auth/signup', { name: 'Novo', email: 'invalido', password: 'SenhaNova123' })).status, 400);
+  assert.equal((await anon('POST', '/api/auth/signup', { name: 'Novo', email: 'novo@teste.com', password: 'curta' })).status, 400);
+  assert.equal(sent.length, 0);
+  const asked = await anon('POST', '/api/auth/signup', { name: 'Novo Usuário', email: 'Novo@Teste.com', password: 'SenhaNova123' });
+  assert.equal(asked.status, 200);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].to, 'novo@teste.com');
+  const code = /\b(\d{6})\b/.exec(sent[0].text)[1];
+  assert.equal((await anon('POST', '/api/auth/login', { email: 'novo@teste.com', password: 'SenhaNova123' })).status, 401);
+  assert.equal((await anon('POST', '/api/auth/signup/confirm', { email: 'novo@teste.com', code: code === '000000' ? '111111' : '000000' })).status, 400);
+  const confirmed = await anon('POST', '/api/auth/signup/confirm', { email: 'novo@teste.com', code });
+  assert.equal(confirmed.status, 200);
+  assert.equal(confirmed.data.user.role, 'user');
+  assert.equal(confirmed.data.user.mustChangePassword, false);
+  assert.equal((await anon('GET', '/api/auth/me')).status, 200);
+  assert.equal((await anon('POST', '/api/auth/signup/confirm', { email: 'novo@teste.com', code })).status, 400);
+  assert.equal((await client()('POST', '/api/auth/login', { email: 'novo@teste.com', password: 'SenhaNova123' })).status, 200);
+});
+
+test('autocadastro: e-mail já cadastrado recebe a mesma resposta e nenhum e-mail', async () => {
+  const anon = client();
+  sent.length = 0;
+  const fresh = await anon('POST', '/api/auth/signup', { name: 'Outro', email: 'outro@teste.com', password: 'SenhaNova123' });
+  const dup = await anon('POST', '/api/auth/signup', { name: 'Ana', email: 'ana@teste.com', password: 'SenhaNova123' });
+  assert.equal(dup.status, 200);
+  assert.deepEqual(dup.data, fresh.data);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].to, 'outro@teste.com');
+});
+
+test('autocadastro: código trava após 5 tentativas erradas', async () => {
+  const anon = client();
+  sent.length = 0;
+  await anon('POST', '/api/auth/signup', { name: 'Trava', email: 'trava@teste.com', password: 'SenhaNova123' });
+  const code = /\b(\d{6})\b/.exec(sent[0].text)[1];
+  const wrong = code === '123456' ? '654321' : '123456';
+  for (let i = 0; i < 5; i += 1) await anon('POST', '/api/auth/signup/confirm', { email: 'trava@teste.com', code: wrong });
+  const late = await anon('POST', '/api/auth/signup/confirm', { email: 'trava@teste.com', code });
+  assert.ok([400, 429].includes(late.status), `status ${late.status}`);
+  assert.equal((await anon('POST', '/api/auth/login', { email: 'trava@teste.com', password: 'SenhaNova123' })).status, 401);
+});
+
 test('rejeita requisições de outra origem e corpo inválido', async () => {
   const admin = await loginAs('admin@teste.com', 'NovaSenha12');
   const cross = await admin('POST', '/api/projects', { name: 'x', kind: 'capa', settings: {} }, { Origin: 'http://evil.example' });

@@ -7,7 +7,7 @@ const { promisify } = require('node:util');
 const { URL } = require('node:url');
 const PDFDocument = require('pdfkit');
 const appCrypto = require('./lib/crypto');
-const { createUserStore, publicUser, normalizeEmail, normalizePhone, THEMES } = require('./lib/users');
+const { createUserStore, publicUser, normalizeEmail, normalizePhone, isValidPhone, EMAIL_RE, THEMES } = require('./lib/users');
 const { createProjectStore, validateProject } = require('./lib/projects');
 const { createLimiter } = require('./lib/rate-limit');
 const { createDb } = require('./lib/db');
@@ -80,11 +80,15 @@ const projectStore = createProjectStore(db);
 const mailer = createMailer({ host: process.env.SMTP_HOST, port: process.env.SMTP_PORT, secure: process.env.SMTP_SECURE, requireTLS: process.env.SMTP_REQUIRE_TLS, user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, from: process.env.SMTP_FROM });
 const loginLimiter = createLimiter({ max: 8, windowMs: 15 * 60_000 });
 const resetLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
+const signupEmailLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
+const signupIpLimiter = createLimiter({ max: 20, windowMs: 15 * 60_000 });
 const resets = new Map();
+const signups = new Map();
 const MAX_PENDING_RESETS = 1000;
 setInterval(() => {
   const now = Date.now();
   for (const [email, entry] of resets) if (entry.expiresAt < now) resets.delete(email);
+  for (const [email, entry] of signups) if (entry.expiresAt < now) signups.delete(email);
 }, 5 * 60_000).unref();
 
 function clientIp(req) {
@@ -432,7 +436,7 @@ async function handleAuthApi(req, res, pathname, user) {
     return json(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(req, '', 0) });
   }
   if (method === 'GET' && pathname === '/api/auth/config') {
-    return json(res, 200, { emailReset: mailer.enabled });
+    return json(res, 200, { emailReset: mailer.enabled, signup: mailer.enabled });
   }
   if (method === 'POST' && pathname === '/api/auth/forgot') {
     const body = await readJson(req);
@@ -467,6 +471,52 @@ async function handleAuthApi(req, res, pathname, user) {
     if (!target || !target.active) return invalid();
     await userStore.update(target.id, { passwordHash: entry.passwordHash, mustChangePassword: false });
     return json(res, 200, { ok: true, message: 'Senha redefinida. Entre com a nova senha.' });
+  }
+  if (method === 'POST' && pathname === '/api/auth/signup') {
+    const body = await readJson(req);
+    if (!mailer.enabled) return json(res, 503, { error: 'O cadastro por conta própria não está disponível. Peça ao administrador para criar o seu usuário.' });
+    const email = normalizeEmail(body.email);
+    const name = String(body.name || '').trim().slice(0, 120);
+    const phone = normalizePhone(body.phone);
+    const emailKey = `email:${email}`;
+    const ipKey = `ip:${clientIp(req)}`;
+    if (signupEmailLimiter.blocked(emailKey) || signupIpLimiter.blocked(ipKey)) return json(res, 429, { error: 'Muitas solicitações. Aguarde 15 minutos e tente de novo.' });
+    if (!name) throw fail('Informe o nome.');
+    if (!EMAIL_RE.test(email) || email.length > 200) throw fail('E-mail inválido.');
+    if (phone && !isValidPhone(phone)) throw fail('Telefone inválido. Use DDD + número, por exemplo (35) 99999-8888.');
+    checkPassword(body.password);
+    signupEmailLimiter.hit(emailKey);
+    signupIpLimiter.hit(ipKey);
+    if (!await userStore.getByEmail(email)) {
+      const code = appCrypto.randomCode();
+      if (signups.size >= MAX_PENDING_RESETS && !signups.has(email)) signups.delete(signups.keys().next().value);
+      signups.set(email, { name, phone, codeHash: appCrypto.hmacHex(code, resetKey), passwordHash: await appCrypto.hashPassword(body.password), expiresAt: Date.now() + RESET_MINUTES * 60_000, attempts: 0 });
+      try { await mailer.sendSignupCode(email, name, code, RESET_MINUTES); } catch (error) { console.error('Falha ao enviar e-mail de cadastro:', error.message); }
+    }
+    return json(res, 200, { ok: true, message: `Se o e-mail puder ser cadastrado, enviamos um código de 6 dígitos válido por ${RESET_MINUTES} minutos.` });
+  }
+  if (method === 'POST' && pathname === '/api/auth/signup/confirm') {
+    const body = await readJson(req);
+    const email = normalizeEmail(body.email);
+    const emailKey = `email:${email}`;
+    const ipKey = `ip:${clientIp(req)}`;
+    if (signupEmailLimiter.blocked(emailKey) || signupIpLimiter.blocked(ipKey)) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
+    const invalid = () => { signupEmailLimiter.hit(emailKey); signupIpLimiter.hit(ipKey); return json(res, 400, { error: 'Código inválido ou expirado.' }); };
+    const entry = signups.get(email);
+    if (!entry || entry.expiresAt < Date.now()) { signups.delete(email); return invalid(); }
+    entry.attempts += 1;
+    if (entry.attempts > 5) { signups.delete(email); return invalid(); }
+    if (!appCrypto.safeEqualHex(appCrypto.hmacHex(String(body.code || '').trim(), resetKey), entry.codeHash)) return invalid();
+    signups.delete(email);
+    let created;
+    try {
+      created = await userStore.create({ name: entry.name, email, phone: entry.phone, role: 'user', passwordHash: entry.passwordHash, mustChangePassword: false, phoneOptional: true });
+    } catch (error) {
+      if (error.status === 409) return invalid();
+      throw error;
+    }
+    signupEmailLimiter.reset(emailKey);
+    return json(res, 200, { user: userView(created) }, issueSession(req, created));
   }
   if (method === 'GET' && pathname === '/api/auth/me') {
     return json(res, 200, { user: userView(user), emailReset: mailer.enabled });
@@ -544,7 +594,7 @@ async function handleApi(req, res, pathname) {
       return json(res, 200, { ok: true, service: 'gerador-one', db: true });
     }
     if (req.method !== 'GET' && !sameOrigin(req)) return json(res, 403, { error: 'Origem não permitida.' });
-    const isPublicAuth = ['/api/auth/login', '/api/auth/logout', '/api/auth/config', '/api/auth/forgot', '/api/auth/confirm'].includes(pathname);
+    const isPublicAuth = ['/api/auth/login', '/api/auth/logout', '/api/auth/config', '/api/auth/forgot', '/api/auth/confirm', '/api/auth/signup', '/api/auth/signup/confirm'].includes(pathname);
     if (isPublicAuth) return await handleAuthApi(req, res, pathname, null);
     const user = await authenticate(req);
     if (!user) return json(res, 401, { error: 'Sessão expirada. Entre novamente.' });
