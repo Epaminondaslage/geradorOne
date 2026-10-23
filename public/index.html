@@ -3,57 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Gerador de prompts completos para apostilas e materiais didáticos.">
+  <meta name="description" content="Gerador de prompts completos para apostilas, capas e materiais didáticos.">
   <title>GeradorOne — Gerador de Prompts</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="app.css">
 </head>
 <body>
-  <a class="skip-link" href="#formulario">Ir para o formulário</a>
-  <header class="topbar">
-    <div class="brand" aria-label="GeradorOne">
-      <img class="brand-mark" src="assets/icons/mapa-mental.png" alt="" aria-hidden="true">
-      <span><strong>GeradorOne</strong><small>Planeje materiais didáticos visualmente ricos</small></span>
-    </div>
-    <div class="top-actions">
-      <span class="local-badge">Executando no servidor</span>
-      <button id="ai-config-open" class="icon-button" type="button" aria-haspopup="dialog" aria-controls="ai-config-modal"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="17" height="17"><circle cx="10" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3.5v2M10 14.5v2M16.5 10h-2M5.5 10h-2M14.6 5.4l-1.4 1.4M6.8 13.2l-1.4 1.4M14.6 14.6l-1.4-1.4M6.8 6.8 5.4 5.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="theme-label">Config API IA</span></button>
-      <button id="theme-toggle" class="icon-button" type="button" aria-label="Alternar tema" aria-pressed="false"><span class="icon-slot" aria-hidden="true"></span><span class="theme-label">Tema</span></button>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="hero">
-      <div class="intro">
-        <p class="eyebrow">Estúdio de materiais didáticos</p>
-        <h1>Transforme conteúdo em uma experiência <em>visual e memorável.</em></h1>
-        <p>Modele mapas mentais, diagramas, ilustrações e gráficos com intenção pedagógica — tudo em um briefing pronto para produção.</p>
-        <div id="workflow-progress" class="workflow-progress" aria-label="Progresso da criação" style="--progress:0%">
-          <div class="progress-track" aria-hidden="true"><i></i></div>
-          <ol>
-            <li class="active" data-step="1" aria-current="step"><span>1</span><strong>Configure</strong></li>
-            <li data-step="2"><span>2</span><strong>Revise</strong></li>
-            <li data-step="3"><span>3</span><strong>Exporte</strong></li>
-          </ol>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <div class="shell" id="shell">
+    <div class="scrim" id="scrim" hidden></div>
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+      <div class="sidebar-head">
+        <div class="brand" aria-label="GeradorOne">
+          <img class="brand-mark" src="assets/icons/mapa-mental.png" alt="" aria-hidden="true">
+          <span class="nav-label"><strong>GeradorOne</strong><small>Prompts didáticos</small></span>
         </div>
-        <div class="project-actions" aria-label="Gerenciar projeto">
-          <button id="save-draft" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="16" height="16"><path d="M4 4h9l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 4v4h5V4M6.5 12.5h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Salvar rascunho</button>
-          <button id="restore-draft" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="16" height="16"><path d="M4.5 9a5.5 5.5 0 1 1 1.6 3.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4.5 13v-4h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Restaurar rascunho</button>
-          <button id="import-project" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="16" height="16"><path d="M10 13V4M6.5 7.5 10 4l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 13v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Importar projeto</button>
-          <input id="project-file" type="file" accept="application/json,.json" hidden>
-        </div>
+        <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Recolher menu" aria-expanded="true" aria-controls="sidebar"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       </div>
-      <aside class="hero-canvas" aria-label="Exemplos de recursos visuais que podem compor o material">
-        <div class="canvas-top"><span>Prévia do sistema visual</span><span id="resource-summary" class="live-dot">Escolha os recursos</span></div>
-        <div class="canvas-grid">
-          <article class="mini-card mindmap-card" data-resource="mapasMentais"><div class="mini-label">Mapa mental</div><img class="mindmap-icon" src="assets/icons/mapa-mental.png" alt="" aria-hidden="true"></article>
-        </div>
-        <div class="canvas-footer"><span class="chip coral" data-resource="infograficos">Infográficos</span><span class="chip purple" data-resource="ilustracoes">Ilustrações</span><span class="chip yellow" data-resource="sugerirBncc">BNCC</span></div>
-      </aside>
-    </section>
+      <nav class="nav" aria-label="Menu principal">
+        <p class="nav-group nav-label">Criar</p>
+        <a class="nav-item" href="#apostila" data-view="apostila" title="Apostila"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg><span class="nav-label">Apostila</span></a>
+        <a class="nav-item" href="#capa" data-view="capa" title="Capa"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg><span class="nav-label">Capa</span></a>
+        <p class="nav-group nav-label">Biblioteca</p>
+        <a class="nav-item" href="#projetos" data-view="projetos" title="Meus projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="nav-label">Meus projetos</span></a>
+        <p class="nav-group nav-label">Sistema</p>
+        <a class="nav-item" href="#ia" data-view="ia" title="Configuração do modelo de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span class="nav-label">Modelo de IA</span></a>
+      </nav>
+      <div class="sidebar-foot">
+        <button id="theme-toggle" class="nav-item theme-item" type="button" aria-label="Alternar tema" aria-pressed="false" title="Alternar tema"><span class="icon-slot" aria-hidden="true"></span><span class="theme-label nav-label">Tema</span></button>
+      </div>
+    </aside>
 
-    <form id="formulario" novalidate>
-      <section class="card" aria-labelledby="dados-title">
+    <div class="content">
+      <header class="mobile-bar">
+        <button id="menu-open-mobile" class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="sidebar"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <strong>GeradorOne</strong>
+      </header>
+      <main id="conteudo" class="workspace" data-view="apostila">
+        <div class="pane" id="pane">
+          <section class="view" data-view="apostila" aria-label="Apostila">
+            <div class="view-head"><h1>Apostila</h1><p>Defina o material. Cada página vira uma imagem pronta para o seu gerador.</p></div>
+            <form id="formulario" novalidate>
+              <section class="card" aria-labelledby="dados-title">
         <div class="card-head"><span class="number">01</span><div><h2 id="dados-title">Dados do material</h2><p>Defina o que será ensinado e para quem.</p></div></div>
         <div class="grid two">
           <label>Disciplina <span aria-hidden="true">*</span><input name="disciplina" required placeholder="Ex.: Matemática, Inglês, História"></label>
@@ -101,81 +94,120 @@
         </div>
         <label class="full">Orientações visuais adicionais<textarea name="orientacoes" rows="3" placeholder="Ex.: usar mapas mentais radiais, gráficos apenas com dados fornecidos e ilustrações inclusivas."></textarea></label>
       </section>
+              <div class="action-bar">
+                <p><span class="completion-ring" id="completion-ring" aria-hidden="true"></span><strong id="completion">0%</strong><span>Configuração preenchida</span></p>
+                <div class="action-buttons">
+                  <button class="ghost" type="reset" id="reset-apostila"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Novo</button>
+                  <button id="generate-button" class="primary" type="submit"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.34 8 20l-1.94-5.66L0 12.4l6.06-1.94L8 4.8l1.94 5.66L16 12.4z" transform="translate(4 0)"/><path d="M20 3v4M22 5h-4"/></svg><span class="generate-label">Gerar prompt completo</span></button>
+                </div>
+              </div>
+            </form>
+          </section>
 
-      <div class="action-bar">
-        <p><span class="completion-ring" id="completion-ring" aria-hidden="true" style="--pct:0"></span><strong id="completion">0%</strong><span>Configuração preenchida</span></p>
-        <button id="generate-button" class="primary" type="submit"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="17" height="17"><path d="M10 2.5l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1 1.4-2.4Z" fill="currentColor"/><path d="M15.5 12l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6Z" fill="currentColor"/></svg><span class="generate-label">Gerar prompt completo</span></button>
-      </div>
-    </form>
+          <section class="view" data-view="capa" aria-label="Capa" hidden>
+            <div class="view-head"><h1>Capa</h1><p>Gere o prompt da arte frontal de uma capa de apostila, com os textos exatos que devem aparecer.</p></div>
+            <form id="form-capa" novalidate>
+              <section class="card" aria-labelledby="capa-dados-title">
+                <div class="card-head"><span class="number">01</span><div><h2 id="capa-dados-title">Textos da capa</h2><p>Escreva exatamente como devem aparecer na imagem.</p></div></div>
+                <div class="grid two">
+                  <label>Disciplina<input name="disciplina" placeholder="Ex.: Eletricidade"></label>
+                  <label>Título principal <span aria-hidden="true">*</span><input name="titulo" required placeholder="Ex.: Lei de Ohm"></label>
+                  <label>Texto superior<input name="textoSuperior" value="Material de Estudos" placeholder="Ex.: Material de Estudos"></label>
+                  <label>Subtítulo<input name="subtitulo" placeholder="Ex.: Tensão, corrente e resistência"></label>
+                  <label class="full">Frase inferior (opcional)<input name="fraseInferior" placeholder="Ex.: Entenda como a eletricidade se comporta nos circuitos"></label>
+                  <label>Série ou turma (opcional)<input name="serie" placeholder="Ex.: 2º ano"></label>
+                  <label>Professor(a) (opcional)<input name="professor" placeholder="Ex.: Prof.ª Ana"></label>
+                  <label>Instituição (opcional)<input name="instituicao" placeholder="Ex.: Escola Técnica Central"></label>
+                  <label>Público / faixa etária<select name="publico"><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option selected>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
+                </div>
+              </section>
+              <section class="card" aria-labelledby="capa-visual-title">
+                <div class="card-head"><span class="number">02</span><div><h2 id="capa-visual-title">Direção visual da capa</h2><p>Estilo, cores e elementos da ilustração.</p></div></div>
+                <fieldset><legend>Estilo da capa</legend><div id="capa-style-options" class="style-grid"></div></fieldset>
+                <div class="grid two palette-row">
+                  <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
+                  <label>Formato da capa<select name="formato"><option selected>Impressão A4</option><option>Somente tela</option><option>Apresentação 16:9</option></select></label>
+                  <label class="full">Elementos desejados na ilustração (opcional)<textarea name="elementos" rows="3" placeholder="Ex.: circuito elétrico, lâmpada, resistores e um multímetro."></textarea></label>
+                </div>
+              </section>
+              <div class="action-bar">
+                <p><span>Capa em página única, sem mockup.</span></p>
+                <div class="action-buttons">
+                  <button class="ghost" type="reset" id="reset-capa"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Novo</button>
+                  <button id="generate-capa" class="primary" type="submit"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.34 8 20l-1.94-5.66L0 12.4l6.06-1.94L8 4.8l1.94 5.66L16 12.4z" transform="translate(4 0)"/><path d="M20 3v4M22 5h-4"/></svg><span>Gerar prompt da capa</span></button>
+                </div>
+              </div>
+            </form>
+          </section>
 
-  </main>
-  <dialog id="result-modal" class="result-modal" aria-labelledby="result-title">
-    <section class="modal-shell">
-      <header class="modal-head">
-        <div><p class="eyebrow">Pronto para usar</p><h2 id="result-title">Prompt da apostila</h2></div>
-        <button id="close-modal" class="modal-close" type="button" aria-label="Fechar resultado"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-      </header>
-      <nav class="result-actions" aria-label="Ações do resultado">
-        <button id="show-prompt" class="active" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><path d="M5 2.5h7l3 3v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 9h7M6.5 12h7M6.5 15h4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Ver prompt</button>
-        <button id="preview" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><path d="M1.5 10S4.5 4.5 10 4.5 18.5 10 18.5 10 15.5 15.5 10 15.5 1.5 10 1.5 10Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="10" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Prévia HTML</button>
-        <button id="copy" type="button"><span class="copy-icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 20 20" width="16" height="16"><rect x="7" y="7" width="9" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 13V5a2 2 0 0 1 2-2h8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="copy-label">Copiar prompt</span></button>
-        <button id="improve-open" type="button" aria-haspopup="dialog" aria-controls="improve-modal"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><path d="M8 2.5l1.1 3 3 1.1-3 1.1L8 10.7l-1.1-3-3-1.1 3-1.1Z" fill="currentColor"/><path d="M14.5 10.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7Z" fill="currentColor"/><path d="M3.5 16.5l5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Melhorar com IA</button>
-        <button id="export-txt" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><path d="M10 3v9.5M6.2 9.3 10 13l3.8-3.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 15.5v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Baixar TXT</button>
-        <button id="export-json" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><path d="M7.5 3.5c-1.6 0-2 .8-2 1.8v2.2c0 1-.4 1.5-1.5 1.5v2c1.1 0 1.5.5 1.5 1.5v2.2c0 1 .4 1.8 2 1.8M12.5 3.5c1.6 0 2 .8 2 1.8v2.2c0 1 .4 1.5 1.5 1.5v2c-1.1 0-1.5.5-1.5 1.5v2.2c0 1-.4 1.8-2 1.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Baixar projeto</button>
-        <button id="export-pdf" class="pdf-action" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><path d="M5 2.5h6.5l3 3V17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.8 14.5V11h1.1a1.1 1.1 0 0 1 0 2.2H6.8M10.3 14.5V11h1a1.75 1.75 0 0 1 0 3.5h-1M14.4 11v3.5M14.4 12.7h1.3" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>Baixar PDF</button>
-      </nav>
-      <div class="modal-content">
-        <pre id="prompt-output" tabindex="0"></pre>
-        <iframe id="preview-frame" title="Prévia HTML do prompt" sandbox hidden></iframe>
-        <section id="generated-files" class="generated-files" aria-label="Arquivos gerados" hidden></section>
-      </div>
-      <p id="status" class="status" role="status"></p>
-    </section>
-  </dialog>
-  <dialog id="ai-config-modal" class="result-modal ai-config-modal" aria-labelledby="ai-config-title">
-    <section class="modal-shell">
-      <header class="modal-head">
-        <div><p class="eyebrow">Servidor</p><h2 id="ai-config-title">Config API IA</h2></div>
-        <button id="ai-config-close" class="modal-close" type="button" aria-label="Fechar configuração"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-      </header>
-      <form id="ai-config-form" class="ai-config-form">
-        <p id="ai-config-current" class="field-status">Verificando configuração…</p>
-        <label>Provedor<select id="ai-config-provider" name="provider"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option></select></label>
-        <label>Chave da API<input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual"></label>
-        <label>Modelo de texto<input id="ai-config-model" name="model" type="text" list="ai-text-models" placeholder="gpt-6-astra" autocomplete="off"></label>
-        <datalist id="ai-text-models-openai"><option value="gpt-6-astra">Mais capaz (recomendado)</option><option value="gpt-6.1-sol">Programação e trabalho profissional, custo menor</option><option value="gpt-6-sol"></option><option value="gpt-6-luna">Menor custo da família GPT-6</option><option value="gpt-5.6-sol"></option><option value="gpt-5.6-terra">Equilíbrio inteligência/custo</option><option value="gpt-5.6-luna">Alto volume e eficiência</option></datalist>
-        <datalist id="ai-text-models-gemini"><option value="gemini-3.8-flash">Recomendado</option><option value="gemini-2.5-pro">Mais capaz, mais lento</option><option value="gemini-2.5-flash">Rápido e barato</option></datalist>
-        <label>Modelo de imagem<input id="ai-config-image-model" name="imageModel" type="text" list="ai-image-models" placeholder="gpt-image-2.5-flare" autocomplete="off"></label>
-        <datalist id="ai-image-models-openai"><option value="gpt-image-2.5-flare">Geração rápida no dia a dia (recomendado)</option><option value="gpt-image-2.5-sunburst">Edições com mais precisão</option><option value="gpt-image-2"></option><option value="gpt-image-1.5"></option><option value="gpt-image-1"></option><option value="gpt-image-1-mini">Versão mais econômica</option></datalist>
-        <datalist id="ai-image-models-gemini"><option value="gemini-3-pro-image-preview">Nano Banana Pro — mais preciso (recomendado)</option><option value="gemini-3.1-flash-image">Nano Banana — rápido</option><option value="gemini-2.5-flash-image"></option></datalist>
-        <div class="ai-config-actions">
-          <button id="ai-config-clear" type="button">Remover chave</button>
-          <button id="ai-config-save" class="primary" type="submit">Salvar configuração</button>
+          <section class="view" data-view="projetos" aria-label="Meus projetos" hidden>
+            <div class="view-head"><h1>Meus projetos</h1><p>Apostilas e capas salvas no servidor. Abra um projeto para continuar de onde parou.</p></div>
+            <div class="projects-tools">
+              <button id="import-project" class="ghost" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>Importar arquivo JSON</button>
+              <input id="project-file" type="file" accept="application/json,.json" hidden>
+            </div>
+            <div id="projects-list" class="projects-list" aria-live="polite"></div>
+          </section>
+
+          <section class="view" data-view="ia" aria-label="Modelo de IA" hidden>
+            <div class="view-head"><h1>Modelo de IA</h1><p>Provedor, chave e modelos usados para gerar materiais e melhorar prompts. Aplicado na hora, sem reiniciar.</p></div>
+            <form id="ai-config-form" class="card ai-config-form">
+              <p id="ai-config-current" class="field-status">Verificando configuração…</p>
+              <label>Provedor<select id="ai-config-provider" name="provider"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option></select></label>
+              <label>Chave da API<input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual"></label>
+              <label>Modelo de texto<input id="ai-config-model" name="model" type="text" list="ai-text-models" placeholder="gpt-6-astra" autocomplete="off"></label>
+              <datalist id="ai-text-models-openai"><option value="gpt-6-astra">Mais capaz (recomendado)</option><option value="gpt-6.1-sol">Programação e trabalho profissional, custo menor</option><option value="gpt-6-sol"></option><option value="gpt-6-luna">Menor custo da família GPT-6</option><option value="gpt-5.6-sol"></option><option value="gpt-5.6-terra">Equilíbrio inteligência/custo</option><option value="gpt-5.6-luna">Alto volume e eficiência</option></datalist>
+              <datalist id="ai-text-models-gemini"><option value="gemini-3.8-flash">Recomendado</option><option value="gemini-2.5-pro">Mais capaz, mais lento</option><option value="gemini-2.5-flash">Rápido e barato</option></datalist>
+              <label>Modelo de imagem<input id="ai-config-image-model" name="imageModel" type="text" list="ai-image-models" placeholder="gpt-image-2.5-flare" autocomplete="off"></label>
+              <datalist id="ai-image-models-openai"><option value="gpt-image-2.5-flare">Geração rápida no dia a dia (recomendado)</option><option value="gpt-image-2.5-sunburst">Edições com mais precisão</option><option value="gpt-image-2"></option><option value="gpt-image-1.5"></option><option value="gpt-image-1"></option><option value="gpt-image-1-mini">Versão mais econômica</option></datalist>
+              <datalist id="ai-image-models-gemini"><option value="gemini-3-pro-image-preview">Nano Banana Pro — mais preciso (recomendado)</option><option value="gemini-3.1-flash-image">Nano Banana — rápido</option><option value="gemini-2.5-flash-image"></option></datalist>
+              <div class="ai-config-actions">
+                <button id="ai-config-clear" type="button">Remover chave</button>
+                <button id="ai-config-save" class="primary" type="submit">Salvar configuração</button>
+              </div>
+              <p id="ai-config-status" class="status" role="status"></p>
+            </form>
+          </section>
+          <p class="legal">O gerador não valida automaticamente conteúdos ou códigos curriculares. GeradorOne v2</p>
         </div>
-        <p id="ai-config-status" class="status" role="status"></p>
-      </form>
-    </section>
-  </dialog>
-  <dialog id="improve-modal" class="result-modal ai-config-modal" aria-labelledby="improve-title">
-    <section class="modal-shell">
-      <header class="modal-head">
-        <div><p class="eyebrow">Prompt</p><h2 id="improve-title">Melhorar com IA</h2></div>
-        <button id="improve-close" class="modal-close" type="button" aria-label="Fechar melhoria"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-      </header>
-      <form id="improve-form" class="ai-config-form">
-        <p id="improve-mode" class="field-status">Escolha ajustes rápidos ou descreva o que deseja mudar.</p>
-        <fieldset class="improve-chips"><legend>Ajustes rápidos</legend><div id="improve-options"></div></fieldset>
-        <label>Instrução personalizada (opcional)<textarea id="improve-instruction" name="instruction" rows="3" maxlength="1000" placeholder="Ex.: incluir um esquema de quadro de distribuição com disjuntores rotulados."></textarea></label>
-        <div class="ai-config-actions">
-          <button id="improve-cancel" type="button">Cancelar</button>
-          <button id="improve-apply" class="primary" type="submit">Aplicar</button>
-        </div>
-        <p id="improve-status" class="status" role="status"></p>
-      </form>
-    </section>
-  </dialog>
+
+        <aside class="out-panel" id="out-panel" aria-label="Resultado">
+          <div class="out-head"><h2>Resultado</h2><span id="out-badge" class="chip-badge" hidden></span></div>
+          <div id="out-empty" class="out-empty"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/></svg><strong>Nada gerado ainda</strong><span>Escolha as opções, preencha os dados e clique em Gerar: o resultado aparece aqui.</span></div>
+          <div id="out-body" hidden>
+            <nav class="result-actions" id="result-actions" aria-label="Ações do resultado">
+              <button id="show-prompt" class="active" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg>Prompt</button>
+              <button id="preview" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Prévia</button>
+              <button id="copy" type="button"><span class="copy-icon" aria-hidden="true"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span><span class="copy-label">Copiar</span></button>
+              <button id="improve-open" type="button" aria-expanded="false" aria-controls="improve-box"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>Melhorar com IA</button>
+              <button id="export-txt" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>TXT</button>
+              <button id="export-json" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/></svg>JSON</button>
+              <button id="export-pdf" class="pdf-action" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>PDF</button>
+            </nav>
+            <section id="improve-box" class="improve-box" hidden aria-label="Melhorar com IA">
+              <p id="improve-mode" class="field-status"></p>
+              <fieldset class="improve-chips"><legend>Ajustes rápidos</legend><div id="improve-options"></div></fieldset>
+              <label>Instrução personalizada (opcional)<textarea id="improve-instruction" rows="2" maxlength="1000" placeholder="Ex.: incluir um esquema de quadro de distribuição com disjuntores rotulados."></textarea></label>
+              <div class="improve-actions"><button id="improve-cancel" class="ghost" type="button">Cancelar</button><button id="improve-apply" class="primary" type="button">Aplicar</button></div>
+              <p id="improve-status" class="status" role="status"></p>
+            </section>
+            <div class="modal-content">
+              <pre id="prompt-output" tabindex="0"></pre>
+              <iframe id="preview-frame" title="Prévia HTML do prompt" sandbox hidden></iframe>
+              <section id="generated-files" class="generated-files" aria-label="Arquivos gerados" hidden></section>
+            </div>
+            <div class="save-row" id="save-row">
+              <label class="save-name">Nome do projeto<input id="project-name" maxlength="120" placeholder="Ex.: Lei de Ohm — 2º ano"></label>
+              <button id="save-project" class="primary" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg><span class="save-label">Salvar em Meus projetos</span></button>
+              <button id="save-project-new" class="ghost" type="button" hidden>Salvar como novo</button>
+            </div>
+            <p id="status" class="status" role="status"></p>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-  <footer><span>GeradorOne v2</span><span>O gerador não valida automaticamente conteúdos ou códigos curriculares.</span></footer>
   <script src="app.js" defer></script>
 </body>
 </html>

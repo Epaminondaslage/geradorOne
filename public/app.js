@@ -18,9 +18,12 @@ function setTheme(theme) {
 setTheme(preferredTheme);
 themeButton.addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 
-const styleContainer = document.querySelector('#style-options');
 const styleSamples = ['● ᴗ ●','╱╲〰','✎ ✦ ☁','● ABC ✦','⌬ ⌖ ◌','◈ 01 ◈','▦ ↑ 72','— ○ —','◒ ◉ ◐','▣ ◉ ▣','Aa § 01','★ ● ▲'];
-styles.forEach(([name, description], index) => styleContainer.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="style-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="style-${index}"><span class="style-sample sample-${index}" aria-hidden="true">${styleSamples[index]}</span><strong>${name}</strong><small>${description}</small></label></div>`));
+function renderStyleOptions(container, prefix) {
+  styles.forEach(([name, description], index) => container.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="${prefix}-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="${prefix}-${index}"><span class="style-sample sample-${index}" aria-hidden="true">${styleSamples[index]}</span><strong>${name}</strong><small>${description}</small></label></div>`));
+}
+renderStyleOptions(document.querySelector('#style-options'), 'style');
+renderStyleOptions(document.querySelector('#capa-style-options'), 'capa-style');
 const resourceContainer = document.querySelector('#resource-options');
 const visualSamples = {
   mapasMentais:'<img class="resource-icon" src="assets/icons/mapa-mental.png" alt="" width="56" height="56">',
@@ -35,16 +38,19 @@ const visualSamples = {
 resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><strong>${title}</strong><small>${description}</small></label></div>`));
 
 const form = document.querySelector('#formulario');
+const capaForm = document.querySelector('#form-capa');
 const output = document.querySelector('#prompt-output');
-const resultModal = document.querySelector('#result-modal');
 const previewFrame = document.querySelector('#preview-frame');
 const generatedFiles = document.querySelector('#generated-files');
 const status = document.querySelector('#status');
 const toast = document.querySelector('#toast');
+const formFor = kind => (kind === 'capa' ? capaForm : form);
 let currentPrompt = '';
 let currentPreviewHtml = '';
+let currentKind = 'apostila';
+let currentProjectId = null;
+let currentProjectKind = null;
 let toastTimer;
-let workflowStage = 1;
 let currentFiles = [];
 
 function updateGenerationMode() {
@@ -68,28 +74,6 @@ async function checkAiAvailability() {
   }
 }
 
-function setWorkflowStage(stage, formPercent = 100) {
-  workflowStage = Math.max(workflowStage, stage);
-  const progress = document.querySelector('#workflow-progress');
-  const width = workflowStage === 1 ? Math.min(33, formPercent * .33) : workflowStage === 2 ? 66 : 100;
-  progress.style.setProperty('--progress', `${width}%`);
-  progress.querySelectorAll('li').forEach(item => {
-    const number = Number(item.dataset.step);
-    item.classList.toggle('complete', number < workflowStage);
-    item.classList.toggle('active', number === workflowStage);
-    if (number === workflowStage) item.setAttribute('aria-current', 'step'); else item.removeAttribute('aria-current');
-  });
-}
-
-function updateResourceSummary() {
-  const count = resources.filter(([name]) => form.elements.namedItem(name)?.checked).length;
-  document.querySelector('#resource-summary').textContent = count ? `${count} recurso${count > 1 ? 's' : ''} selecionado${count > 1 ? 's' : ''}` : 'Escolha os recursos';
-  document.querySelectorAll('[data-resource]').forEach(element => {
-    const field = form.elements.namedItem(element.dataset.resource);
-    element.classList.toggle('active', Boolean(field?.checked));
-  });
-}
-
 function notify(message) {
   clearTimeout(toastTimer);
   toast.textContent = message;
@@ -98,11 +82,13 @@ function notify(message) {
   toastTimer = setTimeout(() => { toast.classList.remove('show'); toast.hidden = true; }, 2600);
 }
 
-function dataObject() {
-  const fd = new FormData(form);
+function dataObject(target = form) {
+  const fd = new FormData(target);
   const data = Object.fromEntries(fd.entries());
-  resources.forEach(([name]) => data[name] = fd.has(name));
-  data.sugerirBncc = fd.has('sugerirBncc');
+  if (target === form) {
+    resources.forEach(([name]) => data[name] = fd.has(name));
+    data.sugerirBncc = fd.has('sugerirBncc');
+  }
   return data;
 }
 
@@ -110,9 +96,9 @@ function selectedResources(data) {
   return resources.filter(([name]) => data[name]).map(([, , title]) => title);
 }
 
-function applyData(data) {
+function applyData(target, data) {
   Object.entries(data || {}).forEach(([name, value]) => {
-    const fields = form.elements.namedItem(name);
+    const fields = target.elements.namedItem(name);
     if (!fields) return;
     if (fields instanceof RadioNodeList) {
       [...fields].forEach(field => { field.checked = field.value === value; });
@@ -425,54 +411,177 @@ function generateImagePrompt(data) {
   return lines.join('\n');
 }
 
+const coverFormats = {
+  'Somente tela': 'vertical 4:5 (1080x1350 px), otimizada para tela',
+  'Apresentação 16:9': 'horizontal 16:9 (1920x1080 px)',
+};
+
+function generateCoverPrompt(data) {
+  const formato = coverFormats[data.formato] || 'vertical A4 (210x297 mm)';
+  const style = styleProfiles[data.estiloVisual] || styleProfiles['Livro Didático'];
+  const titulo = text(data.titulo);
+  const disciplina = data.disciplina?.trim();
+  const tema = disciplina ? `${titulo} (${disciplina})` : titulo;
+  const childAudience = ['Educação Infantil', 'Ensino Fundamental I'].includes(data.publico);
+  const learners = { 'Adulto': 'adultos', 'Outro': 'pessoas do público-alvo' }[data.publico] || `alunos de ${data.publico}`;
+  const texts = [
+    ['Texto superior', data.textoSuperior],
+    ['Título principal', data.titulo],
+    ['Subtítulo', data.subtitulo],
+    ['Frase inferior', data.fraseInferior],
+    ['Série', data.serie],
+    ['Professor(a)', data.professor],
+    ['Instituição', data.instituicao],
+  ].filter(([, value]) => value?.trim());
+  const hasCredits = [data.serie, data.professor, data.instituicao].some(value => value?.trim());
+  const lines = [
+    'ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.',
+    `A saída esperada é UMA IMAGEM ÚNICA: a arte frontal de uma capa de apostila educacional, em formato ${formato}.`,
+    `O estilo visual deve ser OBRIGATORIAMENTE: ${data.estiloVisual}. Não misture com outros estilos.`,
+    'Não responda com texto explicativo: produza somente a imagem descrita abaixo.',
+    '',
+    'PAPEL',
+    'Atue como designer gráfico editorial especializado em capas de material didático brasileiro.',
+    '',
+    'CONTEXTO',
+    ...(disciplina ? [`Disciplina: ${disciplina}`] : []),
+    `Tema da capa: ${titulo}`,
+    `Público: ${data.publico}`,
+    `Estilo visual: ${data.estiloVisual}`,
+    `Paleta visual: ${data.paleta}`,
+    '',
+    'TEXTOS DA CAPA (escreva exatamente como abaixo, letra por letra, com a acentuação indicada)',
+    ...texts.map(([label, value]) => `${label}: "${value.trim()}"`),
+    'Nenhum outro texto deve aparecer na capa: não invente slogans, datas, selos, logotipos ou assinaturas.',
+    '',
+    `DIREÇÃO DE ARTE — ${data.estiloVisual.toUpperCase()}`,
+    `- Ilustração: ${style.ilustracao}.`,
+    `- Página: ${style.pagina}.`,
+    `- Tipografia: ${style.tipografia}.`,
+    `- Evite: ${style.evitar}.`,
+    '',
+    'COMPOSIÇÃO',
+    '- Hierarquia tipográfica: texto superior pequeno, título principal muito grande e dominante, subtítulo médio e frase inferior pequena na base.',
+    `- Título em destaque, no centro ou no terço superior, com ilustrações ao redor relacionadas a ${tema}, sem cobrir nenhum texto.`,
+    ...(data.elementos?.trim() ? [`- Elementos obrigatórios na ilustração: ${data.elementos.trim()}.`] : []),
+    ...(hasCredits ? ['- Série, professor(a) e instituição em texto pequeno e discreto, em uma área própria (rodapé ou canto), sem competir com o título.'] : []),
+    '- Margens amplas, nada cortado nas bordas e alto contraste entre texto e fundo; tipografia extremamente legível.',
+    data.paleta === 'Automática'
+      ? '- Paleta automática: escolha cores que combinem com o estilo e o tema.'
+      : `- Paleta ${data.paleta}: aplique-a em toda a capa.`,
+    childAudience
+      ? `- Personagens, se houver, devem ser crianças da faixa etária de ${data.publico}.`
+      : `- NÃO use figuras infantis nem imagens de crianças. Personagens, se houver, devem ser ${learners}.`,
+    '',
+    'RESTRIÇÕES',
+    '- Evite excesso de elementos e fundos poluídos.',
+    `- Formato ${formato}.`,
+    '- Sem mockup. Sem livro físico, sem sombra de livro e sem moldura de dispositivo: apenas a arte frontal da capa.',
+    "- Sem marca d'água.",
+    '- Todo o texto em português do Brasil, sem erros de grafia.',
+  ];
+  return lines.join('\n');
+}
+
+const workspace = document.querySelector('#workspace') || document.querySelector('.workspace');
+const outPanel = document.querySelector('#out-panel');
+const outEmpty = document.querySelector('#out-empty');
+const outBody = document.querySelector('#out-body');
+const outBadge = document.querySelector('#out-badge');
+const resultActions = document.querySelector('#result-actions');
+const projectName = document.querySelector('#project-name');
+const saveProjectButton = document.querySelector('#save-project');
+const saveProjectNewButton = document.querySelector('#save-project-new');
+const improveBox = document.querySelector('#improve-box');
+const improveOpen = document.querySelector('#improve-open');
+const showPromptButton = document.querySelector('#show-prompt');
+const previewButton = document.querySelector('#preview');
+const ICON_OPEN = '<svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>';
+const ICON_TRASH = '<svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>';
+const KIND_LABEL = { apostila: 'Apostila', capa: 'Capa' };
+const RESULT_BADGE = { apostila: 'Prompt da apostila', capa: 'Prompt da capa' };
+
 function updateCompletion() {
-  const data = dataObject();
+  const data = dataObject(form);
   const required = ['disciplina','assunto','publico'];
   const optional = ['objetivo','referencias','orientacoes'];
   const score = required.filter(k => data[k]).length * 20 + optional.filter(k => data[k]).length * 8 + selectedResources(data).length * 2;
   const percent = Math.min(100, score);
   document.querySelector('#completion').textContent = `${percent}%`;
   document.querySelector('#completion-ring').style.setProperty('--pct', percent);
-  updateResourceSummary();
-  if (workflowStage === 1) setWorkflowStage(1, Math.min(100, score));
 }
 form.addEventListener('input', () => { updateCompletion(); updateGenerationMode(); });
 document.querySelector('#select-all-resources').addEventListener('click', () => { resources.forEach(([name]) => { form.elements.namedItem(name).checked = true; }); updateCompletion(); });
 document.querySelector('#clear-resources').addEventListener('click', () => { resources.forEach(([name]) => { form.elements.namedItem(name).checked = false; }); updateCompletion(); });
 
-form.addEventListener('submit', async event => {
-  event.preventDefault();
+function validateRequired(target) {
   let valid = true;
-  form.querySelectorAll('[required]').forEach(field => { const bad = !field.value.trim(); field.setAttribute('aria-invalid', String(bad)); if (bad) valid = false; });
-  if (!valid) { form.querySelector('[aria-invalid=true]').focus(); return; }
-  const settings = dataObject();
-  const pages = Math.max(1, Number.parseInt(settings.paginas, 10) || 1);
-  settings.extensao = `${pages} ${pages === 1 ? 'página' : 'páginas'}, no máximo`;
-  if (settings.modoGeracao !== 'ai') {
-    currentPrompt = generateImagePrompt(settings);
-  } else {
-  const deliveryInstruction = settings.formatoEntrega === 'pdf'
-    ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
-    : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
-  currentPrompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n8. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
-  if (settings.modoImagem === 'gerar') currentPrompt += '\n\n9. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final, se a plataforma usada tiver ferramenta própria de geração de imagem.\n- Se a plataforma não tiver ferramenta de geração de imagem raster, produza ilustrações vetoriais em SVG acessível e renderizadas no próprio arquivo, seguindo a mesma especificação do briefing.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se nenhum visual estiver de fato renderizado (raster ou vetorial) no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
-  }
-  const aiMode = settings.modoGeracao === 'ai';
-  document.querySelector('#result-title').textContent = aiMode ? 'Material gerado com IA' : 'Prompt da apostila';
-  document.querySelector('.result-actions').hidden = aiMode;
-  output.textContent = currentPrompt;
-  output.hidden = aiMode;
-  previewFrame.hidden = true;
-  generatedFiles.hidden = !aiMode;
+  target.querySelectorAll('[required]').forEach(field => { const bad = !field.value.trim(); field.setAttribute('aria-invalid', String(bad)); if (bad) valid = false; });
+  if (!valid) target.querySelector('[aria-invalid=true]').focus();
+  return valid;
+}
+
+function syncSaveButtons() {
+  saveProjectButton.querySelector('.save-label').textContent = currentProjectId ? 'Atualizar projeto' : 'Salvar em Meus projetos';
+  saveProjectNewButton.hidden = !currentProjectId;
+}
+
+function setResultTab(tab) {
+  showPromptButton.classList.toggle('active', tab === 'prompt');
+  previewButton.classList.toggle('active', tab === 'preview');
+}
+
+function showResult({ prompt, kind, badge, files = false }) {
+  currentPrompt = prompt;
+  currentKind = kind;
+  if (currentProjectId && currentProjectKind !== kind) currentProjectId = null;
   currentPreviewHtml = '';
   currentFiles = [];
-  setWorkflowStage(2);
-  resultModal.showModal();
+  outEmpty.hidden = true;
+  outBody.hidden = false;
+  outBadge.textContent = badge;
+  outBadge.hidden = false;
+  output.textContent = prompt;
+  output.hidden = files;
+  previewFrame.hidden = true;
+  generatedFiles.hidden = !files;
+  resultActions.hidden = files;
+  improveBox.hidden = true;
+  improveOpen.setAttribute('aria-expanded', 'false');
+  setResultTab('prompt');
+  syncSaveButtons();
+  if (matchMedia('(max-width: 1180px)').matches) outPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function projectTitle() {
+  const data = dataObject(formFor(currentKind));
+  return (currentKind === 'capa' ? data.titulo : data.assunto) || 'Prompt GeradorOne';
+}
+
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!validateRequired(form)) return;
+  const settings = dataObject(form);
+  const pages = Math.max(1, Number.parseInt(settings.paginas, 10) || 1);
+  settings.extensao = `${pages} ${pages === 1 ? 'página' : 'páginas'}, no máximo`;
+  const aiMode = settings.modoGeracao === 'ai';
+  let prompt;
   if (!aiMode) {
-    status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao solicitar a prévia HTML.';
+    prompt = generateImagePrompt(settings);
+  } else {
+    const deliveryInstruction = settings.formatoEntrega === 'pdf'
+      ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
+      : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
+    prompt = `${generatePrompt(settings)}\n\n7. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n8. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
+    if (settings.modoImagem === 'gerar') prompt += '\n\n9. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final, se a plataforma usada tiver ferramenta própria de geração de imagem.\n- Se a plataforma não tiver ferramenta de geração de imagem raster, produza ilustrações vetoriais em SVG acessível e renderizadas no próprio arquivo, seguindo a mesma especificação do briefing.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se nenhum visual estiver de fato renderizado (raster ou vetorial) no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
+  }
+  showResult({ prompt, kind: 'apostila', badge: aiMode ? 'Material gerado com IA' : RESULT_BADGE.apostila, files: aiMode });
+  if (!currentProjectId) projectName.value = settings.assunto;
+  if (!aiMode) {
+    status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao pedir a prévia, o PDF ou melhorar com IA.';
     return;
   }
-  generatedFiles.innerHTML = '<div class="ai-loading"><span class="ai-spinner" aria-hidden="true"></span><strong>Produzindo o material…</strong><span>Esta etapa pode levar alguns minutos. Não feche esta janela.</span></div>';
+  generatedFiles.innerHTML = '<div class="ai-loading"><span class="ai-spinner" aria-hidden="true"></span><strong>Produzindo o material…</strong><span>Esta etapa pode levar alguns minutos. Não saia desta página.</span></div>';
   status.textContent = 'A IA está criando e finalizando o arquivo solicitado.';
   const button = document.querySelector('#generate-button');
   const label = button.querySelector('.generate-label');
@@ -481,12 +590,11 @@ form.addEventListener('submit', async event => {
   label.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>Gerando…';
   try {
     const imageCount = settings.frequencia.startsWith('Intensa') ? 3 : settings.frequencia.startsWith('Equilibrada') ? 2 : 1;
-    const response = await fetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt: currentPrompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
+    const response = await fetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível gerar o material.');
     currentFiles = result.files || [];
     renderGeneratedFiles();
-    setWorkflowStage(3);
     status.textContent = `${currentFiles.length} arquivo${currentFiles.length === 1 ? '' : 's'} gerado${currentFiles.length === 1 ? '' : 's'} com ${result.model}. Escolha onde salvar.`;
     notify('Material gerado com sucesso');
   } catch (error) {
@@ -497,6 +605,21 @@ form.addEventListener('submit', async event => {
     label.textContent = originalLabel;
   }
 });
+
+capaForm.addEventListener('submit', event => {
+  event.preventDefault();
+  if (!validateRequired(capaForm)) return;
+  const settings = dataObject(capaForm);
+  showResult({ prompt: generateCoverPrompt(settings), kind: 'capa', badge: RESULT_BADGE.capa });
+  if (!currentProjectId) projectName.value = `Capa — ${settings.titulo}`;
+  status.textContent = 'Prompt da capa montado no navegador.';
+});
+
+[form, capaForm].forEach(target => target.addEventListener('reset', () => {
+  currentProjectId = null;
+  syncSaveButtons();
+  setTimeout(() => { updateCompletion(); updateGenerationMode(); });
+}));
 
 function escapeUi(value) {
   return String(value).replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
@@ -550,37 +673,33 @@ document.querySelector('#copy').addEventListener('click', async () => {
     button.classList.add('copied');
     copyIcon.innerHTML = '<svg class="icon-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     button.querySelector('.copy-label').textContent = 'Copiado!';
-    setWorkflowStage(3);
     status.textContent = 'Prompt copiado para a área de transferência.';
     notify('Prompt copiado com sucesso');
-    setTimeout(() => { button.classList.remove('copied'); copyIcon.innerHTML = defaultIconHtml; button.querySelector('.copy-label').textContent = 'Copiar prompt'; }, 2200);
+    setTimeout(() => { button.classList.remove('copied'); copyIcon.innerHTML = defaultIconHtml; button.querySelector('.copy-label').textContent = 'Copiar'; }, 2200);
   } catch { status.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'; }
 });
-document.querySelector('#export-txt').addEventListener('click', () => { download('prompt-apostila.txt', currentPrompt, 'text/plain;charset=utf-8'); setWorkflowStage(3); notify('Arquivo TXT preparado'); });
-document.querySelector('#export-json').addEventListener('click', () => { download('projeto-apostila.json', JSON.stringify({ version: 2, createdAt: new Date().toISOString(), settings: dataObject(), prompt: currentPrompt }, null, 2), 'application/json'); setWorkflowStage(3); notify('Projeto JSON preparado'); });
-document.querySelector('#preview').addEventListener('click', async () => {
+document.querySelector('#export-txt').addEventListener('click', () => { download('prompt-apostila.txt', currentPrompt, 'text/plain;charset=utf-8'); notify('Arquivo TXT preparado'); });
+document.querySelector('#export-json').addEventListener('click', () => { download('projeto-geradorone.json', JSON.stringify({ version: 3, kind: currentKind, createdAt: new Date().toISOString(), settings: dataObject(formFor(currentKind)), prompt: currentPrompt }, null, 2), 'application/json'); notify('Projeto JSON preparado'); });
+previewButton.addEventListener('click', async () => {
   status.textContent = 'Preparando prévia…';
   try {
     if (!currentPreviewHtml) {
-      const response = await fetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto, prompt: currentPrompt }) });
+      const response = await fetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
       if (!response.ok) throw new Error('Falha na prévia');
       currentPreviewHtml = (await response.json()).html;
     }
     previewFrame.srcdoc = currentPreviewHtml;
     previewFrame.hidden = false;
     output.hidden = true;
-    status.textContent = 'Prévia HTML exibida no modal.';
+    setResultTab('preview');
+    status.textContent = 'Prévia HTML exibida.';
   } catch { status.textContent = 'Não foi possível gerar a prévia. O prompt continua disponível.'; }
 });
-
-document.querySelector('#show-prompt').addEventListener('click', () => { previewFrame.hidden = true; output.hidden = false; status.textContent = 'Exibindo o prompt completo.'; });
-document.querySelector('#close-modal').addEventListener('click', () => resultModal.close());
-resultModal.addEventListener('click', event => { if (event.target === resultModal) resultModal.close(); });
+showPromptButton.addEventListener('click', () => { previewFrame.hidden = true; output.hidden = false; setResultTab('prompt'); status.textContent = 'Exibindo o prompt completo.'; });
 document.querySelector('#export-pdf').addEventListener('click', async () => {
-  setWorkflowStage(3);
   status.textContent = 'Gerando arquivo PDF…';
   try {
-    const response = await fetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: dataObject().assunto || 'Prompt GeradorOne', prompt: currentPrompt }) });
+    const response = await fetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
     if (!response.ok) throw new Error('Falha no PDF');
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -592,11 +711,182 @@ document.querySelector('#export-pdf').addEventListener('click', async () => {
   } catch { status.textContent = 'Não foi possível preparar o PDF.'; }
 });
 
-updateCompletion();
-updateGenerationMode();
-checkAiAvailability();
+const improveAdjustments = [
+  ['Mais detalhado', 'Aumente o detalhamento: mais subtópicos, exemplos e rótulos explicativos, sem ultrapassar o número de páginas.'],
+  ['Mais simples', 'Simplifique: menos blocos, frases mais curtas e vocabulário mais acessível.'],
+  ['Mais visual', 'Torne mais visual: mais esquemas, ícones e ilustrações, e menos texto.'],
+  ['Mais didático', 'Reforce o caráter didático: progressão passo a passo, analogias do cotidiano e destaque para os conceitos-chave.'],
+  ['Mais profissional', 'Dê um tom mais técnico e profissional, com termos da área e aplicação prática.'],
+  ['Adaptar para crianças', 'Adapte para crianças: linguagem simples, exemplos do dia a dia e visual acolhedor.'],
+  ['Aumentar dificuldade', 'Aumente a dificuldade: conceitos mais aprofundados e exemplos mais desafiadores.'],
+  ['Diminuir dificuldade', 'Diminua a dificuldade: foque no essencial, com exemplos básicos.'],
+];
+const improveStatus = document.querySelector('#improve-status');
+const improveInstruction = document.querySelector('#improve-instruction');
+document.querySelector('#improve-options').innerHTML = improveAdjustments.map(([label], index) => `<label class="improve-chip"><input type="checkbox" name="adjust" value="${index}"><span>${label}</span></label>`).join('');
 
-const aiConfigModal = document.querySelector('#ai-config-modal');
+function closeImprove() {
+  improveBox.hidden = true;
+  improveOpen.setAttribute('aria-expanded', 'false');
+}
+
+improveOpen.addEventListener('click', () => {
+  if (!improveBox.hidden) { closeImprove(); return; }
+  improveBox.querySelectorAll('[name=adjust]').forEach(box => { box.checked = false; });
+  improveInstruction.value = '';
+  improveStatus.textContent = '';
+  document.querySelector('#improve-mode').textContent = aiAvailable
+    ? 'A IA configurada no servidor vai reescrever o prompt aplicando os ajustes.'
+    : 'IA não configurada: os ajustes serão anexados ao fim do prompt. Configure a chave em "Modelo de IA" para a IA reescrever o prompt.';
+  improveBox.hidden = false;
+  improveOpen.setAttribute('aria-expanded', 'true');
+});
+document.querySelector('#improve-cancel').addEventListener('click', closeImprove);
+
+function replacePrompt(prompt) {
+  currentPrompt = prompt;
+  currentPreviewHtml = '';
+  output.textContent = prompt;
+  output.hidden = false;
+  previewFrame.hidden = true;
+  setResultTab('prompt');
+}
+
+document.querySelector('#improve-apply').addEventListener('click', async () => {
+  const adjustments = [...improveBox.querySelectorAll('[name=adjust]:checked')].map(box => improveAdjustments[Number(box.value)][1]);
+  const instruction = improveInstruction.value.trim();
+  if (!adjustments.length && !instruction) { improveStatus.textContent = 'Escolha ao menos um ajuste ou escreva uma instrução.'; return; }
+  if (!aiAvailable) {
+    replacePrompt(`${currentPrompt}\n\nAJUSTES SOLICITADOS\n${[...adjustments, instruction].filter(Boolean).map(item => `- ${item}`).join('\n')}`);
+    closeImprove();
+    notify('Ajustes anexados ao prompt');
+    return;
+  }
+  const apply = document.querySelector('#improve-apply');
+  apply.disabled = true;
+  improveStatus.textContent = 'A IA está reescrevendo o prompt…';
+  try {
+    const response = await fetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível melhorar o prompt.');
+    replacePrompt(result.prompt);
+    closeImprove();
+    status.textContent = `Prompt melhorado com ${result.model}.`;
+    notify('Prompt melhorado com IA');
+  } catch (error) {
+    improveStatus.textContent = error.message;
+  } finally {
+    apply.disabled = false;
+  }
+});
+
+async function saveProject(asNew) {
+  const name = projectName.value.trim();
+  if (!name) { projectName.focus(); notify('Dê um nome ao projeto'); return; }
+  try {
+    const response = await fetch('api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: asNew ? undefined : currentProjectId || undefined, name, kind: currentKind, settings: dataObject(formFor(currentKind)), prompt: currentPrompt }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível salvar o projeto.');
+    currentProjectId = result.project.id;
+    currentProjectKind = result.project.kind;
+    syncSaveButtons();
+    status.textContent = `Projeto "${result.project.name}" salvo em Meus projetos.`;
+    notify('Projeto salvo em Meus projetos');
+  } catch (error) {
+    status.textContent = error.message;
+    notify(error.message);
+  }
+}
+saveProjectButton.addEventListener('click', () => saveProject(false));
+saveProjectNewButton.addEventListener('click', () => saveProject(true));
+
+const projectsList = document.querySelector('#projects-list');
+
+async function loadProjects() {
+  projectsList.innerHTML = '<p class="field-status">Carregando projetos…</p>';
+  try {
+    const response = await fetch('api/projects');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Não foi possível carregar os projetos.');
+    if (!data.projects.length) {
+      projectsList.innerHTML = '<div class="projects-empty"><strong>Nenhum projeto salvo</strong><span>Gere uma apostila ou capa e use "Salvar em Meus projetos" no resultado.</span></div>';
+      return;
+    }
+    projectsList.innerHTML = data.projects.map(project => `<article class="project-card"><div class="project-main"><strong>${escapeUi(project.name)}</strong><small><span class="project-kind">${escapeUi(KIND_LABEL[project.kind] || project.kind)}</span>${escapeUi(new Date(project.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</small></div><div class="project-buttons"><button type="button" data-open-project="${escapeUi(project.id)}">${ICON_OPEN}Abrir</button><button type="button" class="danger" data-delete-project="${escapeUi(project.id)}">${ICON_TRASH}Excluir</button></div></article>`).join('');
+  } catch (error) {
+    projectsList.innerHTML = `<p class="field-status unavailable">${escapeUi(error.message)}</p>`;
+  }
+}
+
+async function openProject(id) {
+  try {
+    const response = await fetch(`api/projects/${encodeURIComponent(id)}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Não foi possível abrir o projeto.');
+    const { project } = data;
+    const target = formFor(project.kind);
+    target.reset();
+    applyData(target, project.settings);
+    currentProjectId = project.id;
+    currentProjectKind = project.kind;
+    showView(project.kind);
+    showResult({ prompt: project.prompt, kind: project.kind, badge: RESULT_BADGE[project.kind] || 'Projeto' });
+    projectName.value = project.name;
+    status.textContent = `Projeto "${project.name}" aberto.`;
+    notify('Projeto aberto');
+  } catch (error) {
+    notify(error.message);
+  }
+}
+
+async function deleteProject(id) {
+  try {
+    const response = await fetch(`api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Não foi possível excluir o projeto.');
+    if (currentProjectId === id) { currentProjectId = null; syncSaveButtons(); }
+    notify('Projeto excluído');
+    loadProjects();
+  } catch (error) {
+    notify(error.message);
+  }
+}
+
+projectsList.addEventListener('click', event => {
+  const open = event.target.closest('[data-open-project]');
+  if (open) { openProject(open.dataset.openProject); return; }
+  const del = event.target.closest('[data-delete-project]');
+  if (!del) return;
+  if (del.classList.contains('armed')) { deleteProject(del.dataset.deleteProject); return; }
+  del.classList.add('armed');
+  del.lastChild.textContent = 'Confirmar exclusão';
+  setTimeout(() => { del.classList.remove('armed'); del.lastChild.textContent = 'Excluir'; }, 3500);
+});
+
+const projectFile = document.querySelector('#project-file');
+document.querySelector('#import-project').addEventListener('click', () => projectFile.click());
+projectFile.addEventListener('change', async () => {
+  const file = projectFile.files[0];
+  if (!file) return;
+  if (file.size > 1_000_000) { notify('Arquivo maior que 1 MB não aceito'); return; }
+  try {
+    const project = JSON.parse(await file.text());
+    if (!project.settings || typeof project.settings !== 'object') throw new Error('Formato inválido');
+    const kind = project.kind === 'capa' ? 'capa' : 'apostila';
+    const target = formFor(kind);
+    target.reset();
+    applyData(target, project.settings);
+    currentProjectId = null;
+    showView(kind);
+    if (typeof project.prompt === 'string' && project.prompt) {
+      showResult({ prompt: project.prompt, kind, badge: RESULT_BADGE[kind] });
+      projectName.value = '';
+    }
+    notify('Projeto importado. Revise antes de gerar');
+  } catch { notify('Projeto inválido. Use um JSON exportado pela plataforma'); }
+  projectFile.value = '';
+});
+
 const aiConfigForm = document.querySelector('#ai-config-form');
 const aiConfigCurrent = document.querySelector('#ai-config-current');
 const aiConfigStatus = document.querySelector('#ai-config-status');
@@ -636,10 +926,6 @@ async function loadAiConfig() {
   }
 }
 
-document.querySelector('#ai-config-open').addEventListener('click', () => { aiConfigStatus.textContent = ''; loadAiConfig(); aiConfigModal.showModal(); });
-document.querySelector('#ai-config-close').addEventListener('click', () => aiConfigModal.close());
-aiConfigModal.addEventListener('click', event => { if (event.target === aiConfigModal) aiConfigModal.close(); });
-
 aiConfigForm.addEventListener('submit', async event => {
   event.preventDefault();
   aiConfigStatus.textContent = 'Salvando…';
@@ -677,91 +963,64 @@ document.querySelector('#ai-config-clear').addEventListener('click', async () =>
   }
 });
 
-const improveAdjustments = [
-  ['Mais detalhado', 'Aumente o detalhamento: mais subtópicos, exemplos e rótulos explicativos, sem ultrapassar o número de páginas.'],
-  ['Mais simples', 'Simplifique: menos blocos, frases mais curtas e vocabulário mais acessível.'],
-  ['Mais visual', 'Torne mais visual: mais esquemas, ícones e ilustrações, e menos texto.'],
-  ['Mais didático', 'Reforce o caráter didático: progressão passo a passo, analogias do cotidiano e destaque para os conceitos-chave.'],
-  ['Mais profissional', 'Dê um tom mais técnico e profissional, com termos da área e aplicação prática.'],
-  ['Adaptar para crianças', 'Adapte para crianças: linguagem simples, exemplos do dia a dia e visual acolhedor.'],
-  ['Aumentar dificuldade', 'Aumente a dificuldade: conceitos mais aprofundados e exemplos mais desafiadores.'],
-  ['Diminuir dificuldade', 'Diminua a dificuldade: foque no essencial, com exemplos básicos.'],
-];
-const improveModal = document.querySelector('#improve-modal');
-const improveForm = document.querySelector('#improve-form');
-const improveStatus = document.querySelector('#improve-status');
-document.querySelector('#improve-options').innerHTML = improveAdjustments.map(([label], index) => `<label class="improve-chip"><input type="checkbox" name="adjust" value="${index}"><span>${label}</span></label>`).join('');
+const shell = document.querySelector('#shell');
+const scrim = document.querySelector('#scrim');
+const menuToggle = document.querySelector('#menu-toggle');
+const menuOpenMobile = document.querySelector('#menu-open-mobile');
+const isMobileLayout = () => matchMedia('(max-width: 900px)').matches;
 
-document.querySelector('#improve-open').addEventListener('click', () => {
-  improveForm.reset();
-  improveStatus.textContent = '';
-  document.querySelector('#improve-mode').textContent = aiAvailable
-    ? 'A IA configurada no servidor vai reescrever o prompt aplicando os ajustes.'
-    : 'IA não configurada: os ajustes serão anexados ao fim do prompt. Configure a chave em "Config API IA" para a IA reescrever o prompt.';
-  improveModal.showModal();
-});
-['#improve-close', '#improve-cancel'].forEach(selector => document.querySelector(selector).addEventListener('click', () => improveModal.close()));
-
-function showPrompt(prompt) {
-  currentPrompt = prompt;
-  currentPreviewHtml = '';
-  output.textContent = prompt;
-  output.hidden = false;
-  previewFrame.hidden = true;
+function setCollapsed(collapsed) {
+  shell.classList.toggle('collapsed', collapsed);
+  menuToggle.setAttribute('aria-expanded', String(!collapsed));
+  menuToggle.setAttribute('aria-label', collapsed ? 'Expandir menu' : 'Recolher menu');
+  try { localStorage.setItem('g1-sidebar', collapsed ? 'collapsed' : 'open'); } catch {}
 }
 
-improveForm.addEventListener('submit', async event => {
+function setMobileMenu(open) {
+  shell.classList.toggle('menu-open', open);
+  scrim.hidden = !open;
+  menuOpenMobile.setAttribute('aria-expanded', String(open));
+}
+
+function toggleMenu() {
+  if (isMobileLayout()) setMobileMenu(!shell.classList.contains('menu-open'));
+  else setCollapsed(!shell.classList.contains('collapsed'));
+}
+
+menuToggle.addEventListener('click', toggleMenu);
+menuOpenMobile.addEventListener('click', toggleMenu);
+scrim.addEventListener('click', () => setMobileMenu(false));
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && shell.classList.contains('menu-open')) setMobileMenu(false);
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') { event.preventDefault(); toggleMenu(); }
+});
+matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
+
+const VIEWS = ['apostila', 'capa', 'projetos', 'ia'];
+
+function showView(name) {
+  if (!VIEWS.includes(name)) name = 'apostila';
+  workspace.dataset.view = name;
+  document.querySelectorAll('.view').forEach(view => { view.hidden = view.dataset.view !== name; });
+  document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+    if (item.dataset.view === name) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
+  });
+  if (name === 'projetos') loadProjects();
+  if (name === 'ia') loadAiConfig();
+  setMobileMenu(false);
+  try { history.replaceState(null, '', `#${name}`); } catch {}
+  window.scrollTo({ top: 0 });
+}
+
+document.querySelector('.nav').addEventListener('click', event => {
+  const link = event.target.closest('a[data-view]');
+  if (!link) return;
   event.preventDefault();
-  const adjustments = [...improveForm.querySelectorAll('[name=adjust]:checked')].map(box => improveAdjustments[Number(box.value)][1]);
-  const instruction = document.querySelector('#improve-instruction').value.trim();
-  if (!adjustments.length && !instruction) { improveStatus.textContent = 'Escolha ao menos um ajuste ou escreva uma instrução.'; return; }
-  if (!aiAvailable) {
-    showPrompt(`${currentPrompt}\n\nAJUSTES SOLICITADOS\n${[...adjustments, instruction].filter(Boolean).map(item => `- ${item}`).join('\n')}`);
-    improveModal.close();
-    notify('Ajustes anexados ao prompt');
-    return;
-  }
-  const apply = document.querySelector('#improve-apply');
-  apply.disabled = true;
-  improveStatus.textContent = 'A IA está reescrevendo o prompt…';
-  try {
-    const response = await fetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction }) });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível melhorar o prompt.');
-    showPrompt(result.prompt);
-    improveModal.close();
-    status.textContent = `Prompt melhorado com ${result.model}.`;
-    notify('Prompt melhorado com IA');
-  } catch (error) {
-    improveStatus.textContent = error.message;
-  } finally {
-    apply.disabled = false;
-  }
+  showView(link.dataset.view);
 });
 
-document.querySelector('#save-draft').addEventListener('click', () => {
-  localStorage.setItem('apostila-draft-v2', JSON.stringify(dataObject()));
-  notify('Rascunho salvo neste navegador');
-});
-
-document.querySelector('#restore-draft').addEventListener('click', () => {
-  const saved = localStorage.getItem('apostila-draft-v2');
-  if (!saved) { notify('Nenhum rascunho salvo'); return; }
-  try { applyData(JSON.parse(saved)); notify('Rascunho restaurado'); }
-  catch { notify('O rascunho salvo não pôde ser lido'); }
-});
-
-const projectFile = document.querySelector('#project-file');
-document.querySelector('#import-project').addEventListener('click', () => projectFile.click());
-projectFile.addEventListener('change', async () => {
-  const file = projectFile.files[0];
-  if (!file) return;
-  if (file.size > 1_000_000) { notify('Arquivo maior que 1 MB não aceito'); return; }
-  try {
-    const project = JSON.parse(await file.text());
-    if (!project.settings || typeof project.settings !== 'object') throw new Error('Formato inválido');
-    applyData(project.settings);
-    notify('Projeto importado. Revise antes de gerar');
-  } catch { notify('Projeto inválido. Use um JSON exportado pela plataforma'); }
-  projectFile.value = '';
-});
+try { if (localStorage.getItem('g1-sidebar') === 'collapsed') setCollapsed(true); } catch {}
+updateCompletion();
+updateGenerationMode();
+checkAiAvailability();
+showView(location.hash.slice(1));

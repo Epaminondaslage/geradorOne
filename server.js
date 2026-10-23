@@ -5,6 +5,7 @@ const os = require('node:os');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { URL } = require('node:url');
+const crypto = require('node:crypto');
 const PDFDocument = require('pdfkit');
 
 const PORT = Number(process.env.PORT || 3000);
@@ -64,6 +65,84 @@ async function writeRuntimeAiConfig(partial) {
   await fs.promises.writeFile(RUNTIME_CONFIG_PATH, JSON.stringify(next, null, 2), { mode: 0o600 });
   return next;
 }
+
+const PROJECT_KINDS = ['apostila', 'capa'];
+const MAX_PROJECTS = 500;
+
+function createProjectStore(filePath) {
+  let queue = Promise.resolve();
+  const read = async () => {
+    try {
+      const parsed = JSON.parse(await fs.promises.readFile(filePath, 'utf8'));
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+  const write = async projects => {
+    await fs.promises.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
+    const tmp = `${filePath}.${process.pid}.tmp`;
+    await fs.promises.writeFile(tmp, JSON.stringify(projects), { mode: 0o600 });
+    await fs.promises.rename(tmp, filePath);
+  };
+  const serialized = task => {
+    const run = queue.then(task, task);
+    queue = run.catch(() => {});
+    return run;
+  };
+  return {
+    async list() {
+      return (await read())
+        .map(({ id, name, kind, updatedAt }) => ({ id, name, kind, updatedAt }))
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    },
+    async get(id) {
+      return (await read()).find(project => project.id === id) || null;
+    },
+    save(input) {
+      return serialized(async () => {
+        const projects = await read();
+        const now = new Date().toISOString();
+        const index = input.id ? projects.findIndex(project => project.id === input.id) : -1;
+        if (index === -1 && projects.length >= MAX_PROJECTS) throw Object.assign(new Error(`Limite de ${MAX_PROJECTS} projetos atingido. Exclua projetos antigos.`), { status: 409 });
+        const project = {
+          id: index === -1 ? crypto.randomUUID() : input.id,
+          name: input.name,
+          kind: input.kind,
+          settings: input.settings,
+          prompt: input.prompt,
+          createdAt: index === -1 ? now : projects[index].createdAt,
+          updatedAt: now
+        };
+        if (index === -1) projects.push(project); else projects[index] = project;
+        await write(projects);
+        return project;
+      });
+    },
+    remove(id) {
+      return serialized(async () => {
+        const projects = await read();
+        const next = projects.filter(project => project.id !== id);
+        if (next.length === projects.length) return false;
+        await write(next);
+        return true;
+      });
+    }
+  };
+}
+
+function validateProject(payload) {
+  const name = typeof payload.name === 'string' ? payload.name.trim().slice(0, 120) : '';
+  if (!name) throw Object.assign(new Error('Dê um nome ao projeto.'), { status: 400 });
+  if (!PROJECT_KINDS.includes(payload.kind)) throw Object.assign(new Error('Tipo de projeto inválido.'), { status: 400 });
+  if (!payload.settings || typeof payload.settings !== 'object' || Array.isArray(payload.settings)) throw Object.assign(new Error('Configurações do projeto inválidas.'), { status: 400 });
+  const settings = Object.fromEntries(Object.entries(payload.settings).filter(([key, value]) => key.length <= 60 && ['string', 'boolean', 'number'].includes(typeof value)).map(([key, value]) => [key, typeof value === 'string' ? value.slice(0, 20_000) : value]));
+  const prompt = typeof payload.prompt === 'string' ? payload.prompt.slice(0, 100_000) : '';
+  const id = typeof payload.id === 'string' && /^[0-9a-f-]{36}$/.test(payload.id) ? payload.id : undefined;
+  return { id, name, kind: payload.kind, settings, prompt };
+}
+
+const projectStore = createProjectStore(process.env.PROJECTS_PATH || path.join(RUNTIME_DIR, 'projects.json'));
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -340,6 +419,27 @@ async function handleApi(req, res, pathname) {
       return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'Não foi possível gerar o PDF.' });
     }
   }
+  if (pathname === '/api/projects' || pathname.startsWith('/api/projects/')) {
+    try {
+      const id = pathname.slice('/api/projects/'.length);
+      if (req.method === 'GET' && pathname === '/api/projects') return json(res, 200, { projects: await projectStore.list() });
+      if (req.method === 'POST' && pathname === '/api/projects') {
+        const saved = await projectStore.save(validateProject(JSON.parse(await readBody(req) || '{}')));
+        return json(res, 200, { project: saved });
+      }
+      if (req.method === 'GET' && id) {
+        const project = await projectStore.get(id);
+        return project ? json(res, 200, { project }) : json(res, 404, { error: 'Projeto não encontrado.' });
+      }
+      if (req.method === 'DELETE' && id) {
+        return (await projectStore.remove(id)) ? json(res, 200, { ok: true }) : json(res, 404, { error: 'Projeto não encontrado.' });
+      }
+      return json(res, 405, { error: 'Método não permitido.' });
+    } catch (error) {
+      if (!error.status) console.error('Falha em projetos:', error.message);
+      return json(res, error.status || (error instanceof SyntaxError ? 400 : 500), { error: error.status ? error.message : error instanceof SyntaxError ? 'JSON inválido.' : 'Não foi possível acessar os projetos.' });
+    }
+  }
   if (req.method === 'POST' && pathname === '/api/improve') {
     try {
       const payload = JSON.parse(await readBody(req) || '{}');
@@ -404,4 +504,4 @@ const server = http.createServer(async (req, res) => {
 
 if (require.main === module) server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`));
 
-module.exports = { server, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages };
+module.exports = { server, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, createProjectStore, validateProject };
