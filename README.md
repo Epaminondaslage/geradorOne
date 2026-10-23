@@ -52,7 +52,7 @@ O usuário pode escolher entre gerar apenas o prompt ou solicitar que a IA produ
 - Políticas para uso opcional de imagens geradas por IA.
 - Geração de imagens reais pela mesma integração de IA, incorporadas ao HTML/PDF e também disponibilizadas como arquivos PNG separados.
 
-Cada recurso possui uma miniatura que representa sua estrutura visual, além de instruções para objetivo pedagógico, conteúdo, legenda, produção gráfica e texto alternativo.
+Cada recurso tem uma miniatura que representa sua estrutura visual, além de instruções para objetivo pedagógico, conteúdo, legenda, produção gráfica e texto alternativo.
 
 ### Projetos e exportações
 
@@ -136,7 +136,7 @@ npm test
 docker compose up -d --build
 ```
 
-A aplicação será publicada na porta `8123` do servidor. O contêiner executa como usuário não privilegiado, usa sistema de arquivos somente leitura, remove capabilities Linux, impede elevação de privilégios, possui verificação de saúde e reinício automático.
+A aplicação será publicada na porta `8123` do servidor. O contêiner executa como usuário não privilegiado, usa sistema de arquivos somente leitura, remove capabilities Linux, impede elevação de privilégios, tem verificação de saúde e reinício automático.
 
 ## Login, usuários e chaves de IA (BYOK)
 

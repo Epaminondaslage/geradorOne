@@ -966,7 +966,7 @@ form.addEventListener('submit', async event => {
     currentFiles = result.files || [];
     renderGeneratedFiles();
     status.textContent = `${currentFiles.length} arquivo${currentFiles.length === 1 ? '' : 's'} gerado${currentFiles.length === 1 ? '' : 's'} com ${result.model}. Escolha onde salvar.`;
-    notify('Material gerado com sucesso');
+    notify('Material gerado');
   } catch (error) {
     generatedFiles.innerHTML = `<div class="ai-loading"><strong>Não foi possível gerar o material.</strong><span>${escapeUi(error.message)}</span></div>`;
     status.textContent = error.message;
@@ -981,7 +981,7 @@ capaForm.addEventListener('submit', event => {
   if (!validateRequired(capaForm)) return;
   const settings = dataObject(capaForm);
   showResult({ prompt: generateCoverPrompt(settings), kind: 'capa', badge: RESULT_BADGE.capa });
-  if (!currentProjectId) setProjectName(`Capa — ${settings.titulo}`);
+  if (!currentProjectId) setProjectName(`Capa: ${settings.titulo}`);
   status.textContent = 'Prompt da capa montado no navegador.';
 });
 
@@ -1045,7 +1045,7 @@ document.querySelector('#copy').addEventListener('click', async () => {
     copyIcon.innerHTML = '<svg class="icon-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     button.querySelector('.copy-label').textContent = 'Copiado!';
     status.textContent = 'Prompt copiado para a área de transferência.';
-    notify('Prompt copiado com sucesso');
+    notify('Prompt copiado');
     setTimeout(() => { button.classList.remove('copied'); copyIcon.innerHTML = defaultIconHtml; button.querySelector('.copy-label').textContent = 'Copiar'; }, 2200);
   } catch { status.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'; }
 });
@@ -1078,7 +1078,7 @@ document.querySelector('#export-pdf').addEventListener('click', async () => {
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     status.textContent = 'PDF gerado e baixado.';
-    notify('PDF gerado com sucesso');
+    notify('PDF gerado');
   } catch { status.textContent = 'Não foi possível preparar o PDF.'; }
 });
 

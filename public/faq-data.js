@@ -15,7 +15,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Primeiros passos',
     pergunta: 'O GeradorOne é código aberto?',
-    resposta: 'Sim. O código-fonte é público em https://github.com/Epaminondaslage/geradorOne, sob a licença AGPL-3.0.\n\nNa prática, você pode ler, usar e modificar o código. Quem oferecer uma versão modificada como serviço na internet precisa disponibilizar o código-fonte dessa versão, com a mesma licença. É um resumo: vale o texto completo, que está no arquivo LICENSE do repositório.'
+    resposta: 'Sim. O código-fonte é público em https://github.com/Epaminondaslage/geradorOne, sob a licença AGPL-3.0.\n\nVocê pode ler, usar e modificar o código. Quem oferecer uma versão modificada como serviço na internet precisa disponibilizar o código-fonte dessa versão, com a mesma licença. É um resumo: vale o texto completo, que está no arquivo LICENSE do repositório.'
   },
   {
     categoria: 'Primeiros passos',
