@@ -401,7 +401,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Aparência e celular',
     pergunta: 'Como mudo o tema de cores?',
-    resposta: 'Abra "Tema", no fim do menu. São seis temas: Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste, além da opção de seguir o sistema. A troca vale na hora e fica guardada na sua conta, então vale em qualquer aparelho.'
+    resposta: 'Abra "Tema", no fim do menu. São seis temas: Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste, além da opção de seguir o sistema (Papel de dia, Grafite à noite). Na primeira entrada o tema é o Papel. A troca vale na hora e fica guardada na sua conta, então vale em qualquer aparelho.'
   },
   {
     categoria: 'Aparência e celular',

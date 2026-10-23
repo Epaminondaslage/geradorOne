@@ -20,14 +20,15 @@ function storedTheme() {
   try { saved = localStorage.getItem('apostila-theme'); } catch { /* armazenamento bloqueado */ }
   if (saved === 'light') saved = 'papel';
   if (saved === 'dark') saved = 'grafite';
-  return themeNames[saved] ? saved : null;
+  return themeNames[saved] || saved === 'sistema' ? saved : null;
 }
-// Sem escolha explícita, o tema acompanha o sistema (claro vira Papel, escuro vira Grafite).
-let themeFollowsSystem = !storedTheme();
+// Sem escolha explícita, a primeira entrada é no tema Papel. "Seguir o sistema" é uma opção marcada pela pessoa
+// (guardada como 'sistema'): claro vira Papel, escuro vira Grafite.
+let themeFollowsSystem = storedTheme() === 'sistema';
 
 function setTheme(theme, { persist = true } = {}) {
   document.documentElement.dataset.theme = theme;
-  try { if (persist) localStorage.setItem('apostila-theme', theme); else localStorage.removeItem('apostila-theme'); } catch { /* armazenamento bloqueado */ }
+  try { if (persist) localStorage.setItem('apostila-theme', themeFollowsSystem ? 'sistema' : theme); else localStorage.removeItem('apostila-theme'); } catch { /* armazenamento bloqueado */ }
   document.querySelector('#theme-name').textContent = themeNames[theme];
   renderThemeView();
 }
@@ -47,15 +48,15 @@ function chooseTheme(id) {
 function followSystemTheme(on) {
   themeFollowsSystem = on;
   if (on) {
-    setTheme(systemTheme(), { persist: false });
-    saveThemeToAccount('');
+    setTheme(systemTheme());
+    saveThemeToAccount('sistema');
   } else {
     const current = document.documentElement.dataset.theme;
     setTheme(current);
     saveThemeToAccount(current);
   }
 }
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (themeFollowsSystem) setTheme(systemTheme(), { persist: false }); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (themeFollowsSystem) setTheme(systemTheme()); });
 
 function renderThemeView() {
   const gallery = document.querySelector('#theme-gallery');
@@ -72,7 +73,7 @@ document.querySelector('#theme-gallery').addEventListener('click', event => {
   if (card) chooseTheme(card.dataset.themePick);
 });
 document.querySelector('#theme-follow').addEventListener('change', event => followSystemTheme(event.target.checked));
-setTheme(storedTheme() || systemTheme(), { persist: !themeFollowsSystem });
+setTheme(themeFollowsSystem ? systemTheme() : (storedTheme() || 'papel'), { persist: Boolean(storedTheme()) });
 
 function renderStyleOptions(container, prefix) {
   styles.forEach(([name, description], index) => container.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="${prefix}-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="${prefix}-${index}"><span class="style-sample">${styleArt(index, prefix)}</span><strong>${name}</strong><small>${description}</small></label></div>`));
@@ -1592,7 +1593,7 @@ function startApp(user) {
   currentUser = user;
   if (switched) { location.hash = ''; location.reload(); return; }
   if (!user.termsCurrent) { showAuth('terms'); return; }
-  if (user.theme && themeNames[user.theme]) { themeFollowsSystem = false; setTheme(user.theme); } else { themeFollowsSystem = true; setTheme(systemTheme(), { persist: false }); }
+  if (user.theme === 'sistema') { themeFollowsSystem = true; setTheme(systemTheme()); } else if (themeNames[user.theme]) { themeFollowsSystem = false; setTheme(user.theme); } else { themeFollowsSystem = false; setTheme('papel', { persist: false }); }
   document.querySelector('#user-name').textContent = user.name;
   document.querySelector('#user-email').textContent = user.role === 'admin' ? 'Administrador' : 'Usuário';
   document.querySelectorAll('[data-admin]').forEach(item => { item.hidden = user.role !== 'admin'; });
@@ -2299,7 +2300,9 @@ document.querySelector('#toggle-password').addEventListener('click', event => {
   const field = document.querySelector('#login-password');
   const show = field.type === 'password';
   field.type = show ? 'text' : 'password';
-  button.textContent = show ? 'Ocultar' : 'Mostrar';
+  // SVG não tem a propriedade hidden: troca pelo atributo.
+  button.querySelector('.eye-open').toggleAttribute('hidden', show);
+  button.querySelector('.eye-closed').toggleAttribute('hidden', !show);
   button.setAttribute('aria-pressed', String(show));
   button.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
 });

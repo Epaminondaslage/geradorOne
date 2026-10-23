@@ -68,7 +68,7 @@ Início (só o logotipo), Apostila, Capa, Meus projetos, Minha chave de IA, Minh
 Em Apostila e Capa a tela se divide em duas abas: "Dados" e "Resultado". Ao gerar, o app abre a aba "Resultado".
 
 # Tema
-"Tema" oferece seis temas (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste) ou seguir o sistema. A escolha fica na sua conta.
+"Tema" oferece seis temas (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste) ou seguir o sistema. A primeira entrada é no Papel. A escolha fica na sua conta.
 
 # Só para administradores
 - Configurações, aba "Usuários": criar, editar, ativar/desativar, redefinir senha (temporária, com troca obrigatória) e excluir. Sempre sobra pelo menos um administrador ativo.

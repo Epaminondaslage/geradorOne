@@ -620,3 +620,10 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 @media (max-width: 1180px) { .workspace[data-view="config"] { grid-template-columns: minmax(0, 1fr); } }
 .view[data-view="config"], .config-pane { min-width: 0; max-width: 100%; }
 .table-wrap { position: relative; }
+
+/* Senha do login: olho aberto/fechado dentro do campo (substitui o botão "Mostrar"). */
+.input-join { position: relative; }
+.input-join input { border-right: 1px solid var(--field); border-radius: 2px; padding-right: 46px; }
+.eye-toggle { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 100%; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; }
+.eye-toggle:hover, .eye-toggle:focus-visible { color: var(--ink); }
+.eye-toggle svg[hidden] { display: none; }
