@@ -198,9 +198,8 @@ pre, .out-panel .modal-content pre { background: var(--bg); color: var(--ink); b
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
-/* Numeração dos cartões removida; ícones de recurso (PNG turquesa) viram silhueta na cor do texto */
+/* Numeração dos cartões removida */
 .number { display: none; }
-.resource-icon { filter: brightness(0); opacity: .82; }
-html[data-theme="grafite"] .resource-icon, html[data-theme="lousa"] .resource-icon, html[data-theme="alto-contraste"] .resource-icon { filter: brightness(0) invert(1); }
-.resource input:checked + label .resource-icon { opacity: 1; }
+.resource-icon { color: var(--ink); opacity: .85; }
+.resource input:checked + label .resource-icon { color: var(--accent); opacity: 1; }
 input, select, textarea { font-weight: 400; font-family: var(--sans); }

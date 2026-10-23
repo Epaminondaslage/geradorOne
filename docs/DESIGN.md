@@ -84,6 +84,5 @@ Em `docs/design/` estão os arquivos do desenho feito no Artifact "GeradorOne �
 
 ## Pendências do redesenho
 
-- Os ícones dos recursos visuais (`assets/icons/*.png`) são imagens turquesa que o CSS converte em silhueta. O ideal é redesenhá-los como SVG de traço.
 - `styles.css`, `theme.css` e `app.css` ainda carregam regras do desenho antigo, anuladas por `design.css`. Dá para enxugá-las aos poucos.
 - Falta a tela de Usuários em tabela como no desenho (hoje são cartões).
