@@ -1032,10 +1032,10 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['apostila', 'capa', 'projetos', 'ia', 'conta', 'usuarios'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'usuarios'];
 
 function showView(name) {
-  if (!VIEWS.includes(name) || (name === 'usuarios' && currentUser?.role !== 'admin')) name = 'apostila';
+  if (!VIEWS.includes(name) || (name === 'usuarios' && currentUser?.role !== 'admin')) name = 'inicio';
   workspace.dataset.view = name;
   document.querySelectorAll('.view').forEach(view => { view.hidden = view.dataset.view !== name; });
   document.querySelectorAll('.nav-item[data-view]').forEach(item => {
@@ -1049,6 +1049,12 @@ function showView(name) {
   try { history.replaceState(null, '', `#${name}`); } catch {}
   window.scrollTo({ top: 0 });
 }
+
+
+document.querySelector('[data-view-link]').addEventListener('click', event => {
+  event.preventDefault();
+  showView(event.currentTarget.dataset.viewLink);
+});
 
 document.querySelector('.nav').addEventListener('click', event => {
   const link = event.target.closest('a[data-view]');
