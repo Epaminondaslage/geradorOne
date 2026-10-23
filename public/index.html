@@ -12,7 +12,48 @@
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-  <div class="shell" id="shell">
+  <div class="auth-screen" id="auth-screen" hidden>
+    <div class="auth-card">
+      <div class="auth-brand"><img class="brand-mark" src="assets/icons/mapa-mental.png" alt="" aria-hidden="true"><span><strong>GeradorOne</strong><small>Prompts para materiais didáticos</small></span></div>
+      <form id="login-form" class="auth-panel" data-panel="login" novalidate>
+        <h1>Entrar</h1>
+        <p>Use o e-mail e a senha da sua conta.</p>
+        <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
+        <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+        <p class="auth-error" role="alert"></p>
+        <button class="primary" type="submit">Entrar</button>
+        <button class="link" type="button" data-auth-go="forgot">Esqueci minha senha</button>
+      </form>
+      <form id="forgot-form" class="auth-panel" data-panel="forgot" hidden novalidate>
+        <h1>Redefinir senha</h1>
+        <p>Informe seu e-mail e a nova senha. Enviaremos um código de 6 dígitos para confirmar a troca.</p>
+        <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
+        <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <p class="auth-error" role="alert"></p>
+        <button class="primary" type="submit">Enviar código</button>
+        <button class="link" type="button" data-auth-go="login">Voltar para o login</button>
+      </form>
+      <form id="confirm-form" class="auth-panel" data-panel="confirm" hidden novalidate>
+        <h1>Digite o código</h1>
+        <p id="confirm-info">Enviamos um código de 6 dígitos para o seu e-mail. Ele vale por 10 minutos.</p>
+        <label>Código<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
+        <p class="auth-error" role="alert"></p>
+        <button class="primary" type="submit">Confirmar nova senha</button>
+        <button class="link" type="button" data-auth-go="login">Voltar para o login</button>
+      </form>
+      <form id="first-form" class="auth-panel" data-panel="first" hidden novalidate>
+        <h1>Defina sua senha</h1>
+        <p>É o seu primeiro acesso, ou a senha foi redefinida por um administrador. Troque a senha temporária para continuar.</p>
+        <label>Senha temporária<input name="current" type="password" autocomplete="current-password" required></label>
+        <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label>Repita a nova senha<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+        <p class="auth-error" role="alert"></p>
+        <button class="primary" type="submit">Salvar e entrar</button>
+        <button class="link" type="button" id="first-logout">Sair</button>
+      </form>
+    </div>
+  </div>
+  <div class="shell" id="shell" hidden>
     <div class="scrim" id="scrim" hidden></div>
     <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
       <div class="sidebar-head">
@@ -29,9 +70,13 @@
         <p class="nav-group nav-label">Biblioteca</p>
         <a class="nav-item" href="#projetos" data-view="projetos" title="Meus projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="nav-label">Meus projetos</span></a>
         <p class="nav-group nav-label">Sistema</p>
-        <a class="nav-item" href="#ia" data-view="ia" title="Configuração do modelo de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span class="nav-label">Modelo de IA</span></a>
+        <a class="nav-item" href="#ia" data-view="ia" title="Minha chave de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-3 3-1.5-1.5"/><path d="m15.5 7.5 3 3"/></svg><span class="nav-label">Minha chave de IA</span></a>
+        <a class="nav-item" href="#conta" data-view="conta" title="Minha conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Minha conta</span></a>
+        <a class="nav-item" href="#usuarios" data-view="usuarios" data-admin title="Usuários" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="nav-label">Usuários</span></a>
       </nav>
       <div class="sidebar-foot">
+        <div class="user-chip nav-label"><strong id="user-name">—</strong><small id="user-email"></small></div>
+        <button id="logout-button" class="nav-item" type="button" title="Sair"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label">Sair</span></button>
         <button id="theme-toggle" class="nav-item theme-item" type="button" aria-label="Alternar tema" aria-pressed="false" title="Alternar tema"><span class="icon-slot" aria-hidden="true"></span><span class="theme-label nav-label">Tema</span></button>
       </div>
     </aside>
@@ -149,10 +194,22 @@
             <div id="projects-list" class="projects-list" aria-live="polite"></div>
           </section>
 
-          <section class="view" data-view="ia" aria-label="Modelo de IA" hidden>
-            <div class="view-head"><h1>Modelo de IA</h1><p>Provedor, chave e modelos usados para gerar materiais e melhorar prompts. Aplicado na hora, sem reiniciar.</p></div>
+          <section class="view" data-view="ia" aria-label="Minha chave de IA" hidden>
+            <div class="view-head"><h1>Minha chave de IA</h1><p>Provedor, chave e modelos usados nas suas gerações e em "Melhorar com IA". Aplicado na hora, sem reiniciar.</p></div>
             <form id="ai-config-form" class="card ai-config-form">
               <p id="ai-config-current" class="field-status">Verificando configuração…</p>
+              <aside class="byok-note" aria-label="Sobre BYOK">
+                <h2>O que é BYOK?</h2>
+                <p><strong>BYOK</strong> significa <em>Bring Your Own Key</em>: traga a sua própria chave. Em vez de o GeradorOne ter uma chave única paga por todos, cada pessoa usa a chave da própria conta no provedor de IA.</p>
+                <ol>
+                  <li><strong>Crie a chave</strong> no provedor (OpenAI ou Google AI Studio) e cole no campo abaixo.</li>
+                  <li><strong>Ela é guardada cifrada</strong> (AES-256-GCM) no servidor e ligada só à sua conta. Depois de salva, nunca mais aparece inteira: você vê apenas os 4 últimos caracteres.</li>
+                  <li><strong>Só você a usa.</strong> Outros usuários, inclusive administradores, veem apenas se você tem uma chave cadastrada, nunca o valor.</li>
+                  <li><strong>O custo é seu.</strong> Cada geração com IA e cada "Melhorar com IA" é cobrada pelo provedor na sua conta. Defina um limite de gasto lá.</li>
+                  <li><strong>Seus textos vão ao provedor escolhido</strong> para serem processados, conforme os termos dele.</li>
+                </ol>
+                <p>Sem chave, gerar o prompt continua funcionando; só os recursos de IA ficam desligados. Você pode remover a chave quando quiser.</p>
+              </aside>
               <label>Provedor<select id="ai-config-provider" name="provider"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option></select></label>
               <label>Chave da API<input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual"></label>
               <label>Modelo de texto<input id="ai-config-model" name="model" type="text" list="ai-text-models" placeholder="gpt-6-astra" autocomplete="off"></label>
@@ -167,6 +224,42 @@
               </div>
               <p id="ai-config-status" class="status" role="status"></p>
             </form>
+          </section>
+
+          <section class="view" data-view="conta" aria-label="Minha conta" hidden>
+            <div class="view-head"><h1>Minha conta</h1><p id="account-summary">Dados de acesso e senha.</p></div>
+            <form id="profile-form" class="card account-form" novalidate>
+              <h2>Perfil</h2>
+              <label>Nome<input name="name" maxlength="120" required></label>
+              <label>E-mail<input name="email" type="email" disabled></label>
+              <p id="profile-status" class="status" role="status"></p>
+              <div class="ai-config-actions"><button class="primary" type="submit">Salvar perfil</button></div>
+            </form>
+            <form id="password-form" class="card account-form" novalidate>
+              <h2>Trocar senha</h2>
+              <label>Senha atual<input name="current" type="password" autocomplete="current-password" required></label>
+              <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+              <label>Repita a nova senha<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+              <p id="password-status" class="status" role="status"></p>
+              <div class="ai-config-actions"><button class="primary" type="submit">Trocar senha</button></div>
+            </form>
+          </section>
+
+          <section class="view" data-view="usuarios" aria-label="Usuários" hidden>
+            <div class="view-head"><h1>Usuários</h1><p>Crie e gerencie quem acessa o GeradorOne. Cada usuário tem os próprios projetos e a própria chave de IA.</p></div>
+            <form id="user-create-form" class="card account-form" novalidate>
+              <h2>Novo usuário</h2>
+              <div class="grid two">
+                <label>Nome<input name="name" maxlength="120" required></label>
+                <label>E-mail<input name="email" type="email" required></label>
+                <label>Perfil<select name="role"><option value="user">Usuário</option><option value="admin">Administrador</option></select></label>
+                <label>Senha temporária (opcional)<input name="password" type="text" autocomplete="off" minlength="8" placeholder="Deixe em branco para gerar"></label>
+              </div>
+              <p id="user-create-status" class="status" role="status"></p>
+              <div class="ai-config-actions"><button class="primary" type="submit">Criar usuário</button></div>
+            </form>
+            <div id="temp-password-box" class="temp-box" hidden role="status"></div>
+            <div id="users-list" class="projects-list" aria-live="polite"></div>
           </section>
           <p class="legal">O gerador não valida automaticamente conteúdos ou códigos curriculares. GeradorOne v2</p>
         </div>

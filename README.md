@@ -96,15 +96,31 @@ docker compose up -d --build
 
 A aplicação será publicada na porta `8123` do servidor. O contêiner executa como usuário não privilegiado, usa sistema de arquivos somente leitura, remove capabilities Linux, impede elevação de privilégios, possui verificação de saúde e reinício automático.
 
-Crie um arquivo `.env` no servidor, sem adicioná-lo ao Git, com:
+## Login, usuários e chaves de IA (BYOK)
+
+Todo o app exige login por e-mail e senha. Cada usuário tem os próprios projetos e a própria chave de IA.
+
+- **Primeiro administrador:** criado na primeira inicialização, com o e-mail de `ADMIN_EMAIL`. Sem `ADMIN_PASSWORD`, uma senha temporária aleatória é impressa uma vez no log do contêiner (`docker logs gerador-one | grep setup`). A troca da senha é exigida no primeiro acesso. Projetos criados antes do login passam para esse administrador.
+- **Usuários:** o administrador cria, edita, ativa/desativa, redefine a senha (temporária, com troca obrigatória) e exclui usuários na página **Usuários**. Sempre sobra ao menos um administrador ativo.
+- **Recuperar senha por e-mail:** código de 6 dígitos, válido por 10 minutos, com limite de tentativas. Só fica disponível com SMTP configurado; sem SMTP, o administrador redefine a senha.
+- **BYOK:** cada pessoa cadastra a própria chave na página **Minha chave de IA**. A chave é cifrada (AES-256-GCM), nunca volta ao navegador (só os 4 últimos caracteres) e não é visível nem para administradores. Não há chave global do servidor.
+- **Sessão:** cookie `HttpOnly` e `SameSite=Lax`, válido por 7 dias; trocar a senha, mudar o perfil ou desativar a conta encerra as sessões antigas. Login com limite de tentativas por e-mail e por IP.
+
+Variáveis em um arquivo `.env` ao lado do `compose.yaml` (não versionado):
 
 ```env
-OPENAI_API_KEY=sua-chave
-OPENAI_MODEL=gpt-6-astra
-OPENAI_IMAGE_MODEL=gpt-image-2.5-flare
+ADMIN_EMAIL=voce@exemplo.com
+# ADMIN_PASSWORD=          opcional; mínimo de 8 caracteres
+# APP_SECRET=              opcional; 32+ caracteres. Sem ele, uma chave é gerada em runtime/secret.key
+# SMTP_HOST=smtp.exemplo.com
+# SMTP_PORT=587
+# SMTP_SECURE=false        true para TLS direto (porta 465)
+# SMTP_USER=
+# SMTP_PASS=
+# SMTP_FROM="GeradorOne <no-reply@exemplo.com>"
 ```
 
-A chave é lida somente pelo backend e nunca é enviada ao navegador ou incluída nos arquivos gerados.
+Os dados ficam em `runtime/` (volume do contêiner, fora do Git): `users.json`, `projects.json` e `secret.key`. A chave que cifra as chaves de IA fica na mesma pasta; faça backup da pasta inteira e restrinja o acesso ao servidor. Perder `secret.key` (ou o `APP_SECRET`) torna as chaves de IA salvas ilegíveis, e cada pessoa precisa cadastrar a sua de novo.
 
 ## Implantação atual
 
@@ -122,6 +138,7 @@ A chave é lida somente pelo backend e nunca é enviada ao navegador ou incluíd
 ├── compose.yaml
 ├── package.json
 ├── server.js
+├── lib/                 # criptografia, usuários, projetos, limitador e e-mail
 ├── public/
 │   ├── index.html
 │   ├── app.js

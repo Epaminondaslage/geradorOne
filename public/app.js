@@ -45,6 +45,27 @@ const generatedFiles = document.querySelector('#generated-files');
 const status = document.querySelector('#status');
 const toast = document.querySelector('#toast');
 const formFor = kind => (kind === 'capa' ? capaForm : form);
+let currentUser = null;
+const authScreen = document.querySelector('#auth-screen');
+const appShell = document.querySelector('#shell');
+const AUTH_PUBLIC = ['api/auth/login', 'api/auth/forgot', 'api/auth/confirm', 'api/auth/logout', 'api/auth/config'];
+
+async function apiFetch(url, options = {}) {
+  const response = await fetch(url, { credentials: 'same-origin', ...options });
+  if (response.status === 401 && !AUTH_PUBLIC.includes(url)) showAuth('login', 'Sua sessão expirou. Entre novamente.');
+  if (response.status === 403 && currentUser && !currentUser.mustChangePassword) {
+    const body = await response.clone().json().catch(() => ({}));
+    if (body.code === 'PASSWORD_CHANGE_REQUIRED') { currentUser.mustChangePassword = true; showAuth('first'); }
+  }
+  return response;
+}
+
+async function postJson(url, body) {
+  const response = await apiFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const data = await response.json().catch(() => ({}));
+  return { ok: response.ok, status: response.status, data };
+}
+
 let currentPrompt = '';
 let currentPreviewHtml = '';
 let currentKind = 'apostila';
@@ -63,7 +84,7 @@ let aiAvailable = false;
 async function checkAiAvailability() {
   const label = document.querySelector('#ai-availability');
   try {
-    const response = await fetch('api/ai/status');
+    const response = await apiFetch('api/ai/status');
     const data = await response.json();
     aiAvailable = Boolean(data.available);
     label.textContent = data.available ? `IA disponível no servidor · ${data.provider} · ${data.model}` : 'IA não configurada no servidor; o modo prompt continua disponível.';
@@ -590,7 +611,7 @@ form.addEventListener('submit', async event => {
   label.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>Gerando…';
   try {
     const imageCount = settings.frequencia.startsWith('Intensa') ? 3 : settings.frequencia.startsWith('Equilibrada') ? 2 : 1;
-    const response = await fetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
+    const response = await apiFetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível gerar o material.');
     currentFiles = result.files || [];
@@ -684,7 +705,7 @@ previewButton.addEventListener('click', async () => {
   status.textContent = 'Preparando prévia…';
   try {
     if (!currentPreviewHtml) {
-      const response = await fetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
+      const response = await apiFetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
       if (!response.ok) throw new Error('Falha na prévia');
       currentPreviewHtml = (await response.json()).html;
     }
@@ -699,7 +720,7 @@ showPromptButton.addEventListener('click', () => { previewFrame.hidden = true; o
 document.querySelector('#export-pdf').addEventListener('click', async () => {
   status.textContent = 'Gerando arquivo PDF…';
   try {
-    const response = await fetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
+    const response = await apiFetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
     if (!response.ok) throw new Error('Falha no PDF');
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -766,7 +787,7 @@ document.querySelector('#improve-apply').addEventListener('click', async () => {
   apply.disabled = true;
   improveStatus.textContent = 'A IA está reescrevendo o prompt…';
   try {
-    const response = await fetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction }) });
+    const response = await apiFetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível melhorar o prompt.');
     replacePrompt(result.prompt);
@@ -784,7 +805,7 @@ async function saveProject(asNew) {
   const name = projectName.value.trim();
   if (!name) { projectName.focus(); notify('Dê um nome ao projeto'); return; }
   try {
-    const response = await fetch('api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: asNew ? undefined : currentProjectId || undefined, name, kind: currentKind, settings: dataObject(formFor(currentKind)), prompt: currentPrompt }) });
+    const response = await apiFetch('api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: asNew ? undefined : currentProjectId || undefined, name, kind: currentKind, settings: dataObject(formFor(currentKind)), prompt: currentPrompt }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível salvar o projeto.');
     currentProjectId = result.project.id;
@@ -805,7 +826,7 @@ const projectsList = document.querySelector('#projects-list');
 async function loadProjects() {
   projectsList.innerHTML = '<p class="field-status">Carregando projetos…</p>';
   try {
-    const response = await fetch('api/projects');
+    const response = await apiFetch('api/projects');
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Não foi possível carregar os projetos.');
     if (!data.projects.length) {
@@ -820,7 +841,7 @@ async function loadProjects() {
 
 async function openProject(id) {
   try {
-    const response = await fetch(`api/projects/${encodeURIComponent(id)}`);
+    const response = await apiFetch(`api/projects/${encodeURIComponent(id)}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Não foi possível abrir o projeto.');
     const { project } = data;
@@ -841,7 +862,7 @@ async function openProject(id) {
 
 async function deleteProject(id) {
   try {
-    const response = await fetch(`api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    const response = await apiFetch(`api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Não foi possível excluir o projeto.');
     if (currentProjectId === id) { currentProjectId = null; syncSaveButtons(); }
@@ -910,10 +931,10 @@ async function loadAiConfig() {
   aiConfigCurrent.textContent = 'Verificando configuração…';
   aiConfigCurrent.className = 'field-status';
   try {
-    const response = await fetch('api/ai/config');
+    const response = await apiFetch('api/ai/config');
     const data = await response.json();
     const providerLabel = data.provider === 'gemini' ? 'Gemini' : 'OpenAI';
-    aiConfigCurrent.textContent = data.hasApiKey ? `Chave configurada · ${providerLabel} · modelo ${data.model}` : `Nenhuma chave configurada (${providerLabel}).`;
+    aiConfigCurrent.textContent = data.hasApiKey ? `Sua chave está salva (${data.keyHint}) · ${providerLabel} · modelo ${data.model}` : `Você ainda não salvou uma chave (${providerLabel}). Gerar com IA e Melhorar com IA exigem a sua chave.`;
     aiConfigCurrent.className = `field-status ${data.hasApiKey ? 'available' : 'unavailable'}`;
     aiConfigProvider.value = data.provider || 'openai';
     applyAiConfigDatalists();
@@ -936,7 +957,7 @@ aiConfigForm.addEventListener('submit', async event => {
       model: aiConfigModelInput.value,
       imageModel: aiConfigImageModelInput.value
     };
-    const response = await fetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const response = await apiFetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível salvar.');
     aiConfigStatus.textContent = 'Configuração salva. Aplicada imediatamente, sem reiniciar o servidor.';
@@ -951,7 +972,7 @@ aiConfigForm.addEventListener('submit', async event => {
 document.querySelector('#ai-config-clear').addEventListener('click', async () => {
   aiConfigStatus.textContent = 'Removendo chave…';
   try {
-    const response = await fetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clearApiKey: true }) });
+    const response = await apiFetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clearApiKey: true }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível remover a chave.');
     aiConfigStatus.textContent = 'Chave removida.';
@@ -996,10 +1017,10 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['apostila', 'capa', 'projetos', 'ia'];
+const VIEWS = ['apostila', 'capa', 'projetos', 'ia', 'conta', 'usuarios'];
 
 function showView(name) {
-  if (!VIEWS.includes(name)) name = 'apostila';
+  if (!VIEWS.includes(name) || (name === 'usuarios' && currentUser?.role !== 'admin')) name = 'apostila';
   workspace.dataset.view = name;
   document.querySelectorAll('.view').forEach(view => { view.hidden = view.dataset.view !== name; });
   document.querySelectorAll('.nav-item[data-view]').forEach(item => {
@@ -1007,6 +1028,8 @@ function showView(name) {
   });
   if (name === 'projetos') loadProjects();
   if (name === 'ia') loadAiConfig();
+  if (name === 'conta') fillAccount();
+  if (name === 'usuarios') loadUsers();
   setMobileMenu(false);
   try { history.replaceState(null, '', `#${name}`); } catch {}
   window.scrollTo({ top: 0 });
@@ -1020,7 +1043,247 @@ document.querySelector('.nav').addEventListener('click', event => {
 });
 
 try { if (localStorage.getItem('g1-sidebar') === 'collapsed') setCollapsed(true); } catch {}
-updateCompletion();
-updateGenerationMode();
-checkAiAvailability();
-showView(location.hash.slice(1));
+
+function setError(form, message) {
+  const slot = form.querySelector('.auth-error');
+  if (slot) slot.textContent = message || '';
+}
+
+function showAuth(panel = 'login', message = '') {
+  appShell.hidden = true;
+  authScreen.hidden = false;
+  authScreen.querySelectorAll('.auth-panel').forEach(form => {
+    form.hidden = form.dataset.panel !== panel;
+    setError(form, form.dataset.panel === panel ? message : '');
+  });
+  authScreen.querySelector(`[data-panel="${panel}"] input`)?.focus();
+}
+
+function startApp(user) {
+  const switched = currentUser && currentUser.id !== user.id;
+  currentUser = user;
+  if (switched) { location.hash = ''; location.reload(); return; }
+  document.querySelector('#user-name').textContent = user.name;
+  document.querySelector('#user-email').textContent = user.email;
+  document.querySelectorAll('[data-admin]').forEach(item => { item.hidden = user.role !== 'admin'; });
+  authScreen.hidden = true;
+  appShell.hidden = false;
+  updateCompletion();
+  updateGenerationMode();
+  checkAiAvailability();
+  showView(location.hash.slice(1));
+}
+
+authScreen.addEventListener('click', event => {
+  const go = event.target.closest('[data-auth-go]');
+  if (go) showAuth(go.dataset.authGo);
+});
+
+document.querySelector('#login-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const email = formEl.email.value.trim();
+  if (!email || !formEl.password.value) { setError(formEl, 'Informe e-mail e senha.'); return; }
+  setError(formEl, '');
+  const submit = formEl.querySelector('[type=submit]');
+  submit.disabled = true;
+  try {
+    const result = await postJson('api/auth/login', { email, password: formEl.password.value });
+    if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível entrar.'); return; }
+    formEl.password.value = '';
+    if (result.data.user.mustChangePassword) {
+      currentUser = result.data.user;
+      document.querySelector('#first-form').current.value = '';
+      showAuth('first');
+    } else {
+      startApp(result.data.user);
+    }
+  } finally {
+    submit.disabled = false;
+  }
+});
+
+let resetEmail = '';
+document.querySelector('#forgot-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const email = formEl.email.value.trim();
+  if (!email || formEl.password.value.length < 8) { setError(formEl, 'Informe o e-mail e uma nova senha com ao menos 8 caracteres.'); return; }
+  setError(formEl, '');
+  const result = await postJson('api/auth/forgot', { email, password: formEl.password.value });
+  if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível enviar o código.'); return; }
+  resetEmail = email;
+  formEl.password.value = '';
+  document.querySelector('#confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido.`;
+  showAuth('confirm');
+});
+
+document.querySelector('#confirm-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const result = await postJson('api/auth/confirm', { email: resetEmail, code: formEl.code.value.trim() });
+  if (!result.ok) { setError(formEl, result.data.error || 'Código inválido ou expirado.'); return; }
+  formEl.code.value = '';
+  showAuth('login');
+  setError(authScreen.querySelector('#login-form'), '');
+  authScreen.querySelector('#login-form .auth-error').textContent = result.data.message;
+});
+
+document.querySelector('#first-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  if (formEl.password.value.length < 8) { setError(formEl, 'A nova senha precisa ter ao menos 8 caracteres.'); return; }
+  if (formEl.password.value !== formEl.repeat.value) { setError(formEl, 'As senhas não conferem.'); return; }
+  const result = await postJson('api/auth/change-password', { current: formEl.current.value, password: formEl.password.value });
+  if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível trocar a senha.'); return; }
+  formEl.reset();
+  startApp(result.data.user);
+});
+
+async function logout() {
+  await apiFetch('api/auth/logout', { method: 'POST' });
+  location.hash = '';
+  location.reload();
+}
+document.querySelector('#logout-button').addEventListener('click', logout);
+document.querySelector('#first-logout').addEventListener('click', logout);
+
+function fillAccount() {
+  if (!currentUser) return;
+  const profile = document.querySelector('#profile-form');
+  profile.name.value = currentUser.name;
+  profile.email.value = currentUser.email;
+  document.querySelector('#account-summary').textContent = `${currentUser.role === 'admin' ? 'Administrador' : 'Usuário'} · ${currentUser.email}`;
+  document.querySelector('#profile-status').textContent = '';
+  document.querySelector('#password-status').textContent = '';
+}
+
+document.querySelector('#profile-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const status = document.querySelector('#profile-status');
+  const result = await postJson('api/auth/profile', { name: event.currentTarget.name.value });
+  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível salvar.'; return; }
+  currentUser = result.data.user;
+  document.querySelector('#user-name').textContent = currentUser.name;
+  status.textContent = 'Perfil salvo.';
+  notify('Perfil salvo');
+});
+
+document.querySelector('#password-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const status = document.querySelector('#password-status');
+  if (formEl.password.value.length < 8) { status.textContent = 'A nova senha precisa ter ao menos 8 caracteres.'; return; }
+  if (formEl.password.value !== formEl.repeat.value) { status.textContent = 'As senhas não conferem.'; return; }
+  const result = await postJson('api/auth/change-password', { current: formEl.current.value, password: formEl.password.value });
+  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível trocar a senha.'; return; }
+  formEl.reset();
+  currentUser = result.data.user;
+  status.textContent = 'Senha alterada. Suas outras sessões foram encerradas.';
+  notify('Senha alterada');
+});
+
+const usersList = document.querySelector('#users-list');
+const tempBox = document.querySelector('#temp-password-box');
+
+function showTempPassword(name, password) {
+  tempBox.hidden = false;
+  tempBox.innerHTML = `<p><strong>Senha temporária de ${escapeUi(name)}:</strong></p><code>${escapeUi(password)}</code><p>Copie e entregue com segurança. Ela não será exibida de novo e precisa ser trocada no primeiro acesso.</p><button type="button" class="ghost" id="copy-temp">Copiar senha</button>`;
+  tempBox.querySelector('#copy-temp').addEventListener('click', async event => {
+    try { await navigator.clipboard.writeText(password); event.currentTarget.textContent = 'Copiada'; } catch { event.currentTarget.textContent = 'Selecione e copie manualmente'; }
+  });
+}
+
+async function loadUsers() {
+  usersList.innerHTML = '<p class="field-status">Carregando usuários…</p>';
+  try {
+    const response = await apiFetch('api/users');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Não foi possível carregar os usuários.');
+    usersList.innerHTML = data.users.map(user => `<form class="user-card" data-user-id="${escapeUi(user.id)}" novalidate>
+      <div class="user-fields">
+        <label>Nome<input name="name" value="${escapeUi(user.name)}" maxlength="120" required></label>
+        <label>E-mail<input name="email" type="email" value="${escapeUi(user.email)}" required></label>
+        <label>Perfil<select name="role"><option value="user"${user.role === 'user' ? ' selected' : ''}>Usuário</option><option value="admin"${user.role === 'admin' ? ' selected' : ''}>Administrador</option></select></label>
+        <label class="user-active"><input name="active" type="checkbox"${user.active ? ' checked' : ''}>Ativo</label>
+      </div>
+      <div class="user-meta"><small>${user.hasApiKey ? 'Chave de IA cadastrada' : 'Sem chave de IA'}${user.mustChangePassword ? ' · troca de senha pendente' : ''}${currentUser && user.id === currentUser.id ? ' · você' : ''}</small></div>
+      <div class="project-buttons">
+        <button type="submit">Salvar</button>
+        <button type="button" data-reset-user="${escapeUi(user.id)}">Redefinir senha</button>
+        <button type="button" class="danger" data-delete-user="${escapeUi(user.id)}">${ICON_TRASH}<span>Excluir</span></button>
+      </div>
+      <p class="status" role="status"></p>
+    </form>`).join('');
+  } catch (error) {
+    usersList.innerHTML = `<p class="field-status unavailable">${escapeUi(error.message)}</p>`;
+  }
+}
+
+document.querySelector('#user-create-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const formEl = event.currentTarget;
+  const status = document.querySelector('#user-create-status');
+  const body = { name: formEl.name.value, email: formEl.email.value, role: formEl.role.value, password: formEl.password.value || undefined };
+  const result = await postJson('api/users', body);
+  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível criar o usuário.'; return; }
+  status.textContent = `Usuário ${result.data.user.email} criado.`;
+  if (result.data.temporaryPassword) showTempPassword(result.data.user.name, result.data.temporaryPassword); else tempBox.hidden = true;
+  formEl.reset();
+  loadUsers();
+});
+
+usersList.addEventListener('submit', async event => {
+  event.preventDefault();
+  const card = event.target.closest('.user-card');
+  const status = card.querySelector('.status');
+  const response = await apiFetch(`api/users/${encodeURIComponent(card.dataset.userId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: card.name.value, email: card.email.value, role: card.role.value, active: card.active.checked }) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) { status.textContent = data.error || 'Não foi possível salvar.'; return; }
+  status.textContent = 'Salvo.';
+  notify('Usuário atualizado');
+  loadUsers();
+});
+
+usersList.addEventListener('click', async event => {
+  const reset = event.target.closest('[data-reset-user]');
+  const del = event.target.closest('[data-delete-user]');
+  const card = event.target.closest('.user-card');
+  if (reset) {
+    const result = await postJson(`api/users/${encodeURIComponent(reset.dataset.resetUser)}/reset-password`, {});
+    if (!result.ok) { card.querySelector('.status').textContent = result.data.error || 'Não foi possível redefinir.'; return; }
+    showTempPassword(result.data.user.name, result.data.temporaryPassword);
+    notify('Senha redefinida');
+    loadUsers();
+    return;
+  }
+  if (!del) return;
+  if (!del.classList.contains('armed')) {
+    del.classList.add('armed');
+    del.lastElementChild.textContent = 'Confirmar exclusão (apaga os projetos dele)';
+    setTimeout(() => { del.classList.remove('armed'); del.lastElementChild.textContent = 'Excluir'; }, 4000);
+    return;
+  }
+  const response = await apiFetch(`api/users/${encodeURIComponent(del.dataset.deleteUser)}`, { method: 'DELETE' });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) { card.querySelector('.status').textContent = data.error || 'Não foi possível excluir.'; return; }
+  notify(`Usuário excluído (${data.removedProjects} projeto(s) apagado(s))`);
+  loadUsers();
+});
+
+async function bootstrapAuth() {
+  try {
+    const config = await (await fetch('api/auth/config')).json();
+    authScreen.querySelector('[data-auth-go="forgot"]').hidden = !config.emailReset;
+  } catch {}
+  try {
+    const response = await fetch('api/auth/me', { credentials: 'same-origin' });
+    if (response.ok) {
+      const { user } = await response.json();
+      if (user.mustChangePassword) { currentUser = user; showAuth('first'); } else startApp(user);
+      return;
+    }
+  } catch {}
+  showAuth('login');
+}
+bootstrapAuth();

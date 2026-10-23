@@ -5,14 +5,17 @@ const os = require('node:os');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { URL } = require('node:url');
-const crypto = require('node:crypto');
 const PDFDocument = require('pdfkit');
+const appCrypto = require('./lib/crypto');
+const { createUserStore, publicUser, normalizeEmail } = require('./lib/users');
+const { createProjectStore, validateProject } = require('./lib/projects');
+const { createLimiter } = require('./lib/rate-limit');
+const { createMailer } = require('./lib/mailer');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const RUNTIME_DIR = path.join(__dirname, 'runtime');
-const RUNTIME_CONFIG_PATH = path.join(RUNTIME_DIR, 'ai-config.json');
+const RUNTIME_DIR = process.env.RUNTIME_DIR || path.join(__dirname, 'runtime');
 const MAX_BODY = 1_000_000;
 const execFileAsync = promisify(execFile);
 
@@ -20,130 +23,132 @@ const PROVIDERS = ['openai', 'gemini'];
 const DEFAULT_MODEL = { openai: 'gpt-6-astra', gemini: 'gemini-3.8-flash' };
 const DEFAULT_IMAGE_MODEL = { openai: 'gpt-image-2.5-flare', gemini: 'gemini-3-pro-image-preview' };
 
-function readRuntimeAiConfig() {
-  try {
-    const raw = fs.readFileSync(RUNTIME_CONFIG_PATH, 'utf8');
-    const parsed = JSON.parse(raw);
-    return {
-      provider: PROVIDERS.includes(parsed.provider) ? parsed.provider : 'openai',
-      apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey : '',
-      model: typeof parsed.model === 'string' && parsed.model.trim() ? parsed.model.trim() : '',
-      imageModel: typeof parsed.imageModel === 'string' && parsed.imageModel.trim() ? parsed.imageModel.trim() : ''
-    };
-  } catch {
-    return { provider: 'openai', apiKey: '', model: '', imageModel: '' };
-  }
+const API_KEY_RE = /^[\w\-.:~+/=]{8,512}$/;
+
+function aiConfigFor(user) {
+  const ai = user.ai || {};
+  const provider = PROVIDERS.includes(ai.provider) ? ai.provider : 'openai';
+  let apiKey = '';
+  try { apiKey = ai.keyEnc ? appCrypto.decrypt(ai.keyEnc, keyEncKey) : ''; } catch { apiKey = ''; }
+  return { provider, apiKey, model: ai.model || DEFAULT_MODEL[provider], imageModel: ai.imageModel || DEFAULT_IMAGE_MODEL[provider] };
 }
 
-function getAiConfig() {
-  const runtime = readRuntimeAiConfig();
-  const provider = runtime.provider;
-  const envKey = provider === 'gemini' ? process.env.GEMINI_API_KEY : process.env.OPENAI_API_KEY;
-  return {
-    provider,
-    apiKey: runtime.apiKey || envKey || '',
-    model: runtime.model || DEFAULT_MODEL[provider],
-    imageModel: runtime.imageModel || DEFAULT_IMAGE_MODEL[provider]
-  };
+function publicAiConfig(user) {
+  const config = aiConfigFor(user);
+  return { provider: config.provider, hasApiKey: Boolean(config.apiKey), keyHint: config.apiKey ? `••••${config.apiKey.slice(-4)}` : '', model: config.model, imageModel: config.imageModel };
 }
 
-async function writeRuntimeAiConfig(partial) {
-  const current = readRuntimeAiConfig();
+function nextAiSettings(user, partial) {
+  const current = user.ai || {};
+  const currentProvider = PROVIDERS.includes(current.provider) ? current.provider : 'openai';
   const next = {
-    provider: PROVIDERS.includes(partial.provider) ? partial.provider : current.provider,
-    apiKey: typeof partial.apiKey === 'string' && partial.apiKey.trim() ? partial.apiKey.trim() : current.apiKey,
-    model: typeof partial.model === 'string' ? partial.model.trim() : current.model,
-    imageModel: typeof partial.imageModel === 'string' ? partial.imageModel.trim() : current.imageModel
+    provider: PROVIDERS.includes(partial.provider) ? partial.provider : currentProvider,
+    keyEnc: current.keyEnc || '',
+    model: typeof partial.model === 'string' ? partial.model.trim() : current.model || '',
+    imageModel: typeof partial.imageModel === 'string' ? partial.imageModel.trim() : current.imageModel || ''
   };
-  if (partial.clearApiKey) next.apiKey = '';
-  if (partial.provider && partial.provider !== current.provider) {
-    if (!(typeof partial.apiKey === 'string' && partial.apiKey.trim())) next.apiKey = '';
+  const newKey = typeof partial.apiKey === 'string' ? partial.apiKey.trim() : '';
+  if (newKey) next.keyEnc = appCrypto.encrypt(newKey, keyEncKey);
+  if (partial.clearApiKey) next.keyEnc = '';
+  if (next.provider !== currentProvider) {
+    if (!newKey) next.keyEnc = '';
     if (!(typeof partial.model === 'string' && partial.model.trim())) next.model = '';
     if (!(typeof partial.imageModel === 'string' && partial.imageModel.trim())) next.imageModel = '';
   }
-  await fs.promises.mkdir(RUNTIME_DIR, { recursive: true, mode: 0o700 });
-  await fs.promises.writeFile(RUNTIME_CONFIG_PATH, JSON.stringify(next, null, 2), { mode: 0o600 });
   return next;
 }
+const SESSION_COOKIE = 'g1_session';
+const SESSION_DAYS = 7;
+const RESET_MINUTES = 10;
+const MIN_PASSWORD = 8;
+const MAX_PASSWORD = 200;
 
-const PROJECT_KINDS = ['apostila', 'capa'];
-const MAX_PROJECTS = 500;
+const masterSecret = appCrypto.loadMasterSecret(RUNTIME_DIR);
+const sessionKey = appCrypto.deriveKey(masterSecret, 'session');
+const keyEncKey = appCrypto.deriveKey(masterSecret, 'byok');
+const resetKey = appCrypto.deriveKey(masterSecret, 'reset');
+const userStore = createUserStore(path.join(RUNTIME_DIR, 'users.json'));
+const projectStore = createProjectStore(path.join(RUNTIME_DIR, 'projects.json'));
+const mailer = createMailer({ host: process.env.SMTP_HOST, port: process.env.SMTP_PORT, secure: process.env.SMTP_SECURE, user: process.env.SMTP_USER, pass: process.env.SMTP_PASS, from: process.env.SMTP_FROM });
+const loginLimiter = createLimiter({ max: 8, windowMs: 15 * 60_000 });
+const resetLimiter = createLimiter({ max: 5, windowMs: 15 * 60_000 });
+const resets = new Map();
 
-function createProjectStore(filePath) {
-  let queue = Promise.resolve();
-  const read = async () => {
-    try {
-      const parsed = JSON.parse(await fs.promises.readFile(filePath, 'utf8'));
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  };
-  const write = async projects => {
-    await fs.promises.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
-    const tmp = `${filePath}.${process.pid}.tmp`;
-    await fs.promises.writeFile(tmp, JSON.stringify(projects), { mode: 0o600 });
-    await fs.promises.rename(tmp, filePath);
-  };
-  const serialized = task => {
-    const run = queue.then(task, task);
-    queue = run.catch(() => {});
-    return run;
-  };
-  return {
-    async list() {
-      return (await read())
-        .map(({ id, name, kind, updatedAt }) => ({ id, name, kind, updatedAt }))
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-    },
-    async get(id) {
-      return (await read()).find(project => project.id === id) || null;
-    },
-    save(input) {
-      return serialized(async () => {
-        const projects = await read();
-        const now = new Date().toISOString();
-        const index = input.id ? projects.findIndex(project => project.id === input.id) : -1;
-        if (index === -1 && projects.length >= MAX_PROJECTS) throw Object.assign(new Error(`Limite de ${MAX_PROJECTS} projetos atingido. Exclua projetos antigos.`), { status: 409 });
-        const project = {
-          id: index === -1 ? crypto.randomUUID() : input.id,
-          name: input.name,
-          kind: input.kind,
-          settings: input.settings,
-          prompt: input.prompt,
-          createdAt: index === -1 ? now : projects[index].createdAt,
-          updatedAt: now
-        };
-        if (index === -1) projects.push(project); else projects[index] = project;
-        await write(projects);
-        return project;
-      });
-    },
-    remove(id) {
-      return serialized(async () => {
-        const projects = await read();
-        const next = projects.filter(project => project.id !== id);
-        if (next.length === projects.length) return false;
-        await write(next);
-        return true;
-      });
-    }
-  };
+function clientIp(req) {
+  return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
 }
 
-function validateProject(payload) {
-  const name = typeof payload.name === 'string' ? payload.name.trim().slice(0, 120) : '';
-  if (!name) throw Object.assign(new Error('Dê um nome ao projeto.'), { status: 400 });
-  if (!PROJECT_KINDS.includes(payload.kind)) throw Object.assign(new Error('Tipo de projeto inválido.'), { status: 400 });
-  if (!payload.settings || typeof payload.settings !== 'object' || Array.isArray(payload.settings)) throw Object.assign(new Error('Configurações do projeto inválidas.'), { status: 400 });
-  const settings = Object.fromEntries(Object.entries(payload.settings).filter(([key, value]) => key.length <= 60 && ['string', 'boolean', 'number'].includes(typeof value)).map(([key, value]) => [key, typeof value === 'string' ? value.slice(0, 20_000) : value]));
-  const prompt = typeof payload.prompt === 'string' ? payload.prompt.slice(0, 100_000) : '';
-  const id = typeof payload.id === 'string' && /^[0-9a-f-]{36}$/.test(payload.id) ? payload.id : undefined;
-  return { id, name, kind: payload.kind, settings, prompt };
+function parseCookies(header = '') {
+  return Object.fromEntries(String(header).split(';').map(part => part.trim()).filter(Boolean).map(part => {
+    const index = part.indexOf('=');
+    return index === -1 ? [part, ''] : [part.slice(0, index), part.slice(index + 1)];
+  }));
 }
 
-const projectStore = createProjectStore(process.env.PROJECTS_PATH || path.join(RUNTIME_DIR, 'projects.json'));
+function cookiePath(req) {
+  const prefix = String(req.headers['x-forwarded-prefix'] || '').replace(/\/+$/, '');
+  return /^\/[\w\-./]*$/.test(prefix) ? `${prefix}/` : '/';
+}
 
+function sessionCookie(req, token, maxAgeSeconds) {
+  const secure = req.socket.encrypted || req.headers['x-forwarded-proto'] === 'https';
+  return [`${SESSION_COOKIE}=${token}`, `Path=${cookiePath(req)}`, 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSeconds}`, ...(secure ? ['Secure'] : [])].join('; ');
+}
+
+function issueSession(req, user) {
+  const maxAge = SESSION_DAYS * 86_400;
+  const token = appCrypto.signToken({ uid: user.id, v: user.pwdVersion, exp: Date.now() + maxAge * 1000 }, sessionKey);
+  return { 'Set-Cookie': sessionCookie(req, token, maxAge) };
+}
+
+async function authenticate(req) {
+  const payload = appCrypto.verifyToken(parseCookies(req.headers.cookie)[SESSION_COOKIE], sessionKey);
+  if (!payload) return null;
+  const user = await userStore.getById(payload.uid);
+  return user && user.active && user.pwdVersion === payload.v ? user : null;
+}
+
+function sameOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  try { return new URL(origin).host === (req.headers['x-forwarded-host'] || req.headers.host); } catch { return false; }
+}
+
+function fail(message, status = 400) {
+  return Object.assign(new Error(message), { status });
+}
+
+function checkPassword(password) {
+  if (typeof password !== 'string' || password.length < MIN_PASSWORD) throw fail(`A senha precisa ter ao menos ${MIN_PASSWORD} caracteres.`);
+  if (password.length > MAX_PASSWORD) throw fail('Senha muito longa.');
+  return password;
+}
+
+async function readJson(req) {
+  try {
+    const value = JSON.parse(await readBody(req) || '{}');
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new SyntaxError('corpo');
+    return value;
+  } catch (error) {
+    throw error.status ? error : fail('JSON inválido.');
+  }
+}
+
+async function ensureAdmin() {
+  if (await userStore.count()) return null;
+  const email = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@geradorone.local');
+  const given = process.env.ADMIN_PASSWORD;
+  const password = given && given.length >= MIN_PASSWORD ? given : appCrypto.randomPassword();
+  const admin = await userStore.create({ name: 'Administrador', email, role: 'admin', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
+  const adopted = await projectStore.adoptOrphans(admin.id);
+  if (adopted) console.log(`[setup] ${adopted} projeto(s) anterior(es) ao login passaram para o administrador.`);
+  console.log(`[setup] Administrador criado: ${email}${password === given ? ' (senha definida em ADMIN_PASSWORD)' : ` · senha temporária: ${password}`} — a troca é exigida no primeiro acesso.`);
+  return { email, password };
+}
+
+async function activeAdminCount() {
+  return (await userStore.list()).filter(user => user.role === 'admin' && user.active).length;
+}
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -154,11 +159,12 @@ const MIME = {
   '.ico': 'image/x-icon'
 };
 
-function json(res, status, body) {
+function json(res, status, body, headers = {}) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'X-Content-Type-Options': 'nosniff',
-    'Cache-Control': 'no-store'
+    'Cache-Control': 'no-store',
+    ...headers
   });
   res.end(JSON.stringify(body));
 }
@@ -259,9 +265,8 @@ async function requestGeminiText(config, instructions, input, signal) {
   return { text: extractGeminiText(body), model: config.model };
 }
 
-async function requestAiText(instructions, input, timeoutMs, timeoutMessage) {
-  const config = getAiConfig();
-  if (!config.apiKey) throw Object.assign(new Error('A IA ainda não foi configurada no servidor.'), { status: 503 });
+async function requestAiText(config, instructions, input, timeoutMs, timeoutMessage) {
+  if (!config.apiKey) throw Object.assign(new Error('Configure sua chave de API em "Modelo de IA" para usar este recurso.'), { status: 503 });
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -274,8 +279,8 @@ async function requestAiText(instructions, input, timeoutMs, timeoutMessage) {
   }
 }
 
-async function requestAiHtml(prompt) {
-  const result = await requestAiText(HTML_INSTRUCTIONS, prompt, 180_000, 'A geração excedeu o tempo máximo de três minutos.');
+async function requestAiHtml(config, prompt) {
+  const result = await requestAiText(config, HTML_INSTRUCTIONS, prompt, 180_000, 'A geração excedeu o tempo máximo de três minutos.');
   return { html: cleanGeneratedHtml(result.text), model: result.model };
 }
 
@@ -285,9 +290,9 @@ function cleanImprovedPrompt(value) {
   return text;
 }
 
-async function improvePrompt(prompt, adjustments, instruction) {
+async function improvePrompt(config, prompt, adjustments, instruction) {
   const asks = [...adjustments, instruction].filter(Boolean).map(item => `- ${item}`).join('\n');
-  const result = await requestAiText(IMPROVE_INSTRUCTIONS, `PROMPT ATUAL:\n${prompt}\n\nAJUSTES PEDIDOS:\n${asks}`, 90_000, 'A melhoria excedeu o tempo máximo de 90 segundos.');
+  const result = await requestAiText(config, IMPROVE_INSTRUCTIONS, `PROMPT ATUAL:\n${prompt}\n\nAJUSTES PEDIDOS:\n${asks}`, 90_000, 'A melhoria excedeu o tempo máximo de 90 segundos.');
   return { prompt: cleanImprovedPrompt(result.text), model: result.model };
 }
 
@@ -332,9 +337,8 @@ async function requestGeminiImage(config, prompt, position, total, signal) {
   return { data: block.data, prompt: `Ilustração educacional ${position}` };
 }
 
-async function requestAiImage(prompt, position, total) {
-  const config = getAiConfig();
-  if (!config.apiKey) throw Object.assign(new Error('A IA ainda não foi configurada no servidor.'), { status: 503 });
+async function requestAiImage(config, prompt, position, total) {
+  if (!config.apiKey) throw Object.assign(new Error('Configure sua chave de API em "Modelo de IA" para usar este recurso.'), { status: 503 });
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180_000);
   try {
@@ -371,29 +375,158 @@ async function htmlToPdf(html) {
   }
 }
 
+const PASSWORD_CHANGE_ALLOWED = ['/api/auth/me', '/api/auth/change-password', '/api/auth/logout'];
+
+async function handleAuthApi(req, res, pathname, user) {
+  const method = req.method;
+  if (method === 'POST' && pathname === '/api/auth/login') {
+    const body = await readJson(req);
+    const email = normalizeEmail(body.email);
+    const password = typeof body.password === 'string' ? body.password.slice(0, MAX_PASSWORD) : '';
+    const keys = [`email:${email}`, `ip:${clientIp(req)}:${email}`];
+    if (keys.some(key => loginLimiter.blocked(key))) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
+    const found = email ? await userStore.getByEmail(email) : null;
+    const valid = found ? await appCrypto.verifyPassword(password, found.passwordHash) : (await appCrypto.verifyDummy(password), false);
+    if (!valid || !found.active) {
+      keys.forEach(key => loginLimiter.hit(key));
+      return json(res, 401, { error: 'Credenciais inválidas.' });
+    }
+    keys.forEach(key => loginLimiter.reset(key));
+    return json(res, 200, { user: publicUser(found) }, issueSession(req, found));
+  }
+  if (method === 'POST' && pathname === '/api/auth/logout') {
+    return json(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(req, '', 0) });
+  }
+  if (method === 'GET' && pathname === '/api/auth/config') {
+    return json(res, 200, { emailReset: mailer.enabled });
+  }
+  if (method === 'POST' && pathname === '/api/auth/forgot') {
+    const body = await readJson(req);
+    const email = normalizeEmail(body.email);
+    const keys = [`email:${email}`, `ip:${clientIp(req)}`];
+    if (keys.some(key => resetLimiter.blocked(key))) return json(res, 429, { error: 'Muitas solicitações. Aguarde 15 minutos e tente de novo.' });
+    if (!mailer.enabled) return json(res, 503, { error: 'A recuperação por e-mail não está disponível. Peça ao administrador para redefinir sua senha.' });
+    checkPassword(body.password);
+    keys.forEach(key => resetLimiter.hit(key));
+    const found = email ? await userStore.getByEmail(email) : null;
+    if (found && found.active) {
+      const code = appCrypto.randomCode();
+      resets.set(email, { codeHash: appCrypto.hmacHex(code, resetKey), passwordHash: await appCrypto.hashPassword(body.password), expiresAt: Date.now() + RESET_MINUTES * 60_000, attempts: 0 });
+      try { await mailer.sendResetCode(found.email, code, RESET_MINUTES); } catch (error) { console.error('Falha ao enviar e-mail de redefinição:', error.message); }
+    }
+    return json(res, 200, { ok: true, message: 'Se o e-mail estiver cadastrado, enviamos um código de 6 dígitos válido por 10 minutos.' });
+  }
+  if (method === 'POST' && pathname === '/api/auth/confirm') {
+    const body = await readJson(req);
+    const email = normalizeEmail(body.email);
+    const keys = [`email:${email}`, `ip:${clientIp(req)}`];
+    if (keys.some(key => resetLimiter.blocked(key))) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
+    const entry = resets.get(email);
+    const invalid = () => { keys.forEach(key => resetLimiter.hit(key)); return json(res, 400, { error: 'Código inválido ou expirado.' }); };
+    if (!entry || entry.expiresAt < Date.now()) { resets.delete(email); return invalid(); }
+    entry.attempts += 1;
+    if (entry.attempts > 5) { resets.delete(email); return invalid(); }
+    if (!appCrypto.safeEqualHex(appCrypto.hmacHex(String(body.code || '').trim(), resetKey), entry.codeHash)) return invalid();
+    resets.delete(email);
+    const target = await userStore.getByEmail(email);
+    if (!target || !target.active) return invalid();
+    await userStore.update(target.id, { passwordHash: entry.passwordHash, mustChangePassword: false });
+    return json(res, 200, { ok: true, message: 'Senha redefinida. Entre com a nova senha.' });
+  }
+  if (method === 'GET' && pathname === '/api/auth/me') {
+    return json(res, 200, { user: publicUser(user), emailReset: mailer.enabled });
+  }
+  if (method === 'POST' && pathname === '/api/auth/change-password') {
+    const body = await readJson(req);
+    if (!(await appCrypto.verifyPassword(String(body.current || ''), user.passwordHash))) return json(res, 400, { error: 'A senha atual está incorreta.' });
+    checkPassword(body.password);
+    if (body.password === body.current) return json(res, 400, { error: 'A nova senha precisa ser diferente da atual.' });
+    const updated = await userStore.update(user.id, { passwordHash: await appCrypto.hashPassword(body.password), mustChangePassword: false });
+    return json(res, 200, { user: publicUser(updated) }, issueSession(req, updated));
+  }
+  if (method === 'POST' && pathname === '/api/auth/profile') {
+    const body = await readJson(req);
+    const updated = await userStore.update(user.id, { name: body.name, keepSessions: true });
+    return json(res, 200, { user: publicUser(updated) });
+  }
+  return false;
+}
+
+async function handleUsersApi(req, res, pathname, user) {
+  if (user.role !== 'admin') return json(res, 403, { error: 'Apenas administradores podem gerenciar usuários.' });
+  const method = req.method;
+  const [, , , id, action] = pathname.split('/');
+  if (method === 'GET' && !id) return json(res, 200, { users: (await userStore.list()).map(publicUser) });
+  if (method === 'POST' && !id) {
+    const body = await readJson(req);
+    const generated = !body.password;
+    const password = generated ? appCrypto.randomPassword() : checkPassword(body.password);
+    const created = await userStore.create({ name: body.name, email: body.email, role: body.role || 'user', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
+    return json(res, 200, { user: publicUser(created), temporaryPassword: generated ? password : undefined });
+  }
+  const target = id ? await userStore.getById(id) : null;
+  if (!target) return json(res, 404, { error: 'Usuário não encontrado.' });
+  if (method === 'PUT' && !action) {
+    const body = await readJson(req);
+    const patch = {};
+    ['name', 'email'].forEach(key => { if (body[key] !== undefined) patch[key] = body[key]; });
+    const losesAdmin = target.role === 'admin' && target.active && ((body.role !== undefined && body.role !== 'admin') || body.active === false);
+    if (target.id === user.id && (body.role !== undefined && body.role !== target.role || body.active === false)) return json(res, 409, { error: 'Você não pode alterar o próprio perfil ou desativar a própria conta.' });
+    if (losesAdmin && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'É preciso manter ao menos um administrador ativo.' });
+    if (body.role !== undefined) patch.role = body.role;
+    if (body.active !== undefined) patch.active = Boolean(body.active);
+    return json(res, 200, { user: publicUser(await userStore.update(target.id, patch)) });
+  }
+  if (method === 'POST' && action === 'reset-password') {
+    const body = await readJson(req);
+    const generated = !body.password;
+    const password = generated ? appCrypto.randomPassword() : checkPassword(body.password);
+    const updated = await userStore.update(target.id, { passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
+    return json(res, 200, { user: publicUser(updated), temporaryPassword: generated ? password : undefined });
+  }
+  if (method === 'DELETE' && !action) {
+    if (target.id === user.id) return json(res, 409, { error: 'Você não pode excluir a própria conta.' });
+    if (target.role === 'admin' && target.active && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'É preciso manter ao menos um administrador ativo.' });
+    await userStore.remove(target.id);
+    const removedProjects = await projectStore.removeAllFrom(target.id);
+    return json(res, 200, { ok: true, removedProjects });
+  }
+  return json(res, 405, { error: 'Método não permitido.' });
+}
+
 async function handleApi(req, res, pathname) {
-  if (req.method === 'GET' && pathname === '/api/health') return json(res, 200, { ok: true, service: 'gerador-one' });
+  try {
+    if (req.method === 'GET' && pathname === '/api/health') return json(res, 200, { ok: true, service: 'gerador-one' });
+    if (req.method !== 'GET' && !sameOrigin(req)) return json(res, 403, { error: 'Origem não permitida.' });
+    const isPublicAuth = ['/api/auth/login', '/api/auth/logout', '/api/auth/config', '/api/auth/forgot', '/api/auth/confirm'].includes(pathname);
+    if (isPublicAuth) return await handleAuthApi(req, res, pathname, null);
+    const user = await authenticate(req);
+    if (!user) return json(res, 401, { error: 'Sessão expirada. Entre novamente.' });
+    if (user.mustChangePassword && !PASSWORD_CHANGE_ALLOWED.includes(pathname)) return json(res, 403, { error: 'Troque a senha para continuar.', code: 'PASSWORD_CHANGE_REQUIRED' });
+    if (pathname.startsWith('/api/auth/')) return await handleAuthApi(req, res, pathname, user);
+    if (pathname === '/api/users' || pathname.startsWith('/api/users/')) return await handleUsersApi(req, res, pathname, user);
+    return await handleAppApi(req, res, pathname, user);
+  } catch (error) {
+    if (!error.status) console.error('Falha na API:', error.message);
+    return json(res, error.status || 500, { error: error.status ? error.message : 'Erro interno. Tente novamente.' });
+  }
+}
+
+async function handleAppApi(req, res, pathname, user) {
   if (req.method === 'GET' && pathname === '/api/ai/status') {
-    const config = getAiConfig();
+    const config = aiConfigFor(user);
     return json(res, 200, { available: Boolean(config.apiKey), provider: config.provider === 'gemini' ? 'Gemini' : 'OpenAI', model: config.apiKey ? config.model : null });
   }
-  if (req.method === 'GET' && pathname === '/api/ai/config') {
-    const config = getAiConfig();
-    return json(res, 200, { provider: config.provider, hasApiKey: Boolean(config.apiKey), model: config.model, imageModel: config.imageModel });
-  }
+  if (req.method === 'GET' && pathname === '/api/ai/config') return json(res, 200, publicAiConfig(user));
   if (req.method === 'POST' && pathname === '/api/ai/config') {
-    try {
-      const raw = await readBody(req);
-      const payload = JSON.parse(raw || '{}');
-      if (payload.provider !== undefined && !PROVIDERS.includes(payload.provider)) return json(res, 400, { error: 'Provedor inválido.' });
-      if (payload.apiKey !== undefined && typeof payload.apiKey !== 'string') return json(res, 400, { error: 'Chave inválida.' });
-      if (payload.model !== undefined && typeof payload.model !== 'string') return json(res, 400, { error: 'Modelo inválido.' });
-      if (payload.imageModel !== undefined && typeof payload.imageModel !== 'string') return json(res, 400, { error: 'Modelo de imagem inválido.' });
-      const saved = await writeRuntimeAiConfig(payload);
-      return json(res, 200, { provider: saved.provider, hasApiKey: Boolean(saved.apiKey), model: saved.model, imageModel: saved.imageModel });
-    } catch (error) {
-      return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'Não foi possível salvar a configuração.' });
+    const payload = await readJson(req);
+    if (payload.provider !== undefined && !PROVIDERS.includes(payload.provider)) throw fail('Provedor inválido.');
+    if (payload.apiKey !== undefined && (typeof payload.apiKey !== 'string' || (payload.apiKey.trim() && !API_KEY_RE.test(payload.apiKey.trim())))) throw fail('Chave com formato inválido.');
+    for (const key of ['model', 'imageModel']) {
+      if (payload[key] !== undefined && (typeof payload[key] !== 'string' || payload[key].length > 100)) throw fail('Nome de modelo inválido.');
     }
+    const updated = await userStore.update(user.id, { ai: nextAiSettings(user, payload), keepSessions: true });
+    return json(res, 200, publicAiConfig(updated));
   }
   if (req.method === 'POST' && pathname === '/api/render') {
     try {
@@ -422,17 +555,17 @@ async function handleApi(req, res, pathname) {
   if (pathname === '/api/projects' || pathname.startsWith('/api/projects/')) {
     try {
       const id = pathname.slice('/api/projects/'.length);
-      if (req.method === 'GET' && pathname === '/api/projects') return json(res, 200, { projects: await projectStore.list() });
+      if (req.method === 'GET' && pathname === '/api/projects') return json(res, 200, { projects: await projectStore.list(user.id) });
       if (req.method === 'POST' && pathname === '/api/projects') {
-        const saved = await projectStore.save(validateProject(JSON.parse(await readBody(req) || '{}')));
+        const saved = await projectStore.save(user.id, validateProject(JSON.parse(await readBody(req) || '{}')));
         return json(res, 200, { project: saved });
       }
       if (req.method === 'GET' && id) {
-        const project = await projectStore.get(id);
+        const project = await projectStore.get(user.id, id);
         return project ? json(res, 200, { project }) : json(res, 404, { error: 'Projeto não encontrado.' });
       }
       if (req.method === 'DELETE' && id) {
-        return (await projectStore.remove(id)) ? json(res, 200, { ok: true }) : json(res, 404, { error: 'Projeto não encontrado.' });
+        return (await projectStore.remove(user.id, id)) ? json(res, 200, { ok: true }) : json(res, 404, { error: 'Projeto não encontrado.' });
       }
       return json(res, 405, { error: 'Método não permitido.' });
     } catch (error) {
@@ -447,7 +580,7 @@ async function handleApi(req, res, pathname) {
       const adjustments = Array.isArray(payload.adjustments) ? payload.adjustments.filter(item => typeof item === 'string' && item.trim()).slice(0, 10).map(item => item.trim().slice(0, 300)) : [];
       const instruction = typeof payload.instruction === 'string' ? payload.instruction.trim().slice(0, 1000) : '';
       if (!adjustments.length && !instruction) return json(res, 400, { error: 'Escolha ao menos um ajuste ou escreva uma instrução.' });
-      return json(res, 200, await improvePrompt(payload.prompt, adjustments, instruction));
+      return json(res, 200, await improvePrompt(aiConfigFor(user), payload.prompt, adjustments, instruction));
     } catch (error) {
       console.error('Falha ao melhorar prompt:', error.message);
       return json(res, error.status || 500, { error: error.status ? error.message : 'Não foi possível melhorar o prompt com IA.' });
@@ -459,9 +592,10 @@ async function handleApi(req, res, pathname) {
       const payload = JSON.parse(raw || '{}');
       if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
       if (!['pdf', 'html'].includes(payload.format)) return json(res, 400, { error: 'Formato de saída inválido.' });
-      const generated = await requestAiHtml(payload.prompt);
+      const config = aiConfigFor(user);
+      const generated = await requestAiHtml(config, payload.prompt);
       const imageCount = payload.generateImages ? Math.max(1, Math.min(3, Number(payload.imageCount) || 1)) : 0;
-      const images = imageCount ? await Promise.all(Array.from({ length: imageCount }, (_, index) => requestAiImage(payload.prompt, index + 1, imageCount))) : [];
+      const images = imageCount ? await Promise.all(Array.from({ length: imageCount }, (_, index) => requestAiImage(config, payload.prompt, index + 1, imageCount))) : [];
       generated.html = embedImages(generated.html, images);
       const safeName = String(payload.title || 'material-didatico').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 70).toLowerCase() || 'material-didatico';
       const imageFiles = images.map((image, index) => ({ name: `${safeName}-ilustracao-${index + 1}.png`, mimeType: 'image/png', encoding: 'base64', data: image.data }));
@@ -502,6 +636,6 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-if (require.main === module) server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`));
+if (require.main === module) ensureAdmin().then(() => server.listen(PORT, HOST, () => console.log(`GeradorOne: http://${HOST}:${PORT}`)));
 
-module.exports = { server, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, createProjectStore, validateProject };
+module.exports = { server, ensureAdmin, userStore, projectStore, mailer, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, createProjectStore, validateProject };

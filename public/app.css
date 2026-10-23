@@ -33,8 +33,8 @@ body { margin: 0; background: var(--bg); }
 .content { min-width: 0; }
 .mobile-bar { display: none; }
 .workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, 1fr); gap: 22px; align-items: start; padding: 22px; }
-.workspace[data-view="projetos"], .workspace[data-view="ia"] { grid-template-columns: minmax(0, 880px); }
-.workspace[data-view="projetos"] .out-panel, .workspace[data-view="ia"] .out-panel { display: none; }
+.workspace[data-view="projetos"], .workspace[data-view="ia"], .workspace[data-view="conta"], .workspace[data-view="usuarios"] { grid-template-columns: minmax(0, 880px); }
+.workspace[data-view="projetos"] .out-panel, .workspace[data-view="ia"] .out-panel, .workspace[data-view="conta"] .out-panel, .workspace[data-view="usuarios"] .out-panel { display: none; }
 .pane { min-width: 0; display: grid; gap: 18px; }
 .view[hidden] { display: none; }
 .view { display: grid; gap: 18px; align-content: start; }
@@ -133,3 +133,49 @@ body { margin: 0; background: var(--bg); }
   .pane .action-bar .action-buttons button { width: auto; padding: 11px 12px; }
   .pane .action-bar .primary { flex: 1; justify-content: center; }
 }
+
+/* Autenticação */
+.auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); }
+.auth-card { width: min(420px, 100%); display: grid; gap: 22px; padding: 28px; border: 1px solid var(--line); border-radius: 22px; background: var(--paper); box-shadow: var(--shadow); }
+.auth-brand { display: flex; align-items: center; gap: 12px; }
+.auth-brand .brand-mark { width: 44px; height: 44px; }
+.auth-brand strong, .auth-brand small { display: block; }
+.auth-brand small { color: var(--muted); }
+.auth-panel { display: grid; gap: 14px; }
+.auth-panel[hidden] { display: none; }
+.auth-panel h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; }
+.auth-panel p { margin: 0; color: var(--muted); }
+.auth-panel .primary { justify-content: center; }
+.auth-error { min-height: 20px; color: #c0504d; font-weight: 700; font-size: 14px; }
+.link { border: 0; background: transparent; color: var(--teal-dark); font: inherit; font-weight: 750; cursor: pointer; padding: 6px; text-decoration: underline; }
+.link[hidden] { display: none; }
+
+/* Menu: usuário logado */
+.user-chip { display: grid; gap: 1px; padding: 6px 12px 10px; min-width: 0; }
+.user-chip strong, .user-chip small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-chip small { color: var(--muted); }
+
+/* Conta, usuários, BYOK */
+.account-form { display: grid; gap: 14px; }
+.account-form h2 { margin: 0; font-size: 20px; }
+.account-form label { display: block; font-size: 14px; font-weight: 750; }
+.account-form input:disabled { opacity: .65; }
+.byok-note { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); color: var(--muted); font-size: 14px; }
+.byok-note h2 { margin: 0; font-size: 16px; color: var(--ink); }
+.byok-note p { margin: 0; }
+.byok-note ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.byok-note strong { color: var(--ink); }
+.user-card { display: grid; gap: 12px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+.user-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
+.user-fields label { display: block; font-size: 13px; font-weight: 750; min-width: 0; }
+.user-fields input:not([type=checkbox]), .user-fields select { margin-top: 6px; padding: 10px 12px; }
+.user-active { display: flex !important; align-items: center; gap: 8px; padding-bottom: 12px; }
+.user-active input { width: 18px; height: 18px; margin: 0; accent-color: var(--teal); }
+.user-meta small { color: var(--muted); }
+.user-card .project-buttons { flex-wrap: wrap; }
+.user-card .status { margin: 0; min-height: 18px; }
+.temp-box { display: grid; gap: 8px; padding: 16px 18px; border: 1px solid var(--teal); border-radius: 16px; background: var(--aqua); }
+.temp-box p { margin: 0; }
+.temp-box code { font: 700 20px/1.3 ui-monospace, monospace; letter-spacing: .04em; overflow-wrap: anywhere; }
+.temp-box[hidden] { display: none; }
+.temp-box .ghost { justify-self: start; }
