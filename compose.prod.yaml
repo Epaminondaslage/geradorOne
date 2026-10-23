@@ -30,7 +30,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8123:3000"
+      - "8123:3000"
     volumes:
       - ./runtime:/app/runtime
     read_only: true
