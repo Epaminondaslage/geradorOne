@@ -7,7 +7,7 @@ const { promisify } = require('node:util');
 const { URL } = require('node:url');
 const PDFDocument = require('pdfkit');
 const appCrypto = require('./lib/crypto');
-const { createUserStore, publicUser, normalizeEmail, normalizePhone } = require('./lib/users');
+const { createUserStore, publicUser, normalizeEmail, normalizePhone, THEMES } = require('./lib/users');
 const { createProjectStore, validateProject } = require('./lib/projects');
 const { createLimiter } = require('./lib/rate-limit');
 const { createDb } = require('./lib/db');
@@ -483,6 +483,12 @@ async function handleAuthApi(req, res, pathname, user) {
     const body = await readJson(req);
     if (!normalizePhone(body.phone)) throw fail('Informe o telefone.');
     const updated = await userStore.update(user.id, { name: body.name, phone: body.phone, keepSessions: true });
+    return json(res, 200, { user: userView(updated) });
+  }
+  if (method === 'POST' && pathname === '/api/auth/theme') {
+    const body = await readJson(req);
+    if (!THEMES.includes(body.theme)) throw fail('Tema inválido.');
+    const updated = await userStore.update(user.id, { theme: body.theme, keepSessions: true });
     return json(res, 200, { user: userView(updated) });
   }
   return false;

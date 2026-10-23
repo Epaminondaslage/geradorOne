@@ -31,7 +31,14 @@ themeButton.addEventListener('click', () => toggleThemeMenu(themeMenu.hidden));
 themeMenu.addEventListener('click', event => {
   const option = event.target.closest('[data-theme-pick]');
   if (!option) return;
-  setTheme(option.dataset.themePick);
+  const chosen = option.dataset.themePick;
+  setTheme(chosen);
+  if (currentUser) {
+    postJson('api/auth/theme', { theme: chosen }).then(result => {
+      if (result.ok) currentUser = result.data.user;
+      else notify('Tema aplicado neste navegador, mas não foi salvo na conta.');
+    });
+  }
   toggleThemeMenu(false);
   themeButton.focus();
 });
@@ -1132,6 +1139,7 @@ function startApp(user) {
   const switched = currentUser && currentUser.id !== user.id;
   currentUser = user;
   if (switched) { location.hash = ''; location.reload(); return; }
+  if (user.theme && themeNames[user.theme]) setTheme(user.theme);
   document.querySelector('#user-name').textContent = user.name;
   document.querySelector('#user-email').textContent = user.email;
   document.querySelectorAll('[data-admin]').forEach(item => { item.hidden = user.role !== 'admin'; });

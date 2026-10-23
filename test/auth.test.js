@@ -310,6 +310,19 @@ test('chave de IA que não pode mais ser decifrada não aparece como cadastrada'
   assert.equal((await admin('POST', '/api/ai/config', { clearApiKey: true })).data.hasApiKey, false);
 });
 
+test('o tema escolhido fica salvo na conta e volta no login seguinte', async () => {
+  const ana = await loginAs('ana@teste.com', 'OutraSenha123');
+  assert.equal((await ana('GET', '/api/auth/me')).data.user.theme, '');
+  assert.equal((await ana('POST', '/api/auth/theme', { theme: 'neon' })).status, 400);
+  assert.equal((await ana('POST', '/api/auth/theme', {})).status, 400);
+  const saved = await ana('POST', '/api/auth/theme', { theme: 'azul-tinta' });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.data.user.theme, 'azul-tinta');
+  assert.equal((await ana('GET', '/api/projects')).status, 200);
+  const again = await loginAs('ana@teste.com', 'OutraSenha123');
+  assert.equal((await again('GET', '/api/auth/me')).data.user.theme, 'azul-tinta');
+});
+
 test('script de emergência redefine a senha e exige troca', async () => {
   const { execFileSync } = require('node:child_process');
   const output = execFileSync('node', [path.join(__dirname, '..', 'scripts', 'reset-password.js'), 'ADMIN@teste.com'], { env: { ...process.env, RUNTIME_DIR: runtime, DATABASE_URL: testDb.url } }).toString();

@@ -18,7 +18,7 @@ let projects;
 test.before(async () => {
   testDb = await createTestDatabase();
   db = createDb(testDb.url);
-  assert.deepEqual(await db.migrate(), [1]);
+  assert.deepEqual(await db.migrate(), [1, 2]);
   users = createUserStore(db);
   projects = createProjectStore(db);
 });
@@ -32,7 +32,7 @@ const person = (n, extra = {}) => ({ name: `Pessoa ${n}`, email: `pessoa${n}@tes
 test('migração roda uma vez só e pode ser repetida sem erro', async () => {
   assert.deepEqual(await db.migrate(), []);
   const { rows } = await db.query('SELECT version FROM schema_migrations');
-  assert.deepEqual(rows.map(row => row.version), [1]);
+  assert.deepEqual(rows.map(row => row.version), [1, 2]);
 });
 
 test('usuários: cria, normaliza, impede e-mail repetido (mesmo em corrida) e valida campos', async () => {
@@ -71,6 +71,16 @@ test('usuários: atualizar muda a versão da sessão só quando deve, e protege 
   assert.deepEqual(stored, { keyEnc: 'x' });
 });
 
+test('tema: começa vazio, aceita só os temas conhecidos e não derruba a sessão', async () => {
+  const user = await users.create(person(91));
+  assert.equal(user.theme, '');
+  const saved = await users.update(user.id, { theme: 'lousa', keepSessions: true });
+  assert.equal(saved.theme, 'lousa');
+  assert.equal(saved.pwdVersion, user.pwdVersion);
+  await assert.rejects(users.update(user.id, { theme: 'neon' }), { status: 400 });
+  assert.equal((await users.getById(user.id)).theme, 'lousa');
+});
+
 test('atualizações simultâneas do mesmo usuário não se perdem', async () => {
   const user = await users.create(person(20));
   await Promise.all(Array.from({ length: 10 }, () => users.update(user.id, { passwordHash: crypto.randomBytes(4).toString('hex') })));
@@ -101,7 +111,7 @@ test('projetos: salvar, atualizar, listar por dono e impedir que outro usuário 
 });
 
 test('projetos: limite por usuário vale mesmo com gravações simultâneas', async () => {
-  const dono = await users.create(person(40));
+  const dono = await users.create(person(90));
   await db.query(`INSERT INTO projects (id, owner_id, name, kind) SELECT gen_random_uuid(), $1, 'p' || g, 'capa' FROM generate_series(1, 498) g`, [dono.id]);
   const corrida = await Promise.allSettled(Array.from({ length: 5 }, (_, i) => projects.save(dono.id, { name: `n${i}`, kind: 'capa', settings: {}, prompt: '' })));
   assert.equal(corrida.filter(item => item.status === 'fulfilled').length, 2);

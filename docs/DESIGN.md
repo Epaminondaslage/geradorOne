@@ -26,7 +26,7 @@ Tamanhos: texto 15 px; título de página 34 px; título de seção 20 px; texto
 
 ## Temas
 
-São seis combinações de cores aplicadas ao mesmo app. O tema fica em `<html data-theme="...">` e a escolha vai para `localStorage` (`apostila-theme`). Na primeira visita vale a preferência do sistema: escuro vira Grafite, claro vira Papel. Valores antigos (`light`, `dark`) são convertidos.
+São seis combinações de cores aplicadas ao mesmo app. O tema fica em `<html data-theme="...">` e a escolha fica salva **na conta**, na coluna `users.theme` (vazia = ainda não escolheu), pela rota `POST /api/auth/theme`. Ao entrar, o app aplica o tema da conta. O `localStorage` (`apostila-theme`) só guarda uma cópia para a tela de login e para quem ainda não escolheu. Sem escolha, vale a preferência do sistema: escuro vira Grafite, claro vira Papel. Valores antigos (`light`, `dark`) são convertidos.
 
 | Tema (`data-theme`) | `--bg` | `--paper` | `--ink` | `--muted` | `--line` | `--field` | `--accent` | `--accent-ink` | `--danger` |
 |---|---|---|---|---|---|---|---|---|---|
@@ -51,7 +51,7 @@ Significado dos tokens:
 
 Contraste (calculado por script no desenho, a conferir de novo ao mudar uma cor): texto e apoio acima de 4,5:1 em todos os temas; o menor é `--muted` na Lousa (6,2:1). O texto do botão primário sobre `--accent` fica em 6,1:1 ou mais.
 
-Para **adicionar um tema**: crie o bloco `html[data-theme="novo"]` em `design.css` com os nove tokens, acrescente a chave em `themeNames` no `app.js`, um botão `data-theme-pick="novo"` no `#theme-menu` do `index.html` e as três variáveis `--sw-*` do `.theme-option[data-theme-pick="novo"]` (miniatura no seletor). Se o tema for escuro, inclua-o também na regra que inverte `.resource-icon`.
+Para **adicionar um tema**: crie o bloco `html[data-theme="novo"]` em `design.css` com os nove tokens, acrescente a chave em `themeNames` no `app.js` e em `THEMES` no `lib/users.js`, e crie uma migração que amplie o `CHECK` da coluna `users.theme`, um botão `data-theme-pick="novo"` no `#theme-menu` do `index.html` e as três variáveis `--sw-*` do `.theme-option[data-theme-pick="novo"]` (miniatura no seletor). Se o tema for escuro, inclua-o também na regra que inverte `.resource-icon`.
 
 Os nomes antigos das folhas anteriores (`--teal`, `--teal-dark`, `--aqua`, `--violet`) continuam existindo, mas apontam para os tokens novos. **Em código novo use só os nove tokens.**
 
@@ -84,7 +84,6 @@ Em `docs/design/` estão os arquivos do desenho feito no Artifact "GeradorOne �
 
 ## Pendências do redesenho
 
-- O seletor de temas guarda a escolha no navegador, não na conta do usuário. Para valer em todos os aparelhos seria preciso uma coluna em `users` e uma rota de preferências.
 - Os ícones dos recursos visuais (`assets/icons/*.png`) são imagens turquesa que o CSS converte em silhueta. O ideal é redesenhá-los como SVG de traço.
 - `styles.css`, `theme.css` e `app.css` ainda carregam regras do desenho antigo, anuladas por `design.css`. Dá para enxugá-las aos poucos.
 - Falta a tela de Usuários em tabela como no desenho (hoje são cartões).
