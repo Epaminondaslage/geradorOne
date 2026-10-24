@@ -27,6 +27,9 @@ Público: Ensino Fundamental II
 Estilo visual: 3D Educacional
 Paleta visual: Azul e turquesa
 
+REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)
+Antes de desenhar, revise com rigor técnico os elementos ilustrados (fidelidade ao tema, proporções, símbolos e termos) e a grafia de cada texto da capa. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.
+
 TEXTOS DA CAPA (escreva exatamente como abaixo, letra por letra, com a acentuação indicada)
 Texto superior: "Material de Estudos"
 Título principal: "Sistema Solar"

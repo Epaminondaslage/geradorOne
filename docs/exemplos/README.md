@@ -22,3 +22,5 @@ Um exemplo por modelo do GeradorOne, com temas e estilos variados. Cada arquivo 
 | 16 | Capa | Revolução Francesa | Scientific Illustration | Ensino Médio | 1 | [16-capa-revolucao-francesa.md](16-capa-revolucao-francesa.md) | aguardando |
 
 Os exemplos servem de referência para ajustar os prompts: ao comparar a imagem com o que o prompt pedia, vemos o que o modelo de imagem segue bem e o que ignora.
+
+A partir de 24/10/2026 todo prompt traz o bloco "REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)", que pede à IA conferir fórmulas, unidades, datas, nomes, números e termos antes de desenhar. Os prompts desta pasta já têm o bloco; imagens geradas antes dessa data vieram da versão anterior do prompt e podem diferir ao refazer.
