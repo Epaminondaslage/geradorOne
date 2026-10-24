@@ -5,7 +5,7 @@
 # Ao terminar, grava o resultado em MONITOR_DIR (padrão ./monitor, legível pelo app): backup-db.json e backup.log.
 # É o que a aba Backup de Configurações mostra. Nada ali tem dado de usuário.
 #
-# Modo "rotina no HD" (produção, como as rotinas do outro produto; ver o cron em /etc/cron.d/geradorone-backup):
+# Modo "rotina no HD" (produção; ver o cron em /etc/cron.d/geradorone-backup):
 #   BACKUP_DIR=/backup/lxc-geradorone   pasta própria no HD de backup, nunca no SSD
 #   BACKUP_MOUNT=/backup/lxc-geradorone aborta se a pasta não for o ponto de montagem (HD ausente cairia no SSD em silêncio)
 #   BACKUP_STATUS_JSON=1                grava status.json na pasta, no formato das outras rotinas do HD
@@ -16,7 +16,7 @@ DIR="${BACKUP_DIR:-$PWD/backups}"
 MON="${MONITOR_DIR:-$PWD/monitor}"
 RETENCAO="${RETENCAO_DIAS:-14}"
 INICIO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-# Nome no padrão das rotinas do HD (<nome>_AAAAMMDD_HHMMSS), que a tela de Backup do outro produto reconhece. Horário local (Brasília no CT de produção).
+# Nome no padrão das rotinas do HD (<nome>_AAAAMMDD_HHMMSS), reconhecido pela tela de Backup. Horário local (Brasília no CT de produção).
 STAMP=$(date +%Y%m%d_%H%M%S)
 FILE="$DIR/geradorone_$STAMP.sql.gz"
 mkdir -p "$MON"

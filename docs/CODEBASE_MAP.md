@@ -86,8 +86,6 @@ graph TB
 │   ├── exemplos/             # um prompt de exemplo por modelo (aguardando as imagens)
 │   └── branding/             # foto original do logotipo
 ├── Dockerfile, compose.yaml  # app + db, redes, volumes, rótulos do Traefik
-├── PROJECT_MEMORY.md         # identidade, regras e operação
-└── CLAUDE.md                 # orientações para agentes
 ```
 
 ## Backend

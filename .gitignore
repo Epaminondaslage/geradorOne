@@ -10,5 +10,8 @@ dist/
 *.log
 ._*
 backups/
+# Arquivos locais de operação do mantenedor (instruções para agentes e memória do projeto): nunca versionar.
+CLAUDE.md
+PROJECT_MEMORY.md
 monitor/
 .deploy.lock/

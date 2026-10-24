@@ -215,8 +215,6 @@ O backup do banco é uma rotina agendada, não um passo do deploy: `scripts/back
 ├── server.js
 ├── lib/                 # banco (Postgres), usuários, projetos, criptografia, limitador e e-mail
 ├── scripts/             # reset de senha, teste de SMTP, backup do banco, executor de testes
-├── CLAUDE.md            # orientações para agentes
-├── PROJECT_MEMORY.md    # identidade, regras e operação
 ├── docs/CODEBASE_MAP.md # mapa completo do código
 ├── docs/exemplos/       # um prompt de exemplo por modelo
 ├── docs/ROADMAP.md      # caminho até virar SaaS

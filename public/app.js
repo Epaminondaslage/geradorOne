@@ -653,7 +653,7 @@ const improveBox = document.querySelector('#improve-box');
 const improveOpen = document.querySelector('#improve-open');
 const showPromptButton = document.querySelector('#show-prompt');
 const previewButton = document.querySelector('#preview');
-// Botões de ação no padrão do outro produto: SVG estilo Feather, 16 px, traço 2, caixa 30×30 tonal, só o ícone com título.
+// Botões de ação (docs/PADRAO_ICONES.md): SVG estilo Feather, 16 px, traço 2, caixa 30×30 tonal, só o ícone com título.
 // Na exclusão (dois cliques), o botão mostra o texto de confirmação enquanto está "armado".
 const ACTION_ICONS = {
   edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',

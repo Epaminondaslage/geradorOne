@@ -1,6 +1,6 @@
 # Padrão de ícones de ação
 
-Adaptado do padrão de ícones CRUD do outro produto (spec de 04/07/2026) ao tema e à pilha do GeradorOne: JS puro, sem React, e só os tokens de `public/design.css`. Vale para qualquer botão de ação de linha: tabelas, cartões e listas.
+Padrão dos ícones de ação do GeradorOne: JS puro, sem React, e só os tokens de `public/design.css`. Vale para qualquer botão de ação de linha: tabelas, cartões e listas.
 
 ## Regra
 
@@ -21,14 +21,14 @@ A assinatura é `actionButton(natureza, ícone, título, atributos)`. O título 
 ## Anatomia do botão
 
 - Caixa de 30 por 30 px, raio de 6 px.
-- Ícone SVG de 16 px, traço de 2 px, `stroke="currentColor"`, estilo Feather (o mesmo do outro produto).
+- Ícone SVG de 16 px, traço de 2 px, `stroke="currentColor"`, estilo Feather.
 - Fundo tonal: `color-mix(cor 9%)`; borda `color-mix(cor 30%)`; ícone na cor cheia.
 - Hover: o fundo sobe para 18%. Nada se move, sem sombra e sem gradiente, como em `docs/DESIGN.md`.
 - Acessível: `title` e `aria-label` iguais; foco visível herdado do tema.
 
 ## Cores: só por token do tema
 
-O outro produto usa seis cores semânticas. O GeradorOne não tem tokens de sucesso e de aviso, e o padrão visual proíbe criar cor fora de `design.css`, então a natureza da ação fica em três tokens que existem nos seis temas.
+O GeradorOne não tem tokens de sucesso e de aviso, e o padrão visual proíbe criar cor fora de `design.css`, então a natureza da ação fica em três tokens que existem nos seis temas.
 
 | Natureza | Classe | Token | Ações |
 |---|---|---|---|
@@ -65,10 +65,3 @@ Não fazer: emoji como ação; texto "Editar" ou "Excluir" em botão de linha; c
 
 - Aba **Usuários** de Configurações: editar, redefinir senha e excluir.
 - Tela **Meus projetos**: abrir e excluir.
-
-## Diferenças em relação ao outro produto
-
-- Sem componente React: o botão é uma string HTML gerada por `actionButton`, e a CSP continua sem `style=` inline.
-- Sem `loading` com spinner: nenhuma ação de linha daqui precisa dele ainda.
-- Sem selo de status (`IconBadge`): o app não tem esse caso. Se surgir, use a mesma caixa tonal, sem clique e sem texto.
-- Sem a regra de cor por tipo de arquivo (PDF, DOCX, XLS) das Propostas, que não existe aqui.
