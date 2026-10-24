@@ -2323,16 +2323,41 @@ usersList.addEventListener('click', async event => {
   loadUsers();
 });
 
-document.querySelector('#toggle-password').addEventListener('click', event => {
-  const button = event.currentTarget;
-  const field = document.querySelector('#login-password');
+// Olho para mostrar e ocultar a senha em todo campo de senha. O do login já vem pronto no HTML; os demais ganham o botão aqui.
+const EYE_PATHS = {
+  open: ['<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/>', '<circle cx="12" cy="12" r="3"/>'],
+  closed: ['<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c4.64 0 8.62 2.92 9.94 7a10.8 10.8 0 0 1-1.6 3.04"/>', '<path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/>', '<path d="M17.48 17.5A10.75 10.75 0 0 1 12 19c-4.64 0-8.62-2.92-9.94-7a10.8 10.8 0 0 1 3.4-4.84"/>', '<path d="m2 2 20 20"/>']
+};
+const eyeSvg = (kind, hidden) => `<svg class="icon-svg eye-${kind}" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"${hidden ? ' hidden' : ''}>${EYE_PATHS[kind].join('')}</svg>`;
+const secretWord = field => (field.name === 'apiKey' ? 'chave' : 'senha');
+
+function addEyeToggle(field) {
+  if (field.closest('.input-join')) return;
+  const wrap = document.createElement('span');
+  wrap.className = 'input-join';
+  field.replaceWith(wrap);
+  const button = document.createElement('button');
+  button.className = 'eye-toggle';
+  button.type = 'button';
+  button.setAttribute('aria-label', `Mostrar ${secretWord(field)}`);
+  button.setAttribute('aria-pressed', 'false');
+  button.innerHTML = eyeSvg('open', false) + eyeSvg('closed', true);
+  wrap.append(field, button);
+}
+document.querySelectorAll('input[type="password"]').forEach(addEyeToggle);
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('.eye-toggle');
+  if (!button) return;
+  const field = button.parentElement.querySelector('input');
+  if (!field) return;
   const show = field.type === 'password';
   field.type = show ? 'text' : 'password';
   // SVG não tem a propriedade hidden: troca pelo atributo.
   button.querySelector('.eye-open').toggleAttribute('hidden', show);
   button.querySelector('.eye-closed').toggleAttribute('hidden', !show);
   button.setAttribute('aria-pressed', String(show));
-  button.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
+  button.setAttribute('aria-label', `${show ? 'Ocultar' : 'Mostrar'} ${secretWord(field)}`);
 });
 
 async function loadAuthConfig() {
