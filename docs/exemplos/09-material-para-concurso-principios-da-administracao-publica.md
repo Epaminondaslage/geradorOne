@@ -33,6 +33,9 @@ Estilo de escrita: Didático
 Estilo visual: Futuristic Digital
 Paleta visual: Automática
 
+REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)
+Antes de desenhar, revise com rigor técnico todo o conteúdo que vai aparecer na imagem: fórmulas, unidades, datas, nomes, números, terminologia e as relações entre os conceitos. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.
+
 MISSÃO
 Gerar a IMAGEM de uma página completa de material para concurso sobre Princípios da administração pública, no estilo Futuristic Digital, pronta para impressão. Foco do material: condensar o que é mais cobrado em provas, com pegadinhas e macetes.
 

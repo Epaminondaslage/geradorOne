@@ -33,6 +33,9 @@ Estilo de escrita: Didático
 Estilo visual: Hand-drawn
 Paleta visual: Automática
 
+REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)
+Antes de desenhar, revise com rigor técnico todo o conteúdo que vai aparecer na imagem: fórmulas, unidades, datas, nomes, números, terminologia e as relações entre os conceitos. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.
+
 MISSÃO
 Gerar a IMAGEM de uma página completa de guia de estudos sobre Revolução Francesa, no estilo Hand-drawn, pronta para impressão. Foco do material: orientar o estudo autônomo do tema em etapas.
 

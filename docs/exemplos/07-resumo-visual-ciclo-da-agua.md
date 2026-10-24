@@ -33,6 +33,9 @@ Estilo de escrita: Didático
 Estilo visual: Colorido Infantil
 Paleta visual: Automática
 
+REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)
+Antes de desenhar, revise com rigor técnico todo o conteúdo que vai aparecer na imagem: fórmulas, unidades, datas, nomes, números, terminologia e as relações entre os conceitos. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.
+
 MISSÃO
 Gerar a IMAGEM de uma página completa de resumo visual sobre Ciclo da água, no estilo Colorido Infantil, pronta para impressão. Foco do material: condensar o tema em uma visão geral rápida e visual.
 

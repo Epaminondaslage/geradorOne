@@ -251,6 +251,11 @@ const FAQ_ITEMS = [
   },
   {
     categoria: 'Resultado e exportação',
+    pergunta: 'O prompt pede à IA que revise o conteúdo antes de gerar a imagem?',
+    resposta: 'Sim. Todo prompt de apostila e de capa traz o bloco "Revisão técnica (faça antes de gerar a imagem)": a IA deve conferir fórmulas, unidades, datas, nomes, números e termos antes de desenhar, corrigir o que estiver errado e não incluir dado, fonte ou citação que não possa confirmar. O mesmo vale para o material gerado em PDF ou HTML.\n\nIsso reduz os erros, mas não os elimina. Confira o resultado antes de imprimir.'
+  },
+  {
+    categoria: 'Resultado e exportação',
     pergunta: 'O que fazem os botões TXT, JSON e PDF?',
     resposta: '- TXT: baixa o prompt em um arquivo de texto.\n- JSON: exporta o projeto, para guardar ou importar depois em "Meus projetos".\n- PDF: no modo só prompt, baixa o prompt/roteiro em PDF; no modo com IA, o PDF é o material didático completo produzido pelo modelo.'
   },

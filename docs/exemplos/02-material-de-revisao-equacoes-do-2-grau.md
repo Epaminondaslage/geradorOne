@@ -33,6 +33,9 @@ Estilo de escrita: Didático
 Estilo visual: Infográfico Moderno
 Paleta visual: Automática
 
+REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)
+Antes de desenhar, revise com rigor técnico todo o conteúdo que vai aparecer na imagem: fórmulas, unidades, datas, nomes, números, terminologia e as relações entre os conceitos. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.
+
 MISSÃO
 Gerar a IMAGEM de uma página completa de material de revisão sobre Equações do 2º grau, no estilo Infográfico Moderno, pronta para impressão. Foco do material: revisar o essencial do que já foi estudado, destacando erros comuns.
 
