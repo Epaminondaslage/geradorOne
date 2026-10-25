@@ -1,11 +1,6 @@
-# Roadmap: do GeradorOne atual a um SaaS que escala com segurança
+# Roadmap: do GeradorOne atual a um SaaS
 
-Avaliação feita em 22/10/2026 e reorganizada em 25/10/2026 a partir da releitura completa do código. Cada item tem uma caixa para marcar quando for concluído.
-
-> **Observação — revisar quando a internet voltar e o acesso aos servidores for possível.**
-> Este roadmap e as especificações foram escritos em 25/10/2026 só a partir do repositório no GitHub, com os servidores de desenvolvimento e de produção sem internet e sem acesso. O estado real dos servidores não foi conferido. Antes de começar a Fase 0, revisar a lista em [docs/specs/README.md](specs/README.md#revisão-pendente-nos-servidores) e ajustar o que não bater.
-
-**Especificações técnicas** de cada fase (tabelas em SQL, contratos das rotas, módulos, sequência de PRs, cenários de teste, critérios de aceite e reversão): [docs/specs/](specs/README.md). Visão geral comentada: [Plano de escala do GeradorOne](https://claude.ai/artifact/K8J6ux2kfVgj98gr6vyUWR).
+Avaliação feita em 22/10/2026. Cada item tem uma caixa para marcar quando for concluído.
 
 ## Onde estamos
 
@@ -13,249 +8,107 @@ Avaliação feita em 22/10/2026 e reorganizada em 25/10/2026 a partir da releitu
 
 - [x] Servidor com folga de recursos: 16 CPUs, 31 GB de RAM, 936 GB de disco.
 - [x] Postgres 17 na rede interna do Docker, sem porta publicada, com migrações versionadas, volume próprio e verificação de saúde.
-- [x] Backup do banco em `scripts/backup-db.sh`, com restauração comprovada, status lido pela aba Backup.
+- [x] Backup do banco em `scripts/backup-db.sh`, com restauração comprovada.
 - [x] Login por e-mail e senha, perfis admin e usuário, troca de senha obrigatória no primeiro acesso, recuperação por código enviado por e-mail e limite de tentativas.
 - [x] Chaves de IA por usuário (BYOK), cifradas com AES-256-GCM. A chave mestra fica em `APP_SECRET`, fora do banco, e o app recusa iniciar se ela mudar.
-- [x] Contêiner endurecido (usuário sem privilégios, sistema de arquivos somente leitura, sem capabilities) e suíte de 88 testes contra Postgres real (87 passam e 1 é pulado sem Chromium; conferido em 25/10/2026).
-- [x] Cadastro público com verificação de e-mail por código de 6 dígitos (23/10/2026).
-- [x] Termos de uso e política de privacidade com aceite registrado e versionado (`lib/legal.js`), ainda sem revisão jurídica.
-- [x] LGPD, parte técnica: exportação dos dados da conta, exclusão da conta, prazo de retenção e canal do responsável.
-- [x] Caixa de e-mail própria do projeto, configurável na tela **E-mail (SMTP)** (23/10/2026).
-- [x] Revisão técnica pedida à IA antes de gerar a imagem (24/10/2026).
-- [x] Plano de escala em cinco fases (25/10/2026) e especificações técnicas de cada fase (25/10/2026).
+- [x] Contêiner endurecido (usuário sem privilégios, sistema de arquivos somente leitura, sem capabilities) e suíte de testes contra Postgres real.
 
-**Não está pronto para clientes.** O que impede escalar, em ordem:
-
-| Área | Situação hoje | Efeito ao escalar |
-|---|---|---|
-| Geração (`/api/generate`) | Texto, imagens e PDF numa única requisição HTTP de até 7,5 min; Chromium abre no mesmo contêiner, sem fila nem cota | Um usuário esgota CPU e os 32 MB de `/tmp`; proxies cortam a conexão longa |
-| Estado do processo | Limites de login, códigos de recuperação, cadastros pendentes e `rate-limit.js` em `Map` na memória | Com duas instâncias os limites valem pela metade e um código pedido numa instância falha na outra; tudo some a cada deploy |
-| Operação | `console.log`, sem CI, sem métricas, sem captura de erros, estáticos sem `Cache-Control` nem compressão | Falhas ficam invisíveis; `app.js` e `bncc.json` são relidos do disco a cada pedido |
-| Deploy | `container_name` fixo, porta 8123 aberta em HTTP, `--no-sandbox` no Chromium | Impede réplicas; expõe senha em texto claro fora da rede interna |
-
-As fases abaixo são sequenciais porque cada uma remove um bloqueio da seguinte. Ordem recomendada de execução: **0 → 1 → 3 (blocos A e B: CI e logs) → 2 → 3 (blocos C a E) → 4 → 5**.
-
-Princípios que valem para todas as fases:
-
-- Nenhuma mudança entra sem teste correspondente em `test/` e sem passar na suíte inteira (`npm test`).
-- Zero dependências novas sem necessidade real; quando entrar uma, fixar a versão como já se faz com `pg` e `nodemailer`.
-- O processo web nunca executa trabalho pesado (Chromium, scrypt em massa, SMTP lento) de forma síncrona.
-- Todo estado que precisa sobreviver a um deploy ou ser visto por outra instância vive no Postgres.
-- Só migrações aditivas; remover ou renomear coluna só numa versão seguinte.
-- Cada fase termina com este arquivo e o `docs/CODEBASE_MAP.md` atualizados no mesmo commit.
+**Não está pronto para clientes.** Os blocos abaixo explicam o que falta, em ordem.
 
 ---
 
-## Fase 0: segurança antes de expor à internet
+## Fase 1: beta fechado (infraestrutura)
 
-Especificação: [fase-0-seguranca.md](specs/fase-0-seguranca.md)
-
-Meta: convidados usam o app num endereço público sem vazar senha e sem que um terceiro consiga travar contas alheias.
+Meta: convidados usam o app com segurança, num endereço público, sem risco de perder dados.
 
 ### Acesso público e HTTPS
 
-- [ ] Definir o domínio e apontar o DNS (quem administra o DNS?).
+- [ ] Definir o domínio, por exemplo `geradorone.seu-dominio.com.br`, e apontar o DNS (quem administra o DNS?).
 - [ ] Liberar o servidor para a internet (NAT e firewall nas portas 80 e 443) ou hospedar em outro lugar.
-- [ ] Usar o `compose.prod.yaml` com Caddy como padrão de produção (certificado Let's Encrypt automático; HSTS já está no `Caddyfile`). Enquanto os servidores estiverem sem internet: `tls internal` do Caddy, com o certificado raiz instalado nos computadores da rede.
-- [ ] Fechar a porta 8123: o contêiner do app deixa de publicar porta; o acesso pela rede local passa pelo Caddy, em `${LAN_BIND}:8123`.
-- [ ] No Coolify, roteador no entrypoint `https` com certificado e HSTS, e roteador `http` que só redireciona.
+- [ ] Emitir certificado HTTPS (Let's Encrypt pelo Coolify/Traefik, que já escuta nas portas 80 e 443).
+- [ ] Fechar a porta 8123, hoje aberta para todos: tirar o `ports:` do `compose.yaml` ou publicar só em `127.0.0.1`.
 - [ ] Publicar na raiz do domínio, em vez do caminho `/geradorone`.
-
-### Brechas conhecidas no código
-
-- [ ] **`X-Forwarded-For` confiado cegamente** (`clientIp`, `server.js`): ler só o salto do proxy confiável (`TRUSTED_PROXY_HOPS`); com `0`, usar o IP da conexão. Seguro só porque o app deixa de publicar porta (entram juntos).
-- [ ] **Enumeração de contas por tempo de resposta** em `/api/auth/signup` e `/api/auth/forgot`: hash sempre calculado e e-mail enviado fora do caminho da resposta.
-- [ ] **Travar conta de terceiros**: limitadores por par IP+e-mail, por IP em massa e por e-mail (atraso curto e, acima de um teto, prova de trabalho em vez de bloqueio); tentativa registrada antes do scrypt.
-- [ ] **Sair não invalida a sessão**: `sid` no token, tabela `revoked_sessions` (migração 7) e renovação deslizante do cookie; tokens com `purpose` recusados como sessão.
-- [ ] **Senha temporária no log**: exigir `ADMIN_PASSWORD` em produção.
-- [ ] **Prova de trabalho** no cadastro e na recuperação, sem serviço de terceiros.
-- [ ] **Política de senha**: lista local de senhas comuns e, opcionalmente, consulta k-anonymity a senhas vazadas.
-- [ ] **Recuperação substitui código pendente de outra pessoa**: resolvido na Fase 1 (`pending_codes`).
+- [ ] Adicionar cabeçalho HSTS. O cookie `Secure` já liga sozinho com HTTPS.
 
 ### Backup que protege de verdade
 
-- [x] `scripts/backup-db.sh` agendado todo dia às 03:15 pelo cron, com cópia do `.env` e status lido pelo app.
-- [ ] Copiar os backups para fora do servidor (outro servidor ou armazenamento em nuvem).
+- [ ] Agendar `scripts/backup-db.sh` no cron, por exemplo `0 3 * * *`.
+- [ ] Copiar os backups para fora do servidor (outro servidor ou armazenamento em nuvem), porque hoje tudo mora num disco só.
+- [ ] Guardar o backup do `.env` (contém `APP_SECRET` e `POSTGRES_PASSWORD`) separado do backup do banco.
 - [ ] Testar a restauração periodicamente, por exemplo todo mês.
+
+### Monitoramento
+
+- [ ] Verificação de disponibilidade em `/api/health`, com alerta por e-mail ou mensagem.
+- [ ] Logs em formato estruturado (JSON), com rotação.
+- [ ] Captura de erros (Sentry ou similar) e alertas de disco, memória e falha de backup.
+
+### Proteção contra abuso e sobrecarga
+
+- [ ] Limitar a geração de PDF: hoje cada pedido abre um Chromium, sem fila nem limite por usuário. Definir concorrência máxima, fila e tempo limite.
+- [ ] Cotas e limite de ritmo por usuário em `/api/pdf`, `/api/generate` e `/api/improve`.
+- [ ] Mover o limite de tentativas de login e os códigos de recuperação para o Postgres (hoje ficam na memória e se perdem a cada deploy).
 
 ### E-mail
 
+- [x] Criar uma caixa própria do projeto e usá-la no envio (feito em 23/10/2026). A senha pode ser trocada na tela **E-mail (SMTP)** do administrador, sem mexer no `.env`. Falta trocar a senha que foi enviada por e-mail em texto aberto.
 - [ ] Configurar SPF, DKIM e DMARC do domínio, para os e-mails não caírem no spam.
-- [ ] Trocar a senha da caixa do projeto que foi enviada por e-mail em texto aberto.
 
-**Pronto quando:** o app abre só em `https://`, o contêiner do app não publica porta, e os cenários de teste da especificação passam.
-
----
-
-## Fase 1: tirar todo estado da memória do processo
-
-Especificação: [fase-1-estado-no-banco.md](specs/fase-1-estado-no-banco.md)
-
-Meta: qualquer instância do app atende qualquer requisição, e um deploy não apaga limites nem códigos pendentes. É o pré-requisito da Fase 4.
-
-- [ ] **Limitador no Postgres** (migração 8, `rate_limits`): interface assíncrona, nome obrigatório por limitador (para as chaves não colidirem), uma consulta por chamada.
-- [ ] **Novo fluxo da recuperação**: a nova senha passa a ser escolhida depois do código, não antes.
-- [ ] **Códigos pendentes no Postgres** (migração 9, `pending_codes`): até 3 códigos vivos por e-mail; pedir de novo não invalida o código de outra pessoa; falhas nunca apagam códigos.
-- [ ] **`APP_SECRET` obrigatória em produção**: sem ela cada réplica geraria um `secret.key` diferente.
-- [ ] **Impressão digital da chave mestra em `settings`**, com transição automática do `runtime/secret.check`; nova ordem de inicialização (migrar antes de conferir a chave).
-- [ ] **SMTP do painel coerente entre instâncias**: releitura periódica (`SMTP_RELOAD_SECONDS`).
-- [ ] **Registro de auditoria** (migração 10, `audit_log`) das ações de administrador e da exclusão de conta, com `GET /api/audit` e retenção configurável.
-
-**Pronto quando:** `server.js` não guarda estado de segurança em memória, e duas instâncias no mesmo banco passam o roteiro de login e recuperação alternando entre elas.
+**Pronto quando:** o app abre em `https://` no domínio, a 8123 está fechada, há backup diário com cópia externa, alertas funcionando e a geração de PDF tem limites.
 
 ---
 
-## Fase 2: geração assíncrona com fila, worker e Chromium isolado
+## Fase 2: abrir para qualquer pessoa (cadastro e conformidade)
 
-Especificação: [fase-2-geracao-assincrona.md](specs/fase-2-geracao-assincrona.md)
+- [x] Cadastro público com verificação de e-mail por código de 6 dígitos (23/10/2026). Os cadastros pendentes ficam na memória do processo.
+- [ ] Proteção contra robôs no cadastro (captcha ou equivalente). Hoje só há limite de tentativas por e-mail e por IP; o uso é dentro de rede protegida por firewall.
+- [ ] Política de senha mais forte e verificação de senhas vazadas.
+- [ ] Verificação em duas etapas (opcional para o usuário).
+- [x] Termos de uso e política de privacidade, com aceite registrado no cadastro (23/10/2026): páginas públicas `termos.html` e `privacidade.html`, caixa de aceite no cadastro, tela de aceite para contas anteriores e para cada nova versão (`lib/legal.js`), versão e data gravadas na conta e na exportação. É rascunho: falta a revisão jurídica abaixo.
+- [x] LGPD, parte técnica (23/10/2026): exportar os dados da conta (`GET /api/auth/export`, botão "Baixar meus dados (JSON)" em Minha conta), excluir a conta, prazo de retenção (a conta sai do banco na hora; as cópias de segurança são mantidas por 14 dias e depois apagadas) e canal do responsável (Fulano, fulano@dominio.com.br). Os textos vão ao provedor de IA escolhido, e o app avisa isso.
+- [x] Revisão técnica pedida à IA antes de gerar a imagem (24/10/2026): todo prompt de apostila e de capa traz o bloco "Revisão técnica" (confere fórmulas, unidades, datas, nomes, números e termos; não inclui dado, fonte ou citação que não possa confirmar), a instrução de PDF/HTML e a de "Melhorar com IA" a preservam, e a FAQ explica.
+- [ ] LGPD, parte jurídica: revisar (com advogado) o texto da política de privacidade e dos termos com quem entende da lei, antes de abrir ao público em geral.
+- [ ] Registro de auditoria das ações de administrador (criar, desativar, redefinir senha, excluir).
+- [ ] Modelos de e-mail transacional (boas-vindas, verificação, recuperação) com a identidade do GeradorOne.
+- [ ] Página de suporte e de status.
 
-Meta: `/api/generate` responde em menos de 100 ms, o trabalho pesado roda em processo separado com concorrência limitada, e nenhum usuário consegue esgotar o servidor.
-
-- [ ] Extrair de `server.js` para `lib/ai/` os provedores, o sanitizador, `embedImages` e `htmlToPdf`, sem mudar comportamento.
-- [ ] Tabelas `generation_jobs` e `generation_files` (migração 11) e `lib/jobs.js` com reivindicação por `FOR UPDATE SKIP LOCKED`, sinal de vida e recolhimento de órfãos sem nova tentativa automática (a IA é paga pela chave da pessoa).
-- [ ] `worker.js` com semáforo de jobs e do Chromium; texto e imagens em paralelo; cancelamento e prazo por `AbortController`.
-- [ ] Cotas: 2 jobs ativos e 20 gerações por dia por usuário (fuso de Brasília); cancelar depois de começar conta na cota.
-- [ ] Retenção em dois tempos: arquivos e prompt apagados em 24 h; a linha do job, só com metadados, fica 400 dias para as cotas.
-- [ ] Rotas `POST /api/generate` (202), `GET /api/generate/:id`, `GET /api/generate/:id/files/:n`, `DELETE /api/generate/:id`; `/api/improve` no mesmo mecanismo; modo `GENERATION_MODE=inline` para reversão.
-- [ ] Contêiner `worker` com Chromium, `/tmp` de 512 MB, `pids_limit` e limites de memória e CPU; o contêiner web perde o Chromium duas semanas depois de a fila estar estável.
-- [ ] Frontend com progresso, cancelar e retomar ao recarregar a página.
-- [ ] Limitadores em `/api/pdf` e `/api/render`.
-
-**Pronto quando:** o contêiner web não tem Chromium; 20 pedidos simultâneos de PDF terminam sem 5xx; nunca há mais Chromiums que `CHROMIUM_CONCURRENCY` por worker.
+**Pronto quando:** uma pessoa desconhecida consegue criar a própria conta sozinha, aceitar os termos e pedir a exclusão dos próprios dados.
 
 ---
 
-## Fase 3: operação
+## Fase 3: cobrar (organizações, planos e pagamento)
 
-Especificação: [fase-3-operacao.md](specs/fase-3-operacao.md)
+- [ ] Organizações (equipes): convites, papéis por organização e projetos compartilhados. Hoje tudo é por usuário.
+- [ ] Planos e cotas (por usuário, por projetos ou por acesso mensal, conforme a decisão abaixo) e período de teste.
+- [ ] Integração com provedor de pagamento (Asaas, Stripe ou Pagar.me) com webhooks de cobrança, renovação e cancelamento.
+- [ ] Bloqueio ou aviso por inadimplência e por cota excedida.
+- [ ] Painel de uso para o cliente e de faturamento para o administrador.
+- [ ] Nota fiscal, se aplicável.
 
-Meta: toda regressão aparece na CI antes do deploy, e toda falha em produção aparece num alerta antes de o usuário reclamar.
-
-### Antes da Fase 2 (blocos A e B)
-
-- [ ] CI no GitHub Actions com Postgres de serviço, Chromium, build da imagem e proteção da `main`.
-- [ ] Dividir `auth.test.js` em arquivos independentes, com `test/helpers/app.js`.
-- [ ] Cobrir `/api/generate`, `/api/improve`, `/api/pdf`, `/api/render`, estáticos e `backup-db.sh`.
-- [ ] `lib/log.js` com JSON por linha, `X-Request-Id`, rota normalizada, teste que garante ausência de dados pessoais no log, rotação no `compose`.
-
-### Depois da Fase 2 (blocos C a E)
-
-- [ ] `GET /api/metrics` em formato Prometheus, protegido por token, também no worker.
-- [ ] Captura de erros (Sentry ou GlitchTip) sem corpo, cookies nem cabeçalhos sensíveis.
-- [ ] Alertas: fora do ar, fila parada, 5xx em alta, backup atrasado, disco, e-mail travado.
-- [ ] Estáticos em memória com `ETag`, gzip e `Cache-Control`; nomes com hash gerados no build da imagem.
-- [ ] `UV_THREADPOOL_SIZE=16`.
-- [ ] Fila de e-mails (migração 12, `outbox_emails`) com conteúdo cifrado; suporte com anexos e teste de SMTP continuam síncronos.
-- [ ] Lista de usuários paginada no servidor.
-
-**Pronto quando:** CI verde obrigatória; um erro forçado aparece no Sentry com `reqId`; os alertas chegam num teste provocado; estáticos com `immutable` e gzip.
+**Pronto quando:** um cliente assina, paga, usa dentro da cota do plano e é bloqueado com aviso claro quando o plano vence.
 
 ---
 
-## Fase 4: múltiplas instâncias, deploy sem queda e banco resiliente
+## Fase 4: escala e resiliência
 
-Especificação: [fase-4-replicas-e-banco.md](specs/fase-4-replicas-e-banco.md)
-
-Meta: 2 instâncias web e 2 workers no servidor atual, deploy sem nenhum 502, banco recuperável em qualquer ponto dos últimos 7 dias.
-
-- [ ] Encerramento gracioso: ao receber `SIGTERM`, para de aceitar conexões na hora e responde com `Connection: close`, espera de até 30 s.
-- [ ] `compose.prod.yaml` sem `container_name`, com réplicas e limites; Caddy com upstream dinâmico e verificação passiva (o Caddy não faz verificação ativa em upstream dinâmico).
-- [ ] Deploy com `docker rollout` ou `scripts/deploy.sh`; workers primeiro, web depois. No Coolify, atualização gradual só com o build pack Dockerfile, não com Compose.
-- [ ] pgBackRest dentro de uma imagem própria do banco (quem roda o `archive_command` é o Postgres), completo semanal e diferencial diário; `pg_dump` sem `generation_files`; exercício mensal em `docs/RESTAURACAO.md`.
-- [ ] Dependabot ou Renovate.
-- [ ] PgBouncer em modo transação quando passar de 80 conexões.
-- [ ] Réplica em streaming quando houver segunda máquina.
-
-**Pronto quando:** 2 web e 2 workers saudáveis; um deploy completo sem 502; exercício de PITR registrado.
+- [ ] Mais de uma instância do app (depende de sessões, limites e códigos já estarem no banco).
+- [ ] Fila de tarefas para PDF e chamadas de IA, fora do processo web.
+- [ ] Réplica do banco e recuperação até um ponto no tempo (WAL).
+- [ ] Atualização sem derrubar o serviço.
+- [ ] Rotina de atualização das imagens base (Node, Alpine e Chromium) e dependências.
 
 ---
-
-## Fase 5: produto SaaS
-
-Especificação: [fase-5-saas.md](specs/fase-5-saas.md)
-
-Meta: um cliente cria a organização, convida colegas, assina um plano, gera dentro da cota e é bloqueado com aviso claro quando o plano vence.
-
-### Podem começar antes das decisões de negócio
-
-- [ ] **Organizações** (migração 13): organização pessoal para cada conta, membros com papéis, convites por e-mail, projetos compartilhados.
-- [ ] **Verificação em duas etapas** (migração 16): TOTP sem dependência, códigos de recuperação.
-- [ ] **Planos e cotas** (migração 14) só com o plano gratuito, com os limites atuais.
-
-### Dependem das decisões
-
-- [ ] **Pagamento** (migração 15): webhooks com assinatura conferida e idempotência; checkout na página do provedor.
-- [ ] **Painéis** de uso para o cliente e de faturamento para o administrador; nota fiscal, se aplicável.
-- [ ] **Página de status** pública, fora do app.
-- [ ] **LGPD, parte jurídica**: revisão dos termos e da política com advogado antes de abrir ao público em geral.
-- [ ] **Modelos de e-mail transacional** (boas-vindas, verificação, recuperação) com a identidade do GeradorOne.
-
-**Pronto quando:** o roteiro completo funciona em homologação com o provedor em modo de teste, e nenhum dado de cartão passa pelo servidor.
-
----
-
-## Migrações previstas
-
-| Versão | Nome | Fase | Tabelas |
-|---|---|---|---|
-| 7 | `sessoes-revogadas` | 0 | `revoked_sessions` |
-| 8 | `limites-de-tentativas` | 1 | `rate_limits` |
-| 9 | `codigos-pendentes` | 1 | `pending_codes` |
-| 10 | `registro-de-auditoria` | 1 | `audit_log` |
-| 11 | `tarefas-de-geracao` | 2 | `generation_jobs`, `generation_files` |
-| 12 | `fila-de-emails` | 3 | `outbox_emails`, índice de busca em `users` |
-| 13 a 16 | organizações, planos, cobrança, duas etapas | 5 | ver a especificação da Fase 5 |
-
-## Mapa de mudanças por arquivo
-
-| Arquivo | Fase | Mudança |
-|---|---|---|
-| `server.js` | 0, 1, 2, 3, 4 | `clientIp` com `TRUSTED_PROXY_HOPS`; `sid` no token e revogação; limitadores assíncronos; rotas `/api/generate/:id`; log JSON; estáticos em memória; `/api/metrics`; encerramento gracioso |
-| `lib/rate-limit.js` | 1 | Mesma interface, armazenamento no Postgres |
-| `lib/pending-codes.js` (novo) | 1 | Códigos de recuperação e cadastro |
-| `lib/audit.js` (novo) | 1 | Registro de auditoria |
-| `lib/password-policy.js` (novo) | 0 | Senhas comuns e vazadas |
-| `lib/db.js` | 0, 1, 2, 3, 5 | Migrações 7 em diante |
-| `lib/secret-check.js` | 1 | Impressão digital em `settings` |
-| `lib/crypto.js` | 0, 1 | Prova de trabalho; `APP_SECRET` obrigatória em produção |
-| `lib/ai/*.js` (novo) | 2 | Provedores, sanitizador, `embedImages`, `htmlToPdf` extraídos de `server.js` |
-| `lib/jobs.js`, `lib/semaphore.js` (novos) | 2 | Fila de geração e limite de concorrência |
-| `worker.js` (novo) | 2, 3 | Laço de jobs, semáforo do Chromium, fila de e-mails, métricas |
-| `lib/visuals.js` | 2 | Chamado só pelo worker |
-| `lib/mailer.js` | 3 | Envio pela fila, exceto suporte com anexos e teste de SMTP |
-| `lib/log.js` (novo) | 3 | JSON por linha com `reqId` |
-| `lib/users.js` | 3, 5 | Lista paginada; contagem de administradores em SQL; duas etapas |
-| `lib/projects.js` | 5 | Projetos compartilhados por organização; limite vindo do plano |
-| `public/app.js` | 0, 2, 3 | Prova de trabalho; progresso, cancelar e retomar; usuários paginados |
-| `public/pow-worker.js` (novo) | 0 | Resolve o desafio no navegador |
-| `public/index.html` | 3 | Referências com hash geradas no build da imagem |
-| `Dockerfile` | 2, 3 | Alvos `web` e `worker`; `scripts/hash-assets.js` no build |
-| `compose.yaml`, `compose.prod.yaml` | 0, 2, 3, 4 | `LAN_BIND`; serviço `worker`; rotação de log; sem `container_name`; réplicas e limites |
-| `deploy/Caddyfile` | 0, 4 | Cabeçalhos; balanceamento e verificação de saúde |
-| `.github/workflows/ci.yml` (novo) | 3 | Testes com Postgres de serviço, build da imagem |
-| `test/*.test.js` | todas | Casos de cada especificação; `auth.test.js` dividido; `store.test.js` atualizado a cada migração |
-| `docs/ROADMAP.md`, `docs/CODEBASE_MAP.md` | todas | Atualizados no mesmo commit de cada fase |
 
 ## Decisões em aberto
 
-| Decisão | Afeta | Padrão assumido nas especificações |
-|---|---|---|
-| Domínio público e quem controla o DNS | Fase 0 inteira | Não assumido |
-| Hospedar no servidor atual ou em nuvem | Fase 4 | Servidor atual, Caddy |
-| Produção no `compose.prod.yaml` com Caddy ou no Coolify | Fase 4 (deploy sem queda só no Caddy, ou no Coolify com build pack Dockerfile) | Caddy |
-| Liberar saída para as APIs de IA nos servidores | Modo "Gerar com IA" | Não assumido; sem ela o modo não funciona |
-| Arquivos gerados em `bytea` ou em disco/S3 | Fase 2 | `bytea` com retenção de 24 h |
-| Prova de trabalho própria ou captcha de terceiro | Fase 0 | Prova de trabalho própria, sem dependência |
-| Sentry em nuvem ou GlitchTip local | Fase 3 | GlitchTip no mesmo servidor |
-| Canal dos alertas | Fase 3 | E-mail do administrador |
-| Cota diária de gerações por usuário no beta | Fase 2 | 20 por dia, 2 simultâneas |
-| Onde guardar a cópia externa do backup | Fase 0 | Não assumido |
-| Modelo de cobrança e provedor de pagamento | Fase 5 | Não assumido |
-| Revisão jurídica dos termos e da política | Fases 1, 2 e 5 | Necessária antes de abrir ao público em geral |
-
-## Servidores sem internet
-
-Hoje os servidores de desenvolvimento e de produção estão sem internet. Login, projetos, modo "somente prompt", diagramas e gráficos funcionam assim. O modo "Gerar com IA" não funciona sem saída para o provedor. HTTPS público, consulta de senhas vazadas e o build das imagens precisam de alternativa (`tls internal`, lista local, imagens geradas fora e levadas com `docker save`/`docker load`). O quadro completo está em [docs/specs/README.md](specs/README.md#servidores-sem-internet).
+| Decisão | Por que importa |
+|---|---|
+| Domínio público do GeradorOne e quem controla o DNS | Bloqueia a Fase 1 inteira |
+| Como será a cobrança (por usuário, projetos ou mensalidade) | Define planos, cotas e o desenho da Fase 3 |
+| Provedor de pagamento | Define a integração e as taxas |
+| Onde guardar a cópia externa do backup | Define o custo e o prazo de retenção |
+| Hospedar no servidor atual ou em nuvem | Afeta disponibilidade, firewall e custo |
+| Revisão jurídica dos termos de uso e da política de privacidade | Necessário antes de abrir ao público em geral |
 
 ## Riscos conhecidos hoje
 
@@ -263,13 +116,3 @@ Hoje os servidores de desenvolvimento e de produção estão sem internet. Login
 - **Porta 8123 aberta e tráfego sem HTTPS:** senhas e cookies trafegam sem proteção fora da rede interna.
 - **PDF sem limite:** um único usuário pode esgotar CPU e memória do servidor.
 - **Perda do `.env`:** sem o `APP_SECRET`, as chaves de IA salvas ficam ilegíveis e cada pessoa cadastra a sua de novo.
-- **Refatoração de `server.js` sem CI:** a extração para `lib/ai/` e `worker.js` é a maior mudança do plano; por isso a CI (Fase 3, blocos A e B) vem antes.
-- **Arquivos em `bytea`:** 50 gerações por hora com retenção de 24 h são cerca de 12 GB rotativos; a limpeza precisa existir desde o primeiro dia, e o `pg_dump` deve excluir essas tabelas.
-- **`--no-sandbox` no Chromium:** mantido, compensado com contêiner separado, `seccomp`, `pids_limit` e limites; avaliar gVisor se o conteúdo gerado por IA for considerado hostil.
-
-## Como saber que o projeto escala
-
-- [ ] Teste de carga reproduzível com provedor de IA simulado: 200 usuários virtuais e 50 gerações por hora, p95 de `/api/projects` abaixo de 200 ms, zero 5xx.
-- [ ] Derrubar uma instância web e um worker durante o teste de carga sem erro visível ao usuário.
-- [ ] Restauração do backup num banco vazio seguida da suíte de testes passando contra ele.
-- [ ] Revisão de segurança externa (ou ao menos um OWASP ZAP baseline) antes de abrir o cadastro público.
