@@ -70,20 +70,21 @@ CREATE TABLE generation_files (
 - `request`: o que a rota recebe hoje, já validado. Para `generate`: `{ title, format, prompt, generateImages, imageCount }`. Para `improve`: `{ prompt, adjustments, instruction }`.
 - `result`: `{ model }` para `generate`; `{ model, prompt }` para `improve`, sem arquivos.
 - **A chave de IA nunca vai para o job.** O worker carrega o usuário por `owner_id` e decifra a chave na hora, como `aiConfigFor` faz hoje. Se a pessoa apagar a chave enquanto o job espera, o job falha com a mensagem atual de chave ausente.
-- Excluir a conta apaga jobs e arquivos em cascata. O prompt fica no banco por até 24 h depois de terminar o job; a Política de privacidade passa a dizer isso.
+- Excluir a conta apaga jobs e arquivos em cascata.
+- **Retenção em dois tempos.** Os arquivos e o conteúdo do pedido (`request`, que tem o prompt) são apagados `GENERATION_RETENTION_HOURS` (24 h) depois de o job terminar. A linha do job continua, só com metadados (tipo, situação, datas, modelo), por 400 dias, porque a cota diária desta fase e a cota mensal da Fase 5 contam essas linhas. A Política de privacidade passa a dizer as duas coisas.
 
 ### 2.3 Módulos
 
 | Módulo | Conteúdo | Origem |
 |---|---|---|
-| `lib/ai/providers.js` | `requestOpenAiText`, `requestGeminiText`, `requestAnthropicText`, `requestOpenAiImage`, `requestGeminiImage`, `requestAiText`, `requestAiImage`, `PROVIDERS`, `DEFAULT_MODEL`, `DEFAULT_IMAGE_MODEL`, `PROVIDERS_WITH_IMAGES`, `NO_IMAGES_MESSAGE` | movidos de `server.js:35-43, 335-465` sem mudar a lógica; cada função passa a aceitar um `signal` externo |
-| `lib/ai/html.js` | `HTML_INSTRUCTIONS`, `IMPROVE_INSTRUCTIONS`, `cleanGeneratedHtml`, `stripUnsafeMarkup`, `cleanDiagramSvg`, `embedImages`, `cleanImprovedPrompt`, `imageBriefing` | movidos de `server.js:295-333, 397-411, 467-471` |
+| `lib/ai/providers.js` | `requestOpenAiText`, `requestGeminiText`, `requestAnthropicText`, `requestOpenAiImage`, `requestGeminiImage`, `requestAiText`, `requestAiImage`, `extractOutputText`, `extractGeminiText`, `PROVIDERS`, `DEFAULT_MODEL`, `DEFAULT_IMAGE_MODEL`, `PROVIDERS_WITH_IMAGES`, `NO_IMAGES_MESSAGE` | movidos de `server.js:35-43, 290-293, 327-329, 335-465` sem mudar a lógica; cada função passa a aceitar um `signal` externo |
+| `lib/ai/html.js` | `HTML_INSTRUCTIONS`, `IMPROVE_INSTRUCTIONS`, `cleanGeneratedHtml`, `stripUnsafeMarkup`, `cleanDiagramSvg`, `embedImages`, `cleanImprovedPrompt`, `imageBriefing`, `improvePrompt` | movidos de `server.js:295-325, 331-333, 397-411, 467-471` |
 | `lib/ai/pdf.js` | `htmlToPdf(html, { signal })` | movido de `server.js:473-488` |
 | `lib/semaphore.js` | `createSemaphore(n)` → `{ run(fn), active, waiting }` | novo, cerca de 30 linhas, sem dependência |
 | `lib/jobs.js` | armazenamento dos jobs (abaixo) | novo |
 | `worker.js` | laço do worker (abaixo) | novo, na raiz, ao lado de `server.js` |
 
-`server.js` continua exportando os mesmos nomes (reexportados de `lib/ai/*`) para `test/server.test.js` não mudar neste PR.
+`server.js` continua exportando os mesmos nomes (reexportados de `lib/ai/*`, inclusive `extractOutputText`, usada em `test/server.test.js`) para os testes não mudarem neste PR.
 
 Interface de `lib/jobs.js`:
 
@@ -100,7 +101,8 @@ createJobStore(db) → {
   fail(id, workerId, message) → Promise<void>
   cancelled(id, workerId) → Promise<void>
   reapStale(staleSeconds) → Promise<number>
-  purgeFinished(retentionHours) → Promise<number>
+  purgeFinished(retentionHours) → Promise<number>   // apaga arquivos e limpa request; mantém a linha
+  purgeOld(days) → Promise<number>                  // apaga as linhas com mais de 400 dias
   readFile(ownerId, id, position) → Promise<{ name, mimeType, size, bytes } | null>
 }
 ```
@@ -108,9 +110,17 @@ createJobStore(db) → {
 Consultas que precisam ser exatas:
 
 - **Cota** (em `enqueue`, dentro de uma transação com `pg_advisory_xact_lock(hashtext('jobs:' || owner_id))`, a mesma técnica de `projects.save`):
-  - ativos: `count(*) WHERE owner_id = $1 AND status IN ('queued', 'running')` ≥ `maxActive` → 429 `QUOTA_ACTIVE`, mensagem `Você já tem 2 gerações em andamento. Espere uma terminar.`
-  - do dia: `count(*) WHERE owner_id = $1 AND kind = 'generate' AND status <> 'cancelled' AND created_at >= date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo'` ≥ `dailyQuota` → 429 `QUOTA_DAILY`, mensagem `Você chegou ao limite de 20 gerações por dia. O limite volta à meia-noite.`
-  - Cancelados antes de começar não contam; cancelados depois de começar contam, porque a IA já foi chamada.
+  - ativos: `count(*) WHERE owner_id = $1 AND status IN ('queued', 'running')` ≥ `maxActive` → 429 `QUOTA_ACTIVE`, mensagem `Você já tem <MAX_ACTIVE_JOBS_PER_USER> gerações em andamento. Espere uma terminar.`
+  - do dia:
+    ```sql
+    SELECT count(*) FROM generation_jobs
+    WHERE owner_id = $1 AND kind = 'generate'
+      AND (status <> 'cancelled' OR started_at IS NOT NULL)
+      AND created_at >= date_trunc('day', now() AT TIME ZONE 'America/Sao_Paulo') AT TIME ZONE 'America/Sao_Paulo';
+    ```
+    ≥ `dailyQuota` → 429 `QUOTA_DAILY`, mensagem `Você chegou ao limite de <DAILY_GENERATION_QUOTA> gerações por dia. O limite volta à meia-noite.`
+  - Cancelados antes de começar (`started_at` nulo) não contam; cancelados depois de começar contam, porque a IA já foi chamada. Sem essa distinção, iniciar e cancelar em sequência burlaria a cota.
+  - Os números nas mensagens vêm das variáveis, não do texto fixo.
 - **Reivindicação**:
   ```sql
   UPDATE generation_jobs SET status = 'running', worker_id = $1, started_at = now(), heartbeat_at = now(), stage = 'iniciando', progress = 5
@@ -127,8 +137,8 @@ worker.js
   WORKER_ID = <hostname>:<pid>
   semáforo de jobs (WORKER_CONCURRENCY) e semáforo do Chromium (CHROMIUM_CONCURRENCY)
   laço: enquanto houver vaga no semáforo de jobs → claim(); sem job → espera 1 s
-  a cada 60 s: reapStale(120); a cada 10 min: purgeFinished(24) e as limpezas da Fase 1
-  SIGTERM: para de reivindicar, espera os jobs em andamento até 150 s, depois marca os restantes como failed ("interrompido por atualização") e sai
+  a cada 60 s: reapStale(120); a cada 10 min: purgeFinished(24) e as limpezas da Fase 1; uma vez por dia: purgeOld(400)
+  SIGTERM: para de reivindicar e espera os jobs em andamento até JOB_DEADLINE_SECONDS + 30 s (o prazo de cada job já os encerra antes disso), e sai
 ```
 
 Execução de um job `generate`:
@@ -141,7 +151,8 @@ Execução de um job `generate`:
 | `pdf` | 85 | `embedImages` e, se `format = pdf`, `htmlToPdf` dentro do semáforo |
 | `salvando` | 95 | `finish`: grava os arquivos e marca `done` |
 
-- Um `AbortController` por job, ligado a três gatilhos: prazo de `JOB_DEADLINE_SECONDS`, `cancel_requested` lido no sinal de vida e `SIGTERM` após o tempo de espera. O mesmo `signal` vai para os `fetch` dos provedores e para o `execFile` do Chromium.
+- Um `AbortController` por job, ligado a dois gatilhos: prazo de `JOB_DEADLINE_SECONDS` e `cancel_requested` lido no sinal de vida. O mesmo `signal` vai para os `fetch` dos provedores e para o `execFile` do Chromium.
+- O `SIGTERM` não aborta jobs: como a espera no encerramento é maior que o prazo de qualquer job, um deploy não desperdiça chamadas de IA pagas pela pessoa. O custo é um deploy de worker mais lento (até 10,5 min no pior caso).
 - Imagens em paralelo com o texto mudam um detalhe: se o texto falhar, as imagens já pedidas continuam a ser cobradas pelo provedor. Ao falhar o texto, o worker aborta as imagens pendentes pelo mesmo `signal`.
 - Erros com `status` (mensagens já escritas para o usuário em `lib/ai/*`) vão para `error` como estão. Erros sem `status` viram `Não foi possível gerar o material com IA.` no job, e a mensagem original vai só para o log.
 
@@ -154,7 +165,7 @@ Job `improve`: uma etapa só (`texto`), com o prazo atual de 90 s; o `result` tr
 | `POST /api/generate` | `202 { job }`. Mesmas validações de hoje (400), mais `503` sem chave de IA e `429` de cota. Com `GENERATION_MODE=inline`, mantém o comportamento atual (200 com arquivos), para reversão |
 | `GET /api/generate?active=1` | `200 { jobs: [...] }`, os últimos 10 jobs do usuário, ou só os ativos; o frontend usa ao abrir a página para retomar um job em andamento |
 | `GET /api/generate/:id` | `200 { job }` ou 404 (inclusive job de outra pessoa) |
-| `GET /api/generate/:id/files/:position` | O arquivo com `Content-Type`, `Content-Length`, `Content-Disposition: attachment; filename*=UTF-8''<nome>`, `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff`. Com `?inline=1`, só para `text/html`: `Content-Disposition: inline` e `Content-Security-Policy: default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox` |
+| `GET /api/generate/:id/files/:position` | O arquivo com `Content-Type`, `Content-Length`, `Content-Disposition: attachment; filename*=UTF-8''<nome>`, `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff` e `Content-Security-Policy: default-src 'none'; sandbox`. Sempre como anexo, nunca exibido na origem do app |
 | `DELETE /api/generate/:id` | `200 { job }`. Na fila → `cancelled` na hora; rodando → `cancel_requested = true` e o worker para na próxima verificação; terminado → 409 |
 | `POST /api/improve` | Igual ao `generate`, com `kind = 'improve'` |
 
@@ -178,7 +189,7 @@ Formato de `job`:
 
 Quando `status = done`: `model`, `finishedAt`, `expiresAt` e `files: [{ "position": 0, "name": "fotossintese.pdf", "mimeType": "application/pdf", "size": 812345 }]`.
 
-O arquivo HTML aberto com `?inline=1` tem CSP própria com `sandbox`: mesmo que o sanitizador deixe passar algo, o navegador não executa script nem acessa a origem do app.
+Hoje a resposta de `/api/generate` traz o campo `preview` com o HTML gerado (`server.js:906`), mas o frontend nunca o lê: a prévia do painel mostra só o prompt, por `/api/render`. O campo deixa de existir. Uma prévia do material gerado dentro do app seria um recurso novo e, se vier, deve abrir o arquivo num `<iframe sandbox>` servido com a CSP acima, nunca com `srcdoc` na origem do app.
 
 ### 2.6 Contêineres
 
@@ -201,10 +212,10 @@ O arquivo HTML aberto com `?inline=1` tem CSP própria com `sandbox`: mesmo que 
 | `cap_drop`, `security_opt` | `ALL`, `no-new-privileges:true` | como o web; o `seccomp` padrão do Docker continua ativo |
 | `networks` | `internal` e `web` | banco e saída para as APIs de IA (a rede `internal` não tem saída) |
 | `ports` | nenhuma | não atende HTTP |
-| `stop_grace_period` | `3m` | termina o job em andamento no deploy |
+| `stop_grace_period` | `11m` | maior que `JOB_DEADLINE_SECONDS` + 30 s; termina o job em andamento no deploy |
 | `healthcheck` | `node -e` que confere o arquivo `/tmp/worker-alive`, atualizado a cada laço | sem porta HTTP |
 
-O serviço web perde o Chromium, e o `tmpfs` dele pode continuar com 32 MB.
+O alvo `web` mantém o Chromium enquanto `GENERATION_MODE=inline` for uma saída de reversão (ver "Reversão"). Só no PR 2-g, duas semanas depois de o modo `queue` estar estável em produção, o pacote sai do alvo `web`, e o `tmpfs` dele pode continuar com 32 MB.
 
 `--no-sandbox` continua: o sandbox do Chromium precisa de `CAP_SYS_ADMIN` ou de namespaces de usuário no host, que o contêiner endurecido não tem. A compensação é o isolamento acima. Se o conteúdo gerado por IA passar a ser tratado como hostil, o próximo passo é rodar o worker com `runtime: runsc` (gVisor).
 
@@ -215,10 +226,9 @@ Em `public/app.js`, no envio do formulário da apostila (linhas 993-1015):
 1. `POST api/generate` → guarda `job.id` em `sessionStorage` (`g1-job`) e começa a consultar.
 2. Consulta: `GET api/generate/<id>` a cada 2 s no primeiro minuto e a cada 5 s depois; para quando `status` não for `queued` nem `running`. Pausa com a aba escondida (`document.hidden`) e retoma ao voltar.
 3. Mostra no lugar do `ai-loading` uma barra de progresso acessível (`<progress>` com `aria-valuetext` = etapa em português) e um botão **Cancelar** (`DELETE`).
-4. Ao concluir, `currentFiles` passa a ter `{ position, name, mimeType, size, url }`. `renderGeneratedFiles` usa `size` (em vez de calcular do base64). `saveGeneratedFile` baixa por `url` com `<a download>`.
-5. A prévia do HTML abre `api/generate/<id>/files/0?inline=1` no `previewFrame` com `src` em vez de `srcdoc`.
-6. Ao abrir a página, `GET api/generate?active=1`: se houver job ativo, retoma a consulta e mostra o progresso. O aviso `Não saia desta página` vira `Pode sair desta página: o material continua sendo gerado e aparece aqui quando você voltar.`
-7. Mensagens de 429 aparecem como estão no campo de status.
+4. Ao concluir, `currentFiles` passa a ter `{ position, name, mimeType, size, url }`. `renderGeneratedFiles` usa `size` (em vez de calcular do base64, `public/app.js:1058`). `saveGeneratedFile` baixa por `url` com `<a download>`; `fileBlob` deixa de ser usado.
+5. Ao abrir a página, `GET api/generate?active=1`: se houver job ativo, retoma a consulta e mostra o progresso. O aviso `Não saia desta página` vira `Pode sair desta página: o material continua sendo gerado e aparece aqui quando você voltar.`
+6. Mensagens de 429 aparecem como estão no campo de status.
 
 O botão **Melhorar com IA** (linhas 1176-1182) segue o mesmo fluxo, com uma etapa só.
 
@@ -235,8 +245,9 @@ O botão **Melhorar com IA** (linhas 1176-1182) segue o mesmo fluxo, com uma eta
 | 2-b | Migração 11, `lib/jobs.js`, `lib/semaphore.js` com testes de armazenamento | Ainda sem uso nas rotas |
 | 2-c | `worker.js` e rotas novas atrás de `GENERATION_MODE` (padrão `inline` neste PR) | Permite testar a fila em homologação sem mudar produção |
 | 2-d | Frontend com consulta, progresso, cancelar e retomar | Funciona nos dois modos (no `inline` não há `job`) |
-| 2-e | `Dockerfile` com dois alvos, serviço `worker` no `compose.prod.yaml` e no `compose.yaml` | |
-| 2-f | `GENERATION_MODE=queue` como padrão; limitadores de `/api/pdf` e `/api/render`; Política de privacidade (prompt guardado por 24 h) | Muda `LEGAL_VERSION` |
+| 2-e | `Dockerfile` com dois alvos (o `web` ainda com Chromium), serviço `worker` no `compose.prod.yaml` e no `compose.yaml` | |
+| 2-f | `GENERATION_MODE=queue` como padrão; limitadores de `/api/pdf` e `/api/render`; Política de privacidade (prompt guardado por 24 h, metadados por 400 dias) | Muda `LEGAL_VERSION` |
+| 2-g | Tirar o Chromium do alvo `web` | Duas semanas depois do 2-f estável; a partir daqui `inline` deixa de ser reversão possível |
 
 ## Testes
 
@@ -250,7 +261,8 @@ O botão **Melhorar com IA** (linhas 1176-1182) segue o mesmo fluxo, com uma eta
 | 5 `enqueue` simultâneos com `maxActive: 2` | Exatamente 2 gravados |
 | Escrita de worker com `worker_id` errado | Não altera o job |
 | `reapStale` com sinal de vida de 3 min atrás | Job vira `failed` com a mensagem de interrupção |
-| `purgeFinished` | Apaga jobs terminados há mais de 24 h e seus arquivos; mantém os recentes e os ativos |
+| `purgeFinished` | Em jobs terminados há mais de 24 h, apaga os arquivos e limpa `request`; a linha continua e ainda conta na cota do dia |
+| Cancelar depois de começar | Job `running` cancelado | Conta na cota diária; cancelado ainda na fila, não conta |
 | `get` e `readFile` de outro usuário | `null` |
 
 `test/worker.test.js` (worker com dependências injetadas: `createWorker({ db, userStore, keyEncKey, providers, draw, htmlToPdf })`, provedor simulado sem rede):
@@ -266,13 +278,12 @@ O botão **Melhorar com IA** (linhas 1176-1182) segue o mesmo fluxo, com uma eta
 | Chave apagada enquanto o job esperava | `failed` com `Configure sua chave de API…` |
 | `CHROMIUM_CONCURRENCY=1` com 3 jobs de PDF | `draw` e `htmlToPdf` nunca rodam mais de um ao mesmo tempo (contador no simulado) |
 
-`test/auth.test.js` (rotas, com `GENERATION_MODE=queue` e o worker rodando no mesmo processo de teste):
+`test/http-ia.test.js` (rotas, com `GENERATION_MODE=queue` e o worker rodando no mesmo processo de teste; o arquivo nasce na Fase 3, bloco A, que vem antes desta fase):
 
 | Cenário | Então |
 |---|---|
 | `POST /api/generate` válido | 202 em menos de 200 ms, com `job.status = queued` |
-| Consulta até terminar | `done`, arquivos listados, `GET …/files/0` devolve os bytes com `Content-Disposition` |
-| `…/files/0?inline=1` de um HTML | CSP com `sandbox` |
+| Consulta até terminar | `done`, arquivos listados, `GET …/files/0` devolve os bytes com `Content-Disposition: attachment` e CSP com `sandbox` |
 | Job de outro usuário | 404 em `GET`, `DELETE` e arquivos |
 | `DELETE` de job terminado | 409 |
 | `GENERATION_MODE=inline` | Mesmo resultado de hoje (200 com arquivos em base64) |
@@ -288,10 +299,12 @@ O botão **Melhorar com IA** (linhas 1176-1182) segue o mesmo fluxo, com uma eta
 
 ## Reversão
 
-- `GENERATION_MODE=inline` devolve o comportamento atual sem novo deploy de código. Para isso funcionar, o contêiner web mantém o Chromium **até** o PR 2-f estar estável por duas semanas; só então o alvo `web` perde o pacote.
+- `GENERATION_MODE=inline` devolve o comportamento atual sem novo deploy de código, enquanto o alvo `web` tiver Chromium (até o PR 2-g).
 - A migração 11 é aditiva.
 - Jobs na fila no momento de uma reversão ficam parados. O roteiro de reversão inclui `UPDATE generation_jobs SET status = 'failed', error = 'Serviço atualizado. Gere de novo.' WHERE status IN ('queued', 'running')`.
 
 ## Volume esperado
 
-Um PDF com 3 imagens tem cerca de 10 MB. Com 50 gerações por hora e retenção de 24 h, ficam em torno de 12 GB na tabela `generation_files` em regime. Cabe no disco atual (936 GB); o `pg_dump` diário deve excluir os dados dessa tabela (`--exclude-table-data=generation_files`), porque são temporários e dobrariam o tamanho do backup.
+Um PDF com 3 imagens tem cerca de 10 MB. Com 50 gerações por hora e retenção de 24 h, ficam em torno de 12 GB na tabela `generation_files` em regime. Cabe no disco atual (936 GB); o `pg_dump` diário exclui os dados dessa tabela (`--exclude-table-data=generation_files`), porque são temporários e dobrariam o tamanho do backup.
+
+A tabela `generation_jobs` **entra** no backup: depois das 24 h ela só tem metadados (poucas centenas de bytes por linha) e é a base das cotas. Com 50 gerações por hora, 400 dias dão cerca de 480 mil linhas, algumas centenas de MB.

@@ -62,10 +62,15 @@ CREATE INDEX projects_org_updated ON projects (org_id, updated_at DESC) WHERE or
 Regras:
 
 - Toda conta nova ganha uma organização pessoal (`Espaço de <nome>`) da qual é `owner`. Contas existentes ganham a sua numa migração de dados no mesmo PR.
-- Projeto pessoal: `org_id` nulo, visível só para o dono (como hoje). Projeto compartilhado: `org_id` preenchido, visível a todos os membros; editável por `owner`, `admin` e pelo autor.
-- `lib/projects.js`: `list`, `get`, `save` e `remove` recebem `{ userId, orgIds }`. O filtro passa de `owner_id = $1` para `(owner_id = $1 OR org_id = ANY($2))`. Os testes de isolamento atuais continuam valendo para projetos pessoais.
+- Projeto pessoal: `org_id` nulo, visível só para o dono (como hoje). Projeto compartilhado: `org_id` preenchido, visível a todos os membros; editável e excluível só pelo autor (`owner_id`) e por `owner` ou `admin` da organização.
+- `lib/projects.js` recebe o contexto `{ userId, memberships }`, com `memberships` = lista de `{ orgId, role }` lida de `org_members`. Leitura e escrita têm filtros **diferentes**:
+  - leitura (`list`, `get`): `owner_id = $1 OR org_id = ANY($2)`, com `$2` = todas as organizações da pessoa;
+  - escrita (`save` de projeto existente, `remove`): `owner_id = $1 OR org_id = ANY($3)`, com `$3` = só as organizações em que a pessoa é `owner` ou `admin`.
+- Ao salvar com `org_id`, o servidor confere que a pessoa é membro daquela organização; senão, 403. Sem isso, qualquer um poderia gravar um projeto dentro da organização de outro.
+- Os testes de isolamento atuais continuam valendo para projetos pessoais.
 - Convite: token aleatório de 32 bytes, enviado por e-mail (fila da Fase 3), guardado como HMAC. Vale 7 dias. Aceitar exige estar logado com o mesmo e-mail do convite.
 - Sempre sobra um `owner`: a mesma lógica de `activeAdminCount` aplicada por organização.
+- Só um `owner` muda o papel de outro `owner` ou o remove. Um `admin` gerencia `member` e outros `admin`, mas não mexe em `owner` nem promove alguém a `owner`.
 - A chave de IA continua por pessoa. Uma chave por organização fica como evolução, com a mesma cifra do BYOK.
 
 Rotas:
@@ -77,8 +82,8 @@ Rotas:
 | `GET /api/orgs/:id/members` | membro | lista membros e convites pendentes |
 | `POST /api/orgs/:id/invites` | `owner`, `admin` | convida por e-mail |
 | `POST /api/orgs/invites/accept` | sessão | `{ token }` |
-| `PUT /api/orgs/:id/members/:userId` | `owner`, `admin` | muda papel |
-| `DELETE /api/orgs/:id/members/:userId` | `owner`, `admin`, ou a própria pessoa | remove ou sai |
+| `PUT /api/orgs/:id/members/:userId` | `owner`; `admin` só para `member` e `admin` | muda papel |
+| `DELETE /api/orgs/:id/members/:userId` | `owner`; `admin` só para `member` e `admin`; ou a própria pessoa | remove ou sai |
 
 A exportação de dados (`GET /api/auth/export`) passa a incluir as organizações e os projetos compartilhados de autoria da pessoa.
 
@@ -108,7 +113,8 @@ CREATE TABLE subscriptions (
 ```
 
 - Plano `gratuito` semeado na migração, com os limites atuais (os da Fase 2 e os 500 projetos de `projects.js`), para nada mudar para quem já usa.
-- A cota mensal lê `generation_jobs` (Fase 2) por organização: o job ganha `org_id` (preenchido com a organização ativa da pessoa ao enfileirar).
+- A cota mensal conta as linhas de `generation_jobs` (Fase 2) por organização. Isso funciona porque a Fase 2 apaga só os arquivos e o conteúdo do pedido após 24 h e mantém a linha com os metadados por 400 dias; o job ganha `org_id` (preenchido com a organização ativa da pessoa ao enfileirar), na mesma migração 14.
+- A contagem usa a mesma regra da cota diária: cancelados antes de começar não contam.
 - `MAX_PROJECTS_PER_USER` (`lib/projects.js:5`) passa a vir do plano.
 - Ao chegar a 80% da cota: aviso no app. A 100%: 429 com `code: PLAN_QUOTA` e mensagem com o nome do plano e a data de renovação.
 - Situação `past_due`: aviso por 7 dias, depois só leitura (abrir e exportar projetos, sem gerar). `canceled`: volta ao plano gratuito no fim do período.
@@ -126,11 +132,11 @@ CREATE TABLE billing_events (
 );
 ```
 
-- `POST /api/billing/webhook/:provider`: rota pública, fora da verificação de origem, com corpo lido em bruto para conferir a assinatura do provedor (cabeçalho e segredo próprios de cada um, `BILLING_WEBHOOK_SECRET`).
-- **Idempotência**: grava em `billing_events` com `ON CONFLICT DO NOTHING`; se o evento já existia, responde 200 sem reprocessar. Provedores reenviam eventos.
-- Eventos tratados: assinatura criada, pagamento confirmado, pagamento falhou, assinatura cancelada. Cada um atualiza `subscriptions` numa transação.
+- `POST /api/billing/webhook/:provider`: rota pública, tratada em `handleApi` antes da verificação de origem e da verificação de sessão (`server.js:710-714`), com corpo lido em bruto para conferir a assinatura do provedor (cabeçalho e segredo próprios de cada um, `BILLING_WEBHOOK_SECRET`). Assinatura errada → 401 sem gravar nada.
+- **Idempotência sem perder evento.** Numa única transação: `INSERT INTO billing_events … ON CONFLICT DO NOTHING RETURNING event_id`. Se nada voltar, o evento já foi processado: `COMMIT` e 200. Se voltar, processa o evento (atualiza `subscriptions`) e faz `COMMIT`. Qualquer erro no processamento faz `ROLLBACK` (o registro do evento some junto) e responde 500, para o provedor reenviar. Gravar o evento numa transação e processar em outra perderia o evento sempre que o processamento falhasse.
+- Eventos tratados: assinatura criada, pagamento confirmado, pagamento falhou, assinatura cancelada.
 - Checkout: redirecionar para a página de pagamento do provedor. O app nunca recebe nem guarda dado de cartão.
-- `billing_events.payload` apagado após 90 dias (só o necessário para conferência).
+- Após 90 dias, `payload` vira `'{}'::jsonb` (a coluna é `NOT NULL`); a linha fica para a idempotência e a conferência.
 
 ### 5.4 Verificação em duas etapas (independente; migração 16)
 
@@ -148,7 +154,8 @@ CREATE TABLE recovery_codes (
 
 - TOTP padrão (RFC 6238: SHA-1, 30 s, 6 dígitos) com `node:crypto`, sem dependência. Segredo cifrado com a chave derivada `byok`, como as chaves de IA.
 - Ativar: o app mostra o segredo (texto e QR em SVG desenhado no servidor); a pessoa confirma com um código; recebe 10 códigos de recuperação (mostrados uma vez, guardados como hash scrypt).
-- Login com 2FA ativo: depois da senha, o servidor emite um token curto (5 min, `purpose: 2fa`) em vez da sessão; `POST /api/auth/2fa` com o código troca pela sessão. Tentativas no limitador da Fase 1 (`2fa:<uid>`, 5 em 15 min).
+- Login com 2FA ativo: depois da senha, o servidor emite um token curto (5 min) em vez da sessão; `POST /api/auth/2fa` com o código troca pela sessão. Tentativas no limitador `2fa` (chave `<uid>`, 5 em 15 min).
+- **O token curto não pode servir de sessão.** Ele é assinado com outra chave derivada (`deriveKey(master, '2fa')`), leva `purpose: '2fa'` e vai num cookie próprio (`g1_2fa`, `HttpOnly`, `Max-Age=300`). `authenticate` só confere tokens assinados com a chave de sessão e recusa qualquer token com `purpose` (regra criada na Fase 0). Hoje `authenticate` aceita qualquer token assinado com `sessionKey` que tenha `uid`, `v` e `exp` válidos (`server.js:142-147`); sem a chave separada, o token curto colado como `g1_session` entraria sem o segundo fator.
 - Ativar ou desativar invalida as outras sessões (`pwd_version + 1`).
 - Exigir 2FA de administradores do sistema é uma opção (`REQUIRE_ADMIN_2FA=true`).
 
@@ -179,6 +186,11 @@ Página pública estática gerada pelo verificador de disponibilidade (Uptime Ku
 |---|---|
 | Conta nova | Ganha organização pessoal como `owner` |
 | Membro abre projeto compartilhado | 200; quem não é membro recebe 404 |
+| `member` tenta editar ou excluir projeto compartilhado de outro autor | 404 (o filtro de escrita não o encontra) |
+| Salvar projeto com `org_id` de organização da qual não é membro | 403 |
+| `admin` tenta remover ou rebaixar o `owner` | 403 |
+| Token curto de 2FA usado como `g1_session` | 401 |
+| Falha no processamento de um webhook | 500; o reenvio do mesmo evento é processado normalmente |
 | Projeto pessoal | Continua invisível para os outros membros da organização |
 | Último `owner` tenta sair | 409 |
 | Convite com outro e-mail logado | Recusado |
@@ -200,4 +212,4 @@ Página pública estática gerada pelo verificador de disponibilidade (Uptime Ku
 
 - 5-a a 5-d são aditivas; projetos sem `org_id` continuam funcionando como hoje.
 - Pagamento: desligar a rota do webhook e marcar todas as assinaturas como `active` no plano atual evita bloqueio indevido enquanto se corrige.
-- 2FA: uma variável `DISABLE_2FA=true` de emergência faz o login ignorar o segundo fator, registrada no `audit_log`.
+- 2FA: uma variável `DISABLE_2FA=true` de emergência faz o login ignorar o segundo fator. A inicialização com ela ligada grava `2fa.disabled` no `audit_log`, sem ator (`details.origem = 'sistema'`).

@@ -94,6 +94,7 @@ O Docker guarda o `stdout`. No `compose`, `logging: { driver: json-file, options
 ### C.1 `GET /api/metrics`
 
 - Exige `Authorization: Bearer <METRICS_TOKEN>`. Sem a variável, a rota responde 404. Comparação em tempo constante.
+- A rota é tratada em `handleApi` **antes** da verificação de sessão (ao lado de `/api/health`, `server.js:706-709`). Se entrasse depois, devolveria 401 a qualquer coletor, porque hoje tudo o que não está em `isPublicAuth` exige sessão (`server.js:711-714`).
 - Formato de texto do Prometheus, escrito à mão (sem dependência).
 
 | Métrica | Tipo | Rótulos |
@@ -101,6 +102,8 @@ O Docker guarda o `stdout`. No `compose`, `logging: { driver: json-file, options
 | `geradorone_http_requests_total` | contador | `route`, `method`, `status` |
 | `geradorone_http_request_duration_seconds` | histograma (0,01; 0,05; 0,1; 0,25; 0,5; 1; 2,5; 5; 10) | `route` |
 | `geradorone_jobs` | medidor, lido do banco na coleta | `status` |
+| `geradorone_oldest_queued_seconds` | medidor, idade do job mais antigo na fila (0 sem fila) | — |
+| `geradorone_backup_age_seconds` | medidor, idade do último backup bom, lida de `lib/backup.js` (`situacao()`) | `rotina` = `banco`, `pbs` |
 | `geradorone_job_duration_seconds` | histograma (5; 15; 30; 60; 120; 300; 600) | `kind`, `outcome` |
 | `geradorone_chromium_active` | medidor (só no worker) | — |
 | `geradorone_pg_pool_connections` | medidor | `state` = `total`, `idle`, `waiting` |
@@ -122,9 +125,9 @@ O Docker guarda o `stdout`. No `compose`, `logging: { driver: json-file, options
 | Alerta | Condição | Fonte |
 |---|---|---|
 | Fora do ar | `/api/health` falha por 2 minutos | verificador externo (Uptime Kuma ou similar) |
-| Fila parada | algum job `queued` há mais de 10 minutos | `geradorone_jobs` + idade do mais antigo (`geradorone_oldest_queued_seconds`) |
+| Fila parada | `geradorone_oldest_queued_seconds` acima de 600 | métrica |
 | Erros em alta | mais de 5% de respostas 5xx em 5 minutos | `geradorone_http_requests_total` |
-| Backup atrasado | último backup bom com mais de 26 h | `GET /api/settings/backup` (o cálculo já existe em `lib/backup.js`) ou o próprio `backup-db.json` |
+| Backup atrasado | `geradorone_backup_age_seconds{rotina="banco"}` acima de 26 h | métrica (a rota `GET /api/settings/backup` exige sessão de administrador e não serve a um verificador externo) |
 | Disco | uso acima de 85% | coletor do host |
 | E-mail travado | `geradorone_outbox_pending` acima de 20 por 15 minutos | métrica |
 
@@ -154,7 +157,7 @@ Canal do alerta: e-mail do administrador e, se existir, o canal de mensagens que
 
 `scripts/hash-assets.js` roda só no `Dockerfile`, depois do `COPY public`:
 
-1. Para `app.js`, `style-art.js`, `faq-data.js`, `legal.js`, `styles.css`, `theme.css`, `app.css`, `design.css` e `legal.css`: calcula 8 caracteres do SHA-256 e renomeia para `nome.<hash>.ext`.
+1. Para `app.js`, `style-art.js`, `legal.js`, `styles.css`, `theme.css`, `app.css`, `design.css` e `legal.css`: calcula 8 caracteres do SHA-256 e renomeia para `nome.<hash>.ext`. **`faq-data.js` fica de fora**: o servidor troca o e-mail de contato dentro dele em tempo de execução (`server.js:940-943`), então o conteúdo muda sem novo build e o arquivo precisa de `no-cache` com `ETag`, como os HTML.
 2. Reescreve as referências em `index.html`, `termos.html` e `privacidade.html`.
 3. Falha o build se alguma referência não for encontrada.
 
@@ -187,7 +190,7 @@ CREATE INDEX outbox_emails_due ON outbox_emails (next_attempt_at) WHERE status =
 - Depois de enviado, `payload_enc` vira texto vazio. Linhas `sent` e `failed` são apagadas após 7 dias.
 - Tentativas: até 3, com espera de 30 s, 2 min e 5 min. E-mails com código expiram junto com o código (10 min): passou disso, `failed` sem nova tentativa.
 - O worker da Fase 2 processa a fila com `FOR UPDATE SKIP LOCKED`, como os jobs.
-- `lib/mailer.js`: os métodos públicos (`sendResetCode`, `sendSignupCode`, `sendSupportReceipt`, `sendTest`) passam a gravar na fila e voltam na hora. Um método interno `deliverNow` faz o envio real e é o que o worker chama.
+- `lib/mailer.js`: `sendResetCode`, `sendSignupCode` e `sendSupportReceipt` passam a gravar na fila e voltam na hora. Um método interno `deliverNow` faz o envio real e é o que o worker chama.
 - **Exceções que continuam síncronas:**
   - `sendSupportMessage`, porque leva anexos de até 8 MB e o README promete que os anexos não ficam guardados. Volume baixo (5 por hora por conta).
   - `sendTest` do painel SMTP, porque o administrador espera o resultado na tela.
@@ -195,8 +198,13 @@ CREATE INDEX outbox_emails_due ON outbox_emails (next_attempt_at) WHERE status =
 
 ### E.2 Lista de usuários paginada
 
-- `GET /api/users?q=&role=&page=1&pageSize=50` → `{ users, total, page, pageSize }`. `q` busca em nome e e-mail com `ILIKE`; `pageSize` máximo de 100.
-- Índice: `CREATE INDEX users_name_lower ON users (lower(name))` na migração 12.
+- `GET /api/users?q=&role=&page=1&pageSize=50` → `{ users, total, page, pageSize }`. `q` busca em nome e e-mail com `ILIKE '%' || $1 || '%'`; `pageSize` máximo de 100; ordem por nome.
+- Índice para a busca por trecho (um índice comum em `lower(name)` não serve a `ILIKE '%ana%'`), na migração 12:
+  ```sql
+  CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  CREATE INDEX users_search_trgm ON users USING gin ((name || ' ' || email) gin_trgm_ops);
+  ```
+  A consulta usa a mesma expressão: `WHERE (name || ' ' || email) ILIKE '%' || $1 || '%'`. A extensão `pg_trgm` vem com a imagem oficial do Postgres. Com poucos milhares de usuários a busca sem índice também é rápida; o índice é para não precisar voltar nisso.
 - `activeAdminCount` vira `SELECT count(*) FROM users WHERE role = 'admin' AND active`.
 - Frontend (`loadUsers` e `renderUsers`, `public/app.js:2238-2261`): a busca e o filtro de perfil passam a ir ao servidor, com paginação de 50.
 
@@ -223,11 +231,11 @@ CREATE INDEX outbox_emails_due ON outbox_emails (next_attempt_at) WHERE status =
 | Arquivos `http-*.test.js` rodados em qualquer ordem, ou um só | Todos passam |
 | Login com senha errada | Linha `http` com `status: 401`, sem e-mail nem senha em nenhuma linha |
 | Erro forçado numa rota | 500 com código; a mesma `reqId` aparece no log e no evento de erro |
-| `/api/metrics` sem token | 401; com `METRICS_TOKEN` vazio, 404 |
+| `/api/metrics` sem token | 401; com `METRICS_TOKEN` vazio, 404; com token certo e sem cookie de sessão, 200 |
 | `/api/metrics` com token | Texto com `geradorone_http_requests_total` |
 | `GET /app.<hash>.js` com `Accept-Encoding: gzip` | `Content-Encoding: gzip`, `immutable` |
 | `GET /index.html` com o `ETag` recebido antes | 304 |
-| Contato trocado no painel | `termos.html` muda de `ETag` e mostra o novo e-mail |
+| Contato trocado no painel | `termos.html` e `faq-data.js` mudam de `ETag` e mostram o novo e-mail |
 | Cadastro com SMTP falhando | Resposta 200 na hora; a linha da fila fica `queued` e depois `failed` após 3 tentativas |
 | Código na fila | `payload_enc` não contém o código em texto |
 | `GET /api/users?q=ana` | Só quem tem "ana" no nome ou no e-mail; `total` correto |

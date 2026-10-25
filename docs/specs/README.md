@@ -2,12 +2,12 @@
 
 Especificações técnicas das fases do [ROADMAP](../ROADMAP.md). Cada arquivo descreve o que construir, em que ordem, com que contratos e como provar que ficou pronto. Nenhuma especificação aqui foi implementada ainda.
 
-Base: commit `366a756` (25/10/2026). Suíte atual: 88 testes, 87 passam e 1 é pulado quando o Chromium não está instalado (conferido em 25/10/2026 contra um Postgres local).
+Base: commit `366a756` (25/10/2026). Suíte atual: 88 testes, 87 passam e 1 é pulado quando o Chromium não está instalado (conferido em 25/10/2026 contra um Postgres local). As especificações foram revisadas contra o código por uma segunda leitura independente, e os 24 problemas encontrados já estão corrigidos no texto.
 
 | Fase | Arquivo | Tema | Depende de |
 |---|---|---|---|
-| 0 | [fase-0-seguranca.md](fase-0-seguranca.md) | HTTPS, proxy confiável, enumeração, bloqueio de terceiros, logout real, captcha, senhas vazadas | nada |
-| 1 | [fase-1-estado-no-banco.md](fase-1-estado-no-banco.md) | Limites, códigos, chave mestra e SMTP fora da memória; auditoria | Fase 0 |
+| 0 | [fase-0-seguranca.md](fase-0-seguranca.md) | HTTPS, proxy confiável, enumeração, bloqueio de terceiros, logout real, prova de trabalho, senhas vazadas | nada |
+| 1 | [fase-1-estado-no-banco.md](fase-1-estado-no-banco.md) | Limites, códigos, chave mestra e SMTP fora da memória; novo fluxo da recuperação; auditoria | Fase 0 |
 | 3a | [fase-3-operacao.md](fase-3-operacao.md) (blocos A e B) | CI, testes independentes, log estruturado | Fase 1 |
 | 2 | [fase-2-geracao-assincrona.md](fase-2-geracao-assincrona.md) | Fila de geração, worker, Chromium isolado, cotas | Fases 1 e 3a |
 | 3b | [fase-3-operacao.md](fase-3-operacao.md) (blocos C a E) | Métricas, alertas, estáticos, e-mail em fila, paginação | Fase 2 |
@@ -34,15 +34,34 @@ Base: commit `366a756` (25/10/2026). Suíte atual: 88 testes, 87 passam e 1 é p
 - **Só migrações aditivas** (criar tabela, criar coluna com padrão, criar índice). Remover ou renomear coluna só numa versão seguinte, depois que nenhuma instância antiga estiver no ar. Essa regra é o que permite o deploy sem queda da Fase 4, quando uma instância nova migra o banco enquanto a antiga ainda atende.
 - Índices em tabelas que já têm dados usam `CREATE INDEX` comum enquanto o volume for pequeno; acima de 100 mil linhas, `CREATE INDEX CONCURRENTLY` numa migração fora de transação (exige ajustar `migrate()`).
 
-| Versão | Nome | Fase | Tabelas |
+| Versão | Nome | Fase | Conteúdo |
 |---|---|---|---|
 | 7 | `sessoes-revogadas` | 0 | `revoked_sessions` |
 | 8 | `limites-de-tentativas` | 1 | `rate_limits` |
 | 9 | `codigos-pendentes` | 1 | `pending_codes` |
 | 10 | `registro-de-auditoria` | 1 | `audit_log` |
 | 11 | `tarefas-de-geracao` | 2 | `generation_jobs`, `generation_files` |
-| 12 | `fila-de-emails` | 3b | `outbox_emails` |
-| 13 a 16 | `organizacoes`, `planos-e-assinaturas`, `eventos-de-cobranca`, `verificacao-em-duas-etapas` | 5 | ver a especificação da Fase 5 |
+| 12 | `fila-de-emails` | 3b | `outbox_emails`; extensão `pg_trgm` e índice de busca em `users` |
+| 13 | `organizacoes` | 5 | `orgs`, `org_members`, `org_invites`, `projects.org_id` |
+| 14 | `planos-e-assinaturas` | 5 | `plans`, `subscriptions`, `generation_jobs.org_id` |
+| 15 | `eventos-de-cobranca` | 5 | `billing_events` |
+| 16 | `verificacao-em-duas-etapas` | 5 | `users.totp_*`, `recovery_codes` |
+
+### Limitadores
+
+- Todo limitador tem **nome próprio** (`createLimiter(db, { name, max, windowMs })`), e a chave gravada é `nome:chave`. Hoje as mesmas chaves (`email:<e-mail>`, `ip:<ip>`) se repetem entre limitadores diferentes; numa tabela única sem o nome, os contadores se somariam.
+- **Registrar antes de trabalhar**: a rota chama `hit()`, compara a contagem devolvida com o limite e só então faz o trabalho caro (scrypt, envio de e-mail). Consultar primeiro e registrar depois deixa passar várias requisições em paralelo.
+- Nomes previstos: `login-par`, `login-ip`, `login-email`, `reset-email`, `reset-ip`, `signup-email`, `signup-ip`, `confirm-par`, `confirm-email`, `support`, `pow`, `pdf`, `render`, `2fa`.
+
+### Rotas públicas novas
+
+`handleApi` exige sessão para tudo que não está na lista `isPublicAuth` (`server.js:710-714`). Toda rota pública nova entra **antes** dessa verificação, e a especificação diz onde:
+
+| Rota | Fase | Onde entra |
+|---|---|---|
+| `GET /api/auth/challenge` | 0 | lista `isPublicAuth` |
+| `GET /api/metrics` | 3 | antes da verificação de origem, ao lado de `/api/health` |
+| `POST /api/billing/webhook/:provider` | 5 | antes da verificação de origem (o provedor não manda `Origin` do app) |
 
 ### Variáveis de ambiente novas
 
@@ -51,9 +70,9 @@ Todas opcionais, com padrão seguro, salvo indicação. Entram no `compose.yaml`
 | Variável | Fase | Padrão | Função |
 |---|---|---|---|
 | `TRUSTED_PROXY_HOPS` | 0 | `0` | Quantos proxies confiáveis existem na frente do app; com `0`, `X-Forwarded-For` é ignorado |
-| `LAN_BIND` | 0 | `127.0.0.1` | Interface onde a porta 8123 é publicada no host |
-| `PASSWORD_BREACH_CHECK` | 0 | `local` | `local` (lista embutida), `hibp` (consulta k-anonymity) ou `off` |
-| `POW_DIFFICULTY` | 0 | `50000` | Número máximo do desafio de prova de trabalho no cadastro e na recuperação |
+| `LAN_BIND` | 0 | `127.0.0.1` | Interface do host onde o Caddy publica o acesso pela rede local (porta 8123). O app em si não publica porta |
+| `PASSWORD_BREACH_CHECK` | 0 | `local` | `local` (lista embutida), `hibp` (consulta k-anonymity, exige internet) ou `off` |
+| `POW_DIFFICULTY` | 0 | `300000` | Número máximo do desafio de prova de trabalho; `0` desliga |
 | `SMTP_RELOAD_SECONDS` | 1 | `30` | Intervalo para cada instância reler o SMTP salvo no painel |
 | `AUDIT_RETENTION_DAYS` | 1 | `365` | Prazo do registro de auditoria |
 | `GENERATION_MODE` | 2 | `queue` | `queue` (fila) ou `inline` (comportamento atual, para reversão) |
@@ -62,7 +81,7 @@ Todas opcionais, com padrão seguro, salvo indicação. Entram no `compose.yaml`
 | `DAILY_GENERATION_QUOTA` | 2 | `20` | Gerações por usuário por dia (fuso de Brasília) |
 | `MAX_ACTIVE_JOBS_PER_USER` | 2 | `2` | Jobs na fila ou rodando ao mesmo tempo por usuário |
 | `JOB_DEADLINE_SECONDS` | 2 | `600` | Tempo máximo de um job antes de falhar |
-| `GENERATION_RETENTION_HOURS` | 2 | `24` | Por quanto tempo os arquivos gerados ficam disponíveis |
+| `GENERATION_RETENTION_HOURS` | 2 | `24` | Por quanto tempo os arquivos gerados e o prompt ficam guardados |
 | `AI_FAKE_PROVIDER` | 2 | vazio | `1` troca os provedores de IA por um simulado, para teste de carga; recusado com `NODE_ENV=production` |
 | `LOG_LEVEL` | 3 | `info` | `debug`, `info`, `warn` ou `error` |
 | `METRICS_TOKEN` | 3 | vazio | Token para `GET /api/metrics`; vazio desliga a rota (404) |
@@ -75,7 +94,27 @@ Todas opcionais, com padrão seguro, salvo indicação. Entram no `compose.yaml`
 | `REQUIRE_ADMIN_2FA` | 5 | `false` | Exige verificação em duas etapas dos administradores do sistema |
 | `DISABLE_2FA` | 5 | `false` | Desligamento de emergência do segundo fator, registrado na auditoria |
 
-### Regras que valem em todo PR
+## Servidores sem internet
+
+Hoje os servidores de desenvolvimento e de produção não têm acesso à internet. O que isso muda no plano:
+
+| Parte | Funciona sem internet? | Alternativa |
+|---|---|---|
+| Login, projetos, banco, modo "somente prompt", BNCC | Sim | — |
+| Diagramas e gráficos (`vendor/mermaid.min.js`, `vendor/chart.umd.min.js`) e fontes | Sim | Já são arquivos locais |
+| Modo "Gerar material com IA" e "Melhorar com IA" | **Não** | Exige saída para a API do provedor (OpenAI, Gemini ou Anthropic). Não há alternativa local no projeto. O worker da Fase 2 precisa de uma rede com saída só para esses três domínios, se e quando ela existir |
+| HTTPS com Let's Encrypt (Fase 0) | Não | `tls internal` no Caddy: o Caddy cria uma autoridade certificadora própria, e o certificado raiz dela é instalado nos computadores da rede. HSTS só depois disso |
+| Abrir ao público (domínio, DNS) | Não, por definição | Fica para quando houver saída e entrada pela internet |
+| Consulta de senhas vazadas | Não | Padrão `PASSWORD_BREACH_CHECK=local` (lista embutida) |
+| `npm ci` e `apk add` no build das imagens | Não | Gerar as imagens numa máquina com internet e levar com `docker save` / `docker load`, ou manter um espelho local (Verdaccio para npm, espelho do Alpine) |
+| Imagem do banco com pgBackRest (Fase 4) | Não, no build | Mesma saída do item anterior |
+| E-mail | Depende de o servidor SMTP estar na rede interna | O Zimbra citado no `CODEBASE_MAP.md` resolve se estiver na mesma rede |
+| Captura de erros | Sentry em nuvem não | GlitchTip no próprio servidor (padrão assumido) |
+| Verificação de disponibilidade e alertas | Sim, se rodarem na rede interna | Uptime Kuma local; alerta por e-mail pelo SMTP interno |
+| CI no GitHub Actions e Dependabot | Sim | Rodam no GitHub, não no servidor. Só o deploy das imagens geradas precisa do caminho de transferência acima |
+| Certificados e imagens base desatualizados | — | Sem internet, a atualização das imagens (Fase 4.8) depende do mesmo caminho manual de transferência; vale registrar a data de cada atualização |
+
+## Regras que valem em todo PR
 
 - `npm test` verde, com pelo menos um teste novo para cada comportamento novo.
 - Nenhum segredo, prompt, e-mail, cookie ou corpo de requisição em log.

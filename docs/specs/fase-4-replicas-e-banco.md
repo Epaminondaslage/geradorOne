@@ -18,7 +18,7 @@ Esta fase só começa com as Fases 1, 2 e 3 concluídas. Ela depende de quatro g
 | Ponto | Onde | Impede réplicas porque |
 |---|---|---|
 | `container_name: gerador-one` | `compose.yaml`, `compose.prod.yaml` | O Docker não cria dois contêineres com o mesmo nome |
-| `ports: 8123:3000` | idem (`LAN_BIND` na Fase 0) | Duas réplicas não publicam a mesma porta do host |
+| `ports: 8123:3000` | idem | Duas réplicas não publicam a mesma porta do host. A Fase 0 já remove essa linha (o acesso pela LAN passa pelo Caddy) |
 | `./runtime` montado | idem | Sai na Fase 1; confirmar que nenhum código grava nele em produção |
 | Encerramento | `shutdown`, `server.js:974` | Espera só 5 s e não avisa o proxy que vai sair |
 | Pool do banco | `createDb`, `lib/db.js:103` | `max: 10` por processo, sem limite global pensado |
@@ -39,45 +39,57 @@ Serviços em `compose.prod.yaml`:
 | `caddy` | 1 | `mem_limit: 256m` | `web` | publica 80 e 443 |
 | `pgbouncer` | 1 | `mem_limit: 128m` | `internal` | só quando passar de 8 processos (ver 4.4) |
 
-O acesso pela LAN na porta 8123, se ainda for necessário, passa a ser feito pelo Caddy: um segundo bloco `http://:8123` no `Caddyfile`, publicado em `${LAN_BIND}:8123`.
+O acesso pela LAN na porta 8123 já passa pelo Caddy desde a Fase 0 (bloco `http://:8123`) e recebe o mesmo balanceamento abaixo.
 
-O `compose.yaml` do Coolify recebe as mesmas mudanças no serviço web (sem `container_name`, sem `ports`) e o Coolify passa a fazer o balanceamento pelo Traefik com a verificação de saúde.
+O `compose.yaml` do Coolify também perde o `container_name`. Ver o item 4.4 sobre o que o Coolify faz e não faz com réplicas.
 
 ### 4.2 Proxy com balanceamento e verificação de saúde
 
 ```text
+(app) {
+	reverse_proxy {
+		dynamic a gerador-one 3000 {
+			refresh 5s
+		}
+		lb_policy least_conn
+		lb_try_duration 10s
+		lb_try_interval 250ms
+		fail_duration 30s
+		max_fails 1
+		unhealthy_status 502 503 504
+	}
+}
+
 {$DOMINIO} {
 	encode zstd gzip
 	header Strict-Transport-Security "max-age=31536000"
 	header -Server
-	reverse_proxy gerador-one:3000 {
-		dynamic a gerador-one 3000
-		lb_policy least_conn
-		lb_try_duration 5s
-		health_uri /api/health
-		health_interval 5s
-		health_fails 2
-		fail_duration 10s
-	}
+	import app
+}
+
+http://:8123 {
+	import app
 }
 ```
 
-- `dynamic a` faz o Caddy perguntar ao DNS do Docker todos os IPs do serviço, então réplicas novas entram no balanceamento sem recarregar a configuração.
-- `lb_try_duration 5s`: se uma instância recusar a conexão (porque está saindo), o Caddy tenta outra dentro de 5 s em vez de devolver 502.
+- `dynamic a` faz o Caddy perguntar ao DNS do Docker os IPs do serviço a cada 5 s, então réplicas novas entram no balanceamento sem recarregar a configuração, e réplicas paradas saem.
+- **O Caddy não faz verificação de saúde ativa (`health_uri`) em upstreams dinâmicos.** Por isso o desenho usa só a verificação **passiva**: uma conexão recusada, ou uma resposta 502, 503 ou 504, tira a instância do balanceamento por 30 s (`fail_duration`, `max_fails 1`, `unhealthy_status`).
+- `lb_try_duration 10s`: se a conexão com uma instância falhar (porque ela está saindo), o Caddy tenta outra dentro de 10 s em vez de devolver 502 ao usuário. Isso vale para falhas de conexão, que é o que o encerramento abaixo produz.
 - `TRUSTED_PROXY_HOPS=1` continua correto: o Caddy é o único salto.
 
 ### 4.3 Encerramento gracioso
 
-Ao receber `SIGTERM`, o processo web:
+Como o Caddy só percebe a saída de forma passiva (item 4.2), o processo precisa **parar de aceitar conexões na hora** em vez de esperar o proxy notar. Ao receber `SIGTERM`, o processo web:
 
-1. Passa a responder `GET /api/health` com 503 (`{ ok: false, draining: true }`), para o Caddy tirá-lo do balanceamento na próxima verificação (até 10 s).
-2. Continua atendendo normalmente durante esses 10 s, porque o Caddy ainda pode mandar requisições até perceber.
-3. Chama `server.close()` e espera as requisições em andamento até `SHUTDOWN_GRACE_SECONDS` (30 s).
-4. Fecha conexões ociosas (`server.closeIdleConnections()`), fecha o pool do banco e sai com código 0.
+1. Chama `server.close()` imediatamente: novas conexões passam a ser recusadas, e o Caddy tenta outra réplica dentro do `lb_try_duration`.
+2. Fecha as conexões ociosas mantidas abertas pelo Caddy (`server.closeIdleConnections()`).
+3. Responde às requisições já em andamento com `Connection: close`, para o Caddy não reaproveitar aquela conexão.
+4. Passa a responder `GET /api/health` com 503 (`{ ok: false, draining: true }`), útil para a verificação de saúde do Docker e para o log.
+5. Espera as requisições em andamento até `SHUTDOWN_GRACE_SECONDS` (30 s), fecha o pool do banco e sai com código 0.
 
 `stop_grace_period: 45s` no serviço web, para o Docker não matar o processo antes do fim.
 
-O worker já tem o próprio encerramento na Fase 2 (`stop_grace_period: 3m`).
+O worker tem o próprio encerramento na Fase 2 (`stop_grace_period: 11m`, maior que o prazo de um job).
 
 ### 4.4 Deploy sem queda
 
@@ -91,11 +103,16 @@ O Docker Compose não troca réplicas uma a uma sozinho. Duas opções, em ordem
 Ordem de um deploy:
 
 1. `docker compose build`.
-2. Workers primeiro: `docker compose up -d --no-deps worker`. Os workers antigos terminam os jobs em andamento (até 3 min).
+2. Workers primeiro: `docker compose up -d --no-deps worker`. Os workers antigos terminam os jobs em andamento (até 10,5 min no pior caso). A fila não para: os workers novos já reivindicam jobs enquanto os antigos terminam.
 3. Web com a opção escolhida acima. A primeira instância nova roda as migrações; a trava `pg_advisory_xact_lock` em `migrate()` impede corrida. As instâncias antigas continuam funcionando porque as migrações são só aditivas (regra em `docs/specs/README.md`).
 4. Conferir o log do Caddy: nenhuma linha com `status: 502` no intervalo.
 
-Com o Coolify, a atualização gradual do próprio Coolify faz o passo 3, desde que o serviço não tenha `container_name` nem `ports` e tenha verificação de saúde.
+**Coolify:** a documentação do Coolify diz que a atualização gradual (rolling update) **não** é suportada em aplicações do tipo Docker Compose, que é como o `compose.yaml` atual está implantado. Duas saídas:
+
+- Implantar o web no Coolify como aplicação com o build pack **Dockerfile** (sem nome de contêiner fixo e sem porta publicada), que tem atualização gradual com verificação de saúde; o banco e o worker continuam como serviços à parte.
+- Ou aceitar que, no ambiente do Coolify, o deploy tem alguns segundos de queda e usar o `compose.prod.yaml` com Caddy como o ambiente sem queda.
+
+A escolha depende de qual ambiente vira a produção (decisão em aberto: servidor atual com Caddy ou Coolify).
 
 ### 4.5 Conexões com o banco
 
@@ -109,10 +126,15 @@ Com o Coolify, a atualização gradual do próprio Coolify faz o passo 3, desde 
 
 ### 4.6 Recuperação a um ponto no tempo
 
-- Ferramenta: `pgBackRest` num contêiner ao lado do `db`, gravando no mesmo HD de backup do `backup-db.sh` (`/backup/lxc-geradorone/pgbackrest`).
+- Ferramenta: `pgBackRest`.
+- **O `archive_command` é executado pelo próprio servidor Postgres**, dentro do contêiner do banco. A imagem `postgres:17-alpine` não tem `pgbackrest`; sem ele, cada arquivamento falha e o WAL se acumula até encher o disco. Por isso:
+  - `deploy/db/Dockerfile` (novo): `FROM postgres:17-alpine` + `apk add --no-cache pgbackrest`. O serviço `db` passa a usar essa imagem.
+  - O repositório do pgBackRest fica no HD de backup, montado no contêiner do banco (`/backup/lxc-geradorone/pgbackrest:/var/lib/pgbackrest`). Não há contêiner separado: o pgBackRest roda dentro do `db`, e os backups completos e diferenciais são disparados pelo cron do host com `docker compose exec db pgbackrest --stanza=geradorone backup --type=full|diff`.
+  - A pasta é a mesma do `backup-db.sh`, com o mesmo cuidado de conferir se o HD está montado (`BACKUP_MOUNT`) antes de rodar.
 - Postgres: `wal_level=replica`, `archive_mode=on`, `archive_command='pgbackrest --stanza=geradorone archive-push %p'`, `max_wal_senders=5`.
+- Alerta: `pg_stat_archiver.failed_count` crescendo, exposto como métrica (Fase 3), para perceber arquivamento falhando antes de o disco encher.
 - Agenda: completo aos domingos às 02:30, diferencial nos outros dias às 02:30. Retenção de 2 completos (cerca de 14 dias) e de todo o WAL desse intervalo.
-- O `backup-db.sh` diário continua: é o arquivo SQL simples, fácil de restaurar em qualquer lugar. Passa a usar `--exclude-table-data=generation_files --exclude-table-data=generation_jobs`, que são dados temporários (Fase 2).
+- O `backup-db.sh` diário continua: é o arquivo SQL simples, fácil de restaurar em qualquer lugar. Passa a usar `--exclude-table-data=generation_files`, que são dados temporários (Fase 2). A tabela `generation_jobs` continua no backup, porque é a base das cotas.
 - Exercício mensal documentado em `docs/RESTAURACAO.md`: restaurar num contêiner descartável até um horário escolhido, rodar a suíte de testes contra ele e registrar o tempo gasto.
 
 ### 4.7 Réplica do banco
@@ -132,10 +154,10 @@ Só quando houver uma segunda máquina. Até lá, o PITR do item 4.6 cobre a fal
 
 | PR | Conteúdo |
 |---|---|
-| 4-a | Encerramento gracioso e `/api/health` com `draining` |
-| 4-b | `compose.prod.yaml` sem `container_name` e `ports`, com réplicas e limites; `Caddyfile` com balanceamento |
-| 4-c | `scripts/deploy.sh` (ou instruções do plugin) no README |
-| 4-d | pgBackRest, agenda, exclusão das tabelas temporárias do `pg_dump`, `docs/RESTAURACAO.md` |
+| 4-a | Encerramento gracioso (fecha o listener na hora, `Connection: close`, `/api/health` com `draining`) |
+| 4-b | `compose.prod.yaml` sem `container_name`, com réplicas e limites; `Caddyfile` com upstream dinâmico e verificação passiva |
+| 4-c | `scripts/deploy.sh` (ou instruções do plugin) no README; decisão sobre o Coolify |
+| 4-d | Imagem do `db` com pgBackRest, agenda no cron do host, métrica do arquivador, exclusão de `generation_files` do `pg_dump`, `docs/RESTAURACAO.md` |
 | 4-e | Dependabot ou Renovate |
 | 4-f | PgBouncer (só quando a regra de 4.5 disparar) |
 | 4-g | Réplica (só com segunda máquina) |
@@ -144,9 +166,10 @@ Só quando houver uma segunda máquina. Até lá, o PITR do item 4.6 cobre a fal
 
 | Cenário | Como | Então |
 |---|---|---|
-| Saída graciosa | Teste automatizado: requisição lenta em andamento, `SIGTERM` no processo | A requisição termina com 200; `/api/health` responde 503 logo depois do sinal |
+| Saída graciosa | Teste automatizado: requisição lenta em andamento, `SIGTERM` no processo | A requisição termina com 200 e `Connection: close`; uma conexão nova depois do sinal é recusada |
+| Arquivamento de WAL | `SELECT pg_switch_wal()` no banco de homologação | `pg_stat_archiver.archived_count` sobe e `failed_count` não muda |
 | Deploy sem queda | Teste de carga leve (20 usuários) rodando durante um deploy em homologação | Zero 502 e zero 5xx no log do Caddy |
-| Queda de uma instância | `docker kill` numa réplica durante o teste de carga | O Caddy tira a réplica em até 10 s; nenhuma requisição de usuário falha depois disso |
+| Queda de uma instância | `docker kill` numa réplica durante o teste de carga | As requisições que estavam naquela réplica podem falhar; as seguintes vão para a outra (conexão recusada → nova tentativa no Caddy), e a réplica morta sai do DNS em até 5 s |
 | Sessão entre instâncias | Login, depois 20 requisições seguidas | Todas 200, distribuídas nas duas réplicas (conferido pelo `X-Request-Id` no log de cada uma) |
 | Migração durante deploy | Versão nova com migração aditiva sobe ao lado da antiga | A antiga continua respondendo 200 durante e depois da migração |
 | PITR | Apagar uma tabela de propósito numa cópia, restaurar até 1 minuto antes | Dados de volta; suíte de testes passa contra o banco restaurado |

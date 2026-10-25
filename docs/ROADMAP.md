@@ -53,16 +53,17 @@ Meta: convidados usam o app num endereço público sem vazar senha e sem que um 
 
 - [ ] Definir o domínio e apontar o DNS (quem administra o DNS?).
 - [ ] Liberar o servidor para a internet (NAT e firewall nas portas 80 e 443) ou hospedar em outro lugar.
-- [ ] Usar o `compose.prod.yaml` com Caddy como padrão de produção (certificado Let's Encrypt automático; HSTS já está no `Caddyfile`).
-- [ ] Fechar a porta 8123: `"${LAN_BIND:-127.0.0.1}:8123:3000"` nos dois `compose`.
+- [ ] Usar o `compose.prod.yaml` com Caddy como padrão de produção (certificado Let's Encrypt automático; HSTS já está no `Caddyfile`). Enquanto os servidores estiverem sem internet: `tls internal` do Caddy, com o certificado raiz instalado nos computadores da rede.
+- [ ] Fechar a porta 8123: o contêiner do app deixa de publicar porta; o acesso pela rede local passa pelo Caddy, em `${LAN_BIND}:8123`.
+- [ ] No Coolify, roteador no entrypoint `https` com certificado e HSTS, e roteador `http` que só redireciona.
 - [ ] Publicar na raiz do domínio, em vez do caminho `/geradorone`.
 
 ### Brechas conhecidas no código
 
-- [ ] **`X-Forwarded-For` confiado cegamente** (`clientIp`, `server.js`): ler só o salto do proxy confiável (`TRUSTED_PROXY_HOPS`); com `0`, usar o IP da conexão.
+- [ ] **`X-Forwarded-For` confiado cegamente** (`clientIp`, `server.js`): ler só o salto do proxy confiável (`TRUSTED_PROXY_HOPS`); com `0`, usar o IP da conexão. Seguro só porque o app deixa de publicar porta (entram juntos).
 - [ ] **Enumeração de contas por tempo de resposta** em `/api/auth/signup` e `/api/auth/forgot`: hash sempre calculado e e-mail enviado fora do caminho da resposta.
-- [ ] **Travar conta de terceiros**: trocar o bloqueio por e-mail por bloqueio por par IP+e-mail, bloqueio por IP em massa e atraso progressivo por e-mail.
-- [ ] **Sair não invalida a sessão**: `sid` no token, tabela `revoked_sessions` (migração 7) e renovação deslizante do cookie.
+- [ ] **Travar conta de terceiros**: limitadores por par IP+e-mail, por IP em massa e por e-mail (atraso curto e, acima de um teto, prova de trabalho em vez de bloqueio); tentativa registrada antes do scrypt.
+- [ ] **Sair não invalida a sessão**: `sid` no token, tabela `revoked_sessions` (migração 7) e renovação deslizante do cookie; tokens com `purpose` recusados como sessão.
 - [ ] **Senha temporária no log**: exigir `ADMIN_PASSWORD` em produção.
 - [ ] **Prova de trabalho** no cadastro e na recuperação, sem serviço de terceiros.
 - [ ] **Política de senha**: lista local de senhas comuns e, opcionalmente, consulta k-anonymity a senhas vazadas.
@@ -79,7 +80,7 @@ Meta: convidados usam o app num endereço público sem vazar senha e sem que um 
 - [ ] Configurar SPF, DKIM e DMARC do domínio, para os e-mails não caírem no spam.
 - [ ] Trocar a senha da caixa do projeto que foi enviada por e-mail em texto aberto.
 
-**Pronto quando:** o app abre só em `https://`, a 8123 não responde de fora, e os 16 cenários de teste da especificação passam.
+**Pronto quando:** o app abre só em `https://`, o contêiner do app não publica porta, e os cenários de teste da especificação passam.
 
 ---
 
@@ -89,8 +90,9 @@ Especificação: [fase-1-estado-no-banco.md](specs/fase-1-estado-no-banco.md)
 
 Meta: qualquer instância do app atende qualquer requisição, e um deploy não apaga limites nem códigos pendentes. É o pré-requisito da Fase 4.
 
-- [ ] **Limitador no Postgres** (migração 8, `rate_limits`): mesma interface `blocked/hit/reset`, agora assíncrona, numa única consulta por chamada.
-- [ ] **Códigos pendentes no Postgres** (migração 9, `pending_codes`): até 3 códigos vivos por e-mail; pedir de novo não invalida o código de outra pessoa; tentativas no limitador.
+- [ ] **Limitador no Postgres** (migração 8, `rate_limits`): interface assíncrona, nome obrigatório por limitador (para as chaves não colidirem), uma consulta por chamada.
+- [ ] **Novo fluxo da recuperação**: a nova senha passa a ser escolhida depois do código, não antes.
+- [ ] **Códigos pendentes no Postgres** (migração 9, `pending_codes`): até 3 códigos vivos por e-mail; pedir de novo não invalida o código de outra pessoa; falhas nunca apagam códigos.
 - [ ] **`APP_SECRET` obrigatória em produção**: sem ela cada réplica geraria um `secret.key` diferente.
 - [ ] **Impressão digital da chave mestra em `settings`**, com transição automática do `runtime/secret.check`; nova ordem de inicialização (migrar antes de conferir a chave).
 - [ ] **SMTP do painel coerente entre instâncias**: releitura periódica (`SMTP_RELOAD_SECONDS`).
@@ -109,9 +111,10 @@ Meta: `/api/generate` responde em menos de 100 ms, o trabalho pesado roda em pro
 - [ ] Extrair de `server.js` para `lib/ai/` os provedores, o sanitizador, `embedImages` e `htmlToPdf`, sem mudar comportamento.
 - [ ] Tabelas `generation_jobs` e `generation_files` (migração 11) e `lib/jobs.js` com reivindicação por `FOR UPDATE SKIP LOCKED`, sinal de vida e recolhimento de órfãos sem nova tentativa automática (a IA é paga pela chave da pessoa).
 - [ ] `worker.js` com semáforo de jobs e do Chromium; texto e imagens em paralelo; cancelamento e prazo por `AbortController`.
-- [ ] Cotas: 2 jobs ativos e 20 gerações por dia por usuário (fuso de Brasília).
+- [ ] Cotas: 2 jobs ativos e 20 gerações por dia por usuário (fuso de Brasília); cancelar depois de começar conta na cota.
+- [ ] Retenção em dois tempos: arquivos e prompt apagados em 24 h; a linha do job, só com metadados, fica 400 dias para as cotas.
 - [ ] Rotas `POST /api/generate` (202), `GET /api/generate/:id`, `GET /api/generate/:id/files/:n`, `DELETE /api/generate/:id`; `/api/improve` no mesmo mecanismo; modo `GENERATION_MODE=inline` para reversão.
-- [ ] Contêiner `worker` com Chromium, `/tmp` de 512 MB, `pids_limit` e limites de memória e CPU; contêiner web sem Chromium.
+- [ ] Contêiner `worker` com Chromium, `/tmp` de 512 MB, `pids_limit` e limites de memória e CPU; o contêiner web perde o Chromium duas semanas depois de a fila estar estável.
 - [ ] Frontend com progresso, cancelar e retomar ao recarregar a página.
 - [ ] Limitadores em `/api/pdf` e `/api/render`.
 
@@ -152,10 +155,10 @@ Especificação: [fase-4-replicas-e-banco.md](specs/fase-4-replicas-e-banco.md)
 
 Meta: 2 instâncias web e 2 workers no servidor atual, deploy sem nenhum 502, banco recuperável em qualquer ponto dos últimos 7 dias.
 
-- [ ] Encerramento gracioso: `/api/health` responde 503 ao receber `SIGTERM`, espera de até 30 s.
-- [ ] `compose.prod.yaml` sem `container_name` e `ports`, com réplicas e limites; Caddy com `dynamic a`, `least_conn` e verificação de saúde.
-- [ ] Deploy com `docker rollout` ou `scripts/deploy.sh`; workers primeiro, web depois.
-- [ ] pgBackRest com WAL, completo semanal e diferencial diário; `pg_dump` sem as tabelas temporárias da geração; exercício mensal em `docs/RESTAURACAO.md`.
+- [ ] Encerramento gracioso: ao receber `SIGTERM`, para de aceitar conexões na hora e responde com `Connection: close`, espera de até 30 s.
+- [ ] `compose.prod.yaml` sem `container_name`, com réplicas e limites; Caddy com upstream dinâmico e verificação passiva (o Caddy não faz verificação ativa em upstream dinâmico).
+- [ ] Deploy com `docker rollout` ou `scripts/deploy.sh`; workers primeiro, web depois. No Coolify, atualização gradual só com o build pack Dockerfile, não com Compose.
+- [ ] pgBackRest dentro de uma imagem própria do banco (quem roda o `archive_command` é o Postgres), completo semanal e diferencial diário; `pg_dump` sem `generation_files`; exercício mensal em `docs/RESTAURACAO.md`.
 - [ ] Dependabot ou Renovate.
 - [ ] PgBouncer em modo transação quando passar de 80 conexões.
 - [ ] Réplica em streaming quando houver segunda máquina.
@@ -236,6 +239,8 @@ Meta: um cliente cria a organização, convida colegas, assina um plano, gera de
 |---|---|---|
 | Domínio público e quem controla o DNS | Fase 0 inteira | Não assumido |
 | Hospedar no servidor atual ou em nuvem | Fase 4 | Servidor atual, Caddy |
+| Produção no `compose.prod.yaml` com Caddy ou no Coolify | Fase 4 (deploy sem queda só no Caddy, ou no Coolify com build pack Dockerfile) | Caddy |
+| Liberar saída para as APIs de IA nos servidores | Modo "Gerar com IA" | Não assumido; sem ela o modo não funciona |
 | Arquivos gerados em `bytea` ou em disco/S3 | Fase 2 | `bytea` com retenção de 24 h |
 | Prova de trabalho própria ou captcha de terceiro | Fase 0 | Prova de trabalho própria, sem dependência |
 | Sentry em nuvem ou GlitchTip local | Fase 3 | GlitchTip no mesmo servidor |
@@ -244,6 +249,10 @@ Meta: um cliente cria a organização, convida colegas, assina um plano, gera de
 | Onde guardar a cópia externa do backup | Fase 0 | Não assumido |
 | Modelo de cobrança e provedor de pagamento | Fase 5 | Não assumido |
 | Revisão jurídica dos termos e da política | Fases 1, 2 e 5 | Necessária antes de abrir ao público em geral |
+
+## Servidores sem internet
+
+Hoje os servidores de desenvolvimento e de produção estão sem internet. Login, projetos, modo "somente prompt", diagramas e gráficos funcionam assim. O modo "Gerar com IA" não funciona sem saída para o provedor. HTTPS público, consulta de senhas vazadas e o build das imagens precisam de alternativa (`tls internal`, lista local, imagens geradas fora e levadas com `docker save`/`docker load`). O quadro completo está em [docs/specs/README.md](specs/README.md#servidores-sem-internet).
 
 ## Riscos conhecidos hoje
 
