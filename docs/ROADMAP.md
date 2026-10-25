@@ -2,6 +2,9 @@
 
 Avaliação feita em 22/10/2026 e reorganizada em 25/10/2026 a partir da releitura completa do código. Cada item tem uma caixa para marcar quando for concluído.
 
+> **Observação — revisar quando a internet voltar e o acesso aos servidores for possível.**
+> Este roadmap e as especificações foram escritos em 25/10/2026 só a partir do repositório no GitHub, com os servidores de desenvolvimento e de produção sem internet e sem acesso. O estado real dos servidores não foi conferido. Antes de começar a Fase 0, revisar a lista em [docs/specs/README.md](specs/README.md#revisão-pendente-nos-servidores) e ajustar o que não bater.
+
 **Especificações técnicas** de cada fase (tabelas em SQL, contratos das rotas, módulos, sequência de PRs, cenários de teste, critérios de aceite e reversão): [docs/specs/](specs/README.md). Visão geral comentada: [Plano de escala do GeradorOne](https://claude.ai/artifact/K8J6ux2kfVgj98gr6vyUWR).
 
 ## Onde estamos

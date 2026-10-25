@@ -2,6 +2,8 @@
 
 Especificações técnicas das fases do [ROADMAP](../ROADMAP.md). Cada arquivo descreve o que construir, em que ordem, com que contratos e como provar que ficou pronto. Nenhuma especificação aqui foi implementada ainda.
 
+> **Observação — revisar quando a internet voltar e o acesso aos servidores for possível.** Estas especificações foram escritas só a partir do repositório, com os servidores sem internet e sem acesso. Antes de implementar qualquer fase, percorrer a seção [Revisão pendente nos servidores](#revisão-pendente-nos-servidores), no fim deste arquivo.
+
 Base: commit `366a756` (25/10/2026). Suíte atual: 88 testes, 87 passam e 1 é pulado quando o Chromium não está instalado (conferido em 25/10/2026 contra um Postgres local). As especificações foram revisadas contra o código por uma segunda leitura independente, e os 24 problemas encontrados já estão corrigidos no texto.
 
 | Fase | Arquivo | Tema | Depende de |
@@ -113,6 +115,31 @@ Hoje os servidores de desenvolvimento e de produção não têm acesso à intern
 | Verificação de disponibilidade e alertas | Sim, se rodarem na rede interna | Uptime Kuma local; alerta por e-mail pelo SMTP interno |
 | CI no GitHub Actions e Dependabot | Sim | Rodam no GitHub, não no servidor. Só o deploy das imagens geradas precisa do caminho de transferência acima |
 | Certificados e imagens base desatualizados | — | Sem internet, a atualização das imagens (Fase 4.8) depende do mesmo caminho manual de transferência; vale registrar a data de cada atualização |
+
+## Revisão pendente nos servidores
+
+Itens que o repositório não mostra e que precisam ser conferidos nos servidores de desenvolvimento e de produção assim que a internet e o acesso voltarem. Cada um pode mudar uma decisão das especificações.
+
+| # | O que conferir | Como | Afeta |
+|---|---|---|---|
+| 1 | Versão realmente implantada é a do repositório (`366a756` ou posterior) | `docker inspect gerador-one`, data da imagem, `git log` em `/opt/geradorOne` | todas |
+| 2 | Variáveis no `.env` de cada servidor (`APP_SECRET` definido e com 32+ caracteres, `NODE_ENV`, SMTP, `APP_URL`) | conferir o arquivo, sem copiar segredos | Fases 0 e 1 |
+| 3 | Se existe `runtime/secret.key` ou `runtime/secret.check` em uso | `ls -l runtime/` | Fase 1 (transição da impressão digital) |
+| 4 | Qual ambiente é a produção de fato: `compose.prod.yaml` com Caddy ou Coolify com Traefik | `docker ps`, painel do Coolify | Fases 0 e 4 |
+| 5 | Quem acessa a porta 8123 hoje e de onde | log do proxy, regras do firewall e do roteador | Fase 0 (`LAN_BIND`) |
+| 6 | Se a saída para as APIs de IA (OpenAI, Gemini, Anthropic) vai existir e com quais domínios liberados | política de rede do servidor | Fase 2 e o modo "Gerar com IA" |
+| 7 | Se o SMTP (Zimbra) é alcançável pela rede interna sem internet | `node scripts/test-smtp.js --verify` | Fases 0, 1 e 3 |
+| 8 | Domínio, DNS e certificado: Let's Encrypt (com internet) ou `tls internal` (sem internet) | decisão de rede | Fase 0 |
+| 9 | Disco: espaço livre, HD de backup montado em `/backup/lxc-geradorone`, cron do `backup-db.sh` rodando | `df -h`, `crontab -l`, `monitor/backup-db.json` | Fases 0 e 4 |
+| 10 | Versões de Docker e Docker Compose (plugin `docker rollout`, `dynamic a` no Caddy) | `docker version`, `docker compose version` | Fase 4 |
+| 11 | Recursos reais do servidor (CPU, RAM) e o que mais roda nele | `nproc`, `free -h`, `docker stats` | Fases 2 e 4 (limites dos contêineres) |
+| 12 | Quantidade de usuários, projetos e tamanho do banco | `SELECT count(*)` nas tabelas, `pg_database_size` | Fases 2, 3 e 4 (volume e índices) |
+| 13 | Caminho para levar imagens ao servidor sem internet (máquina de build, `docker save`/`docker load`, espelho local) | combinar o processo | todas as que mudam a imagem |
+| 14 | Rodar a suíte inteira no servidor de desenvolvimento, com Chromium (aqui 1 teste foi pulado por falta dele) | `npm test` | linha de base de todas |
+| 15 | Calibrar `POW_DIFFICULTY` medindo o tempo num celular de entrada da rede | página de teste com o `pow-worker.js` | Fase 0 |
+| 16 | Conferir os modelos padrão de IA (`gpt-6-astra`, `gemini-3.8-flash`, `gpt-image-2.5-flare`, `gemini-3-pro-image-preview`, `claude-sonnet-5-5`) nos provedores | chamada de teste com uma chave válida | Fase 2 (achado 8 do `CODEBASE_MAP.md`) |
+
+Depois da revisão, registrar a data aqui e marcar no ROADMAP o que mudou.
 
 ## Regras que valem em todo PR
 
