@@ -115,6 +115,7 @@
       </nav>
       <div class="sidebar-foot">
         <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label">Tema</span><span class="nav-label theme-current" id="theme-name">Papel</span></a>
+        <a class="nav-item" href="#sobre" data-view="sobre" title="Sobre o GeradorOne"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span class="nav-label">Sobre</span></a>
         <button id="logout-button" class="nav-item" type="button" title="Sair"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label">Sair</span></button>
         <div class="user-chip nav-label"><strong id="user-name">—</strong><small id="user-email"></small></div>
       </div>
@@ -142,7 +143,109 @@
           <button type="button" data-step="resultado" aria-pressed="false">Resultado</button>
         </div>
         <div class="pane" id="pane">
-          <section class="view home" data-view="inicio" aria-label="Início">
+          <section class="view inicio" data-view="inicio" aria-label="Início">
+            <h1 class="inicio-title">Transforme qualquer assunto em uma página de fácil leitura</h1>
+            <p class="inicio-lead">Prompts visuais para apostilas, capas e materiais didáticos.</p>
+
+            <section class="inicio-bloco" aria-labelledby="tres-passos">
+              <h2 id="tres-passos">Do pedido ao material em três passos</h2>
+              <ol class="inicio-passos">
+                <li><span class="inicio-num" aria-hidden="true">1</span><div><h3>Descreva o material</h3><p>Escolha apostila ou capa, a disciplina, a série, o tema e o número de páginas. O app monta um prompt de imagem para cada página.</p></div></li>
+                <li><span class="inicio-num" aria-hidden="true">2</span><div><h3>Escolha o estilo</h3><p>Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático e Colorido Infantil. Cada um tem uma miniatura para você comparar.</p></div></li>
+                <li><span class="inicio-num" aria-hidden="true">3</span><div><h3>Copie ou gere com IA</h3><p>Copie o prompt, ou baixe em TXT, JSON ou PDF, e cole na sua ferramenta de imagens. Com "Melhorar com IA" você refina o texto. Com a sua chave de IA (BYOK), o material sai pronto em PDF.</p></div></li>
+              </ol>
+            </section>
+
+            <section class="inicio-bloco" aria-labelledby="comece-apostila">
+              <h2 id="comece-apostila">Clique em "Apostila" e comece com 5 itens</h2>
+              <p class="inicio-apoio">Só três campos são obrigatórios. O restante já vem preenchido, então o primeiro prompt sai em poucos cliques.</p>
+              <div class="inicio-demo">
+                <img class="inicio-captura" src="assets/inicio/apostila-dados.png" width="552" height="508" alt="Tela Apostila, bloco Dados do material, com Disciplina Ciências, Assunto principal Ciclo da água e Público Ensino Fundamental I preenchidos" loading="lazy">
+                <ol class="inicio-itens">
+                  <li><span class="inicio-num" aria-hidden="true">1</span><div><strong>Disciplina</strong><p>Por exemplo, Ciências.</p></div></li>
+                  <li><span class="inicio-num" aria-hidden="true">2</span><div><strong>Assunto principal</strong><p>Por exemplo, Ciclo da água.</p></div></li>
+                  <li><span class="inicio-num" aria-hidden="true">3</span><div><strong>Público / faixa etária</strong><p>Por exemplo, Ensino Fundamental I.</p></div></li>
+                  <li><span class="inicio-num" aria-hidden="true">4</span><div><strong>Tipo de material e estilo</strong><p>Já vêm marcados (Apostila didática e Livro Didático). Troque se quiser.</p></div></li>
+                  <li><span class="inicio-num" aria-hidden="true">5</span><div><strong>Gerar prompt completo</strong><p>O prompt aparece na coluna Resultado, pronto para copiar.</p><img class="inicio-captura inicio-captura-botao" src="assets/inicio/apostila-gerar.png" width="552" height="144" alt="Botão Gerar prompt completo no fim do formulário da Apostila" loading="lazy"></div></li>
+                </ol>
+              </div>
+              <p class="inicio-acao"><a class="primary big" href="#apostila" data-go-view="apostila">Abrir a Apostila</a></p>
+            </section>
+
+            <section class="inicio-bloco" aria-labelledby="prompt-exemplo">
+              <h2 id="prompt-exemplo">O prompt gerado com esses 5 itens</h2>
+              <p class="inicio-apoio">Texto real gerado pelo app com Ciências, Ciclo da água e Ensino Fundamental I. Role para ler.</p>
+              <pre class="inicio-prompt" tabindex="0" aria-label="Prompt de exemplo gerado pelo GeradorOne">ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.
+A saída esperada é UMA IMAGEM ÚNICA: uma página visual de apostila didática sobre Ciclo da água, em página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa.
+O estilo visual deve ser OBRIGATORIAMENTE: Livro Didático. Não misture com outros estilos.
+O tipo de material deve ser OBRIGATORIAMENTE: Apostila didática.
+Não responda com texto explicativo: produza a imagem descrita abaixo.
+
+PAPEL
+Atue como designer instrucional e ilustrador de material didático visual brasileiro.
+
+CONTEXTO
+Disciplina: Ciências
+Tema: Ciclo da água
+Público: Ensino Fundamental I
+Nível de profundidade: Intermediário
+Tipo de material: Apostila didática
+Formato da página: página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa
+Total de páginas: 1 página
+Estilo de escrita: Didático
+Estilo visual: Livro Didático
+Paleta visual: Automática
+
+REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)
+Antes de desenhar, revise com rigor técnico todo o conteúdo que vai aparecer na imagem: fórmulas, unidades, datas, nomes, números, terminologia e as relações entre os conceitos. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.
+
+MISSÃO
+Gerar a IMAGEM de uma página completa de apostila didática sobre Ciclo da água, no estilo Livro Didático, pronta para impressão. Foco do material: explicar o tema de forma progressiva, do conceito básico à aplicação.
+
+1) DESCRIÇÃO DA IMAGEM (PRINCIPAL)
+Página didática de apostila didática sobre "Ciclo da água" em Ciências, no padrão de material educacional brasileiro.
+Siga RIGOROSAMENTE o estilo Livro Didático:
+- Ilustração: ilustrações editoriais limpas de livro didático brasileiro, com contorno suave e cores equilibradas.
+- Página: fundo branco, cartões de cantos arredondados com sombra suave, faixas de título coloridas, etapas numeradas em círculos e ícones lineares consistentes.
+- Tipografia: títulos grandes, subtítulos médios e corpo pequeno, no máximo 2 famílias sem serifa.
+- Evite: estética de pôster publicitário e excesso de efeitos.
+Personagens, se houver, devem ser crianças da faixa etária de Ensino Fundamental I.
+Cada ilustração deve representar diretamente um conceito do conteúdo; nada decorativo sem função.
+Textos curtos, rótulos em negrito e legíveis. Priorize a explicação visual sobre o texto corrido.
+Seções bem delimitadas, espaço generoso entre os blocos, margens amplas e nenhum elemento cortado nas bordas.
+Conceitos-chave em caixas de destaque ("Dica", "Atenção", "Resumo") no visual do estilo escolhido.
+Paleta automática: escolha cores que combinem com o estilo e o tema, com alto contraste entre texto e fundo.
+Fórmulas, unidades, símbolos e valores numéricos devem estar corretos e coerentes entre si.
+Os textos de ensino são a prioridade: conteúdo correto, legível e focado no aprendizado.
+Todo o texto em português do Brasil, sem termos em inglês. Sem mockup e sem marca d'água.
+
+2) MICROTEXTOS DENTRO DA IMAGEM
+Título em caixa alta: CICLO DA ÁGUA
+Linha de apoio: Ciências | Apostila Didática | Ensino Fundamental I
+3 frases curtas de abertura explicando o que o aluno vai aprender.
+Definição principal em uma caixa de destaque.
+5 bullets com ✓ resumindo os pontos-chave.
+2 exemplos práticos curtos iniciados por "Ex.:".
+
+3) ELEMENTOS VISUAIS
+Use de 4 a 6 elementos visuais. Para cada um, defina o que representa e por que ajuda a aprender.
+Opções: comparação lado a lado, esquema ou diagrama rotulado, fluxo de etapas com setas, tabela simples, ícones coloridos, caixa "Dica rápida" e mini-glossário ilustrado.
+
+4) DIFICULDADE DOS ALUNOS
+Identifique a principal dificuldade de alunos de Ensino Fundamental I ao estudar Ciclo da água e faça o visual resolvê-la.
+
+RESTRIÇÃO
+NÃO inclua exercícios, questões nem gabarito. A página é explicativa.
+
+CRITÉRIOS DE QUALIDADE
+- Progressão lógica e linguagem adequada ao público.
+- Não presumir conhecimento ainda não apresentado; explicar termos técnicos na primeira ocorrência.
+- Evitar redundância e texto decorativo.
+- Não inventar informações factuais, técnicas ou normativas; havendo incerteza, sinalizar a necessidade de validação.</pre>
+            </section>
+          </section>
+
+          <section class="view home" data-view="sobre" aria-label="Sobre" hidden>
             <span class="home-logo logo" role="img" aria-label="GeradorOne: cabeça com um mapa mental no lugar do cérebro"></span>
             <h1 class="home-title">GeradorOne</h1>
             <p class="home-tagline">Prompts visuais para apostilas, capas e materiais didáticos.</p>
