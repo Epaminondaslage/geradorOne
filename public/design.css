@@ -696,3 +696,15 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .act .act-label { display: none; }
 .data-table .row-actions .act.armed, .project-buttons .act.armed { padding: 0 10px; border-color: var(--danger); background: var(--danger); color: var(--bg); }
 .act.armed .act-label { display: inline; white-space: nowrap; }
+
+/* Menu no celular: a gaveta ocupa só a área visível (top e bottom em 0, sem height: 100vh, que inclui a barra do navegador e escondia Tema, Sobre e Sair). Em tela baixa, os itens ficam mais compactos e a gaveta rola. */
+@media (max-width: 900px) {
+  .sidebar { height: auto; bottom: 0; overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom); }
+  .sidebar-foot { flex: none; }
+}
+@media (max-width: 900px) and (max-height: 760px) {
+  .sidebar-head { min-height: 56px; padding: 8px 14px; }
+  .nav { gap: 2px; padding: 6px 10px; }
+  .nav-item { min-height: 36px; }
+  .sidebar-foot { padding: 8px 10px; }
+}
