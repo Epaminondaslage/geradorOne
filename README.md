@@ -29,7 +29,7 @@
 - [Segurança](#segurança)
 - [Licença](#licença)
 - [Créditos e dados de terceiros](#créditos-e-dados-de-terceiros)
-- [Do mesmo autor: SuporteONE](#do-mesmo-autor-suporteone)
+- [Prefere não hospedar? Use a versão pronta](#prefere-não-hospedar-use-a-versão-pronta)
 
 ## O que é
 
@@ -225,8 +225,8 @@ O GeradorOne é software livre, licenciado sob a [GNU Affero General Public Lice
 - **Fontes:** Literata e Atkinson Hyperlegible Next, sob a SIL Open Font License, em `public/fonts/`.
 - **Diagramas e gráficos:** Mermaid e Chart.js, em `vendor/`, com as licenças ao lado (`vendor/LICENSE-mermaid` e `vendor/LICENSE-chartjs`).
 
-## Do mesmo autor: SuporteONE
+## Prefere não hospedar? Use a versão pronta
 
-O [SuporteONE](https://suporteone.com.br) é um sistema de suporte, tickets e propostas. Atende a operação de helpdesk, com tickets com SLA, base de conhecimento e portal do cliente, e o ciclo comercial, com propostas, clientes e produtos.
+Se você só quer usar o GeradorOne, sem instalar nada, existe uma versão hospedada em **<https://geradorone.com.br>**. Ela gera o material pronto em PDF com a IA do próprio serviço, e começa no Trial, sem custo. Os planos Gold e Diamond liberam mais folhas por mês e o uso da sua própria chave de IA.
 
-Conheça em <https://suporteone.com.br>.
+Este repositório continua sendo o projeto de código aberto: você pode instalar, estudar, modificar e hospedar a sua instância sob a AGPL-3.0.
