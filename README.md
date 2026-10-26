@@ -211,7 +211,7 @@ Contribuições são bem-vindas. O fluxo, o estilo de commit e as regras estão 
 
 ## Segurança
 
-Se encontrar uma vulnerabilidade, não publique os detalhes em uma issue aberta. Abra uma issue curta, sem dados sensíveis, pedindo um canal privado para relatar o problema.
+Se encontrar uma vulnerabilidade, não publique os detalhes em uma issue aberta. Use o relato privado do GitHub (aba Security, "Report a vulnerability"); o passo a passo está em [SECURITY.md](SECURITY.md).
 
 Pontos do desenho que vale conhecer: senhas com scrypt, chaves de IA cifradas com AES-256-GCM e nunca devolvidas ao navegador (só os 4 últimos caracteres), sessão em cookie `HttpOnly` e `SameSite=Lax`, política de conteúdo (CSP) sem scripts inline e HTML gerado pela IA filtrado por lista de permissão antes da conversão em PDF.
 
