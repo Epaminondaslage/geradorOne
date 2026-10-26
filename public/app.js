@@ -2081,7 +2081,7 @@ document.querySelector('#signup-form').addEventListener('submit', async event =>
     signupEmail = email;
     formEl.password.value = '';
     formEl.repeat.value = '';
-    document.querySelector('#signup-confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido.`;
+    document.querySelector('#signup-confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido. Se o código não chegar e você já tem conta, volte e use "Esqueci a senha" na tela de entrada.`;
     showAuth('signup-confirm');
   } finally {
     submit.disabled = false;

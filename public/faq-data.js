@@ -52,7 +52,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Conta e acesso',
     pergunta: 'Não recebi o código por e-mail.',
-    resposta: '- Procure na caixa de spam ou lixo eletrônico.\n- Confira se digitou o e-mail certo. Se precisar, volte e refaça o cadastro: um novo pedido gera um novo código.\n- Se esse e-mail já tem conta, o app não envia código de cadastro (e não avisa, por segurança). Nesse caso entre normalmente ou use "Esqueci a senha".\n- Depois de muitos pedidos seguidos, o app pede para aguardar 15 minutos.\n\nO código vale por 10 minutos.'
+    resposta: '- Procure na caixa de spam ou lixo eletrônico.\n- Confira se digitou o e-mail certo. Se precisar, volte e refaça o cadastro: um novo pedido gera um novo código.\n- Se esse e-mail já tem conta, o app não envia código de cadastro e não diz isso na resposta, por segurança. A tela do código lembra disso. Nesse caso entre normalmente ou use "Esqueci a senha".\n- Depois de muitos pedidos seguidos, o app pede para aguardar 15 minutos.\n\nO código vale por 10 minutos.'
   },
   {
     categoria: 'Conta e acesso',
