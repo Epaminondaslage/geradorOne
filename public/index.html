@@ -159,15 +159,29 @@
             <section class="inicio-bloco" aria-labelledby="comece-apostila">
               <h2 id="comece-apostila">Clique em "Apostila" e comece com 5 itens</h2>
               <p class="inicio-apoio">Só três campos são obrigatórios. O restante já vem preenchido, então o primeiro prompt sai em poucos cliques.</p>
-              <div class="inicio-demo">
-                <img class="inicio-captura" src="assets/inicio/apostila-dados.png" width="552" height="508" alt="Tela Apostila, bloco Dados do material, com Disciplina Ciências, Assunto principal Ciclo da água e Público Ensino Fundamental I preenchidos" loading="lazy">
-                <ol class="inicio-itens">
-                  <li><span class="inicio-num" aria-hidden="true">1</span><div><strong>Disciplina</strong><p>Por exemplo, Ciências.</p></div></li>
-                  <li><span class="inicio-num" aria-hidden="true">2</span><div><strong>Assunto principal</strong><p>Por exemplo, Ciclo da água.</p></div></li>
-                  <li><span class="inicio-num" aria-hidden="true">3</span><div><strong>Público / faixa etária</strong><p>Por exemplo, Ensino Fundamental I.</p></div></li>
-                  <li><span class="inicio-num" aria-hidden="true">4</span><div><strong>Tipo de material e estilo</strong><p>Já vêm marcados (Apostila didática e Livro Didático). Troque se quiser.</p></div></li>
-                  <li><span class="inicio-num" aria-hidden="true">5</span><div><strong>Gerar prompt completo</strong><p>O prompt aparece na coluna Resultado, pronto para copiar.</p><img class="inicio-captura inicio-captura-botao" src="assets/inicio/apostila-gerar.png" width="552" height="144" alt="Botão Gerar prompt completo no fim do formulário da Apostila" loading="lazy"></div></li>
-                </ol>
+              <div class="inicio-demo" data-passo="1">
+                <div class="inicio-palco">
+                  <div class="inicio-quadro" data-quadro="dados">
+                    <img class="inicio-captura" src="assets/inicio/apostila-dados.png" width="552" height="508" alt="Tela Apostila, bloco Dados do material, com Disciplina Ciências, Assunto principal Ciclo da água e Público Ensino Fundamental I preenchidos" loading="lazy">
+                    <span class="inicio-foco" aria-hidden="true"></span>
+                  </div>
+                  <div class="inicio-quadro" data-quadro="tipo" hidden>
+                    <img class="inicio-captura" src="assets/inicio/apostila-tipo.png" width="552" height="350" alt="Bloco Tipo de material da Apostila, com Apostila didática marcada" loading="lazy">
+                  </div>
+                  <div class="inicio-quadro" data-quadro="gerar" hidden>
+                    <img class="inicio-captura" src="assets/inicio/apostila-gerar.png" width="552" height="144" alt="Botão Gerar prompt completo no fim do formulário da Apostila" loading="lazy">
+                  </div>
+                </div>
+                <div class="inicio-lado">
+                  <ol class="inicio-itens" aria-label="Os 5 itens, um de cada vez">
+                  <li><button class="inicio-item" type="button" data-passo="1" data-foco="0,24.4,48.4,8.6" aria-pressed="true"><span class="inicio-num" aria-hidden="true">1</span><span class="inicio-item-texto"><strong>Disciplina</strong><span>Por exemplo, Ciências. É a matéria do material.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="2" data-foco="51.6,24.4,48.4,8.6" aria-pressed="false"><span class="inicio-num" aria-hidden="true">2</span><span class="inicio-item-texto"><strong>Assunto principal</strong><span>Por exemplo, Ciclo da água. O prompt gira em torno dele.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="3" data-foco="0,40.6,48.4,8.6" aria-pressed="false"><span class="inicio-num" aria-hidden="true">3</span><span class="inicio-item-texto"><strong>Público / faixa etária</strong><span>Por exemplo, Ensino Fundamental I. Ajusta a linguagem e as ilustrações.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="4" aria-pressed="false"><span class="inicio-num" aria-hidden="true">4</span><span class="inicio-item-texto"><strong>Tipo de material e estilo</strong><span>Já vêm marcados (Apostila didática e Livro Didático). Troque se quiser.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="5" aria-pressed="false"><span class="inicio-num" aria-hidden="true">5</span><span class="inicio-item-texto"><strong>Gerar prompt completo</strong><span>O prompt aparece na coluna Resultado, pronto para copiar.</span></span></button></li>
+                  </ol>
+                  <button class="textbtn small inicio-pausa" type="button" aria-pressed="false" hidden>Pausar animação</button>
+                </div>
               </div>
               <p class="inicio-acao"><a class="primary big" href="#apostila" data-go-view="apostila">Abrir a Apostila</a></p>
             </section>

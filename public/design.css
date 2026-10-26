@@ -539,26 +539,44 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .inicio-bloco { display: grid; gap: 14px; }
 .inicio-bloco h2 { margin: 0; font-size: 24px; }
 .inicio-apoio { margin: 0; color: var(--muted); max-width: 64ch; line-height: 1.6; }
-.inicio-passos, .inicio-itens { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
-.inicio-passos li, .inicio-itens li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.inicio-passos { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.inicio-passos li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
 .inicio-passos { grid-template-columns: repeat(3, 1fr); }
 .inicio-passos li { grid-template-columns: 1fr; align-content: start; border: 1px solid var(--line); background: var(--paper); padding: 16px; }
 .inicio-passos li > div { display: grid; gap: 6px; }
 .inicio-passos h3 { margin: 0; font-size: 17px; }
-.inicio-passos p, .inicio-itens p { margin: 0; line-height: 1.55; color: var(--muted); }
+.inicio-passos p { margin: 0; line-height: 1.55; color: var(--muted); }
 .inicio-num { display: inline-grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font-weight: 700; font-size: 15px; }
 .inicio-passos .inicio-num { margin-bottom: 10px; }
-.inicio-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-.inicio-captura { display: block; width: 100%; height: auto; border: 1px solid var(--ink); background: var(--paper); }
-.inicio-itens li > div { display: grid; gap: 4px; }
-.inicio-captura-botao { margin-top: 8px; max-width: 360px; }
 .inicio-acao { margin: 0; }
 .inicio-acao .primary { display: inline-flex; align-items: center; text-decoration: none; }
 .inicio-prompt { margin: 0; max-height: 360px; overflow: auto; padding: 16px; border: 2px solid var(--accent); background: var(--paper); color: var(--ink); font: 13.5px/1.6 var(--sans); white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 900px) {
   .inicio-title { font-size: 30px; }
-  .inicio-passos, .inicio-demo { grid-template-columns: 1fr; }
-}
+  .inicio-passos, }
+
+/* Início: demonstração animada dos 5 itens. A cor do passo vem dos tokens do tema. */
+.inicio-demo { --passo: var(--accent); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.inicio-demo[data-passo="2"] { --passo: var(--ink); }
+.inicio-demo[data-passo="3"] { --passo: var(--danger); }
+.inicio-demo[data-passo="4"] { --passo: color-mix(in srgb, var(--accent) 50%, var(--ink)); }
+.inicio-demo[data-passo="5"] { --passo: color-mix(in srgb, var(--accent) 55%, var(--danger)); }
+.inicio-palco { display: grid; align-content: start; }
+.inicio-quadro { position: relative; border: 3px solid var(--passo); background: var(--paper); transition: border-color .35s; }
+.inicio-quadro[hidden] { display: none; }
+.inicio-captura { display: block; width: 100%; height: auto; }
+.inicio-foco { position: absolute; left: var(--foco-x, 0); top: var(--foco-y, 0); width: var(--foco-w, 0); height: var(--foco-h, 0); border: 3px solid var(--passo); outline: 2px solid var(--paper); transition: left .35s, top .35s, border-color .35s; pointer-events: none; }
+.inicio-lado { display: grid; gap: 10px; justify-items: start; }
+.inicio-itens { display: grid; gap: 8px; width: 100%; margin: 0; padding: 0; list-style: none; }
+.inicio-item { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-left: 6px solid var(--line); background: var(--paper); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .35s, background-color .35s; }
+.inicio-item-texto { display: grid; gap: 4px; }
+.inicio-item-texto span { color: var(--muted); line-height: 1.5; }
+.inicio-item[aria-pressed="true"] { border-color: var(--passo); background: color-mix(in srgb, var(--passo) 12%, var(--paper)); }
+.inicio-item[aria-pressed="true"] .inicio-num { background: var(--passo); border-color: var(--passo); }
+.inicio-item[aria-pressed="true"] .inicio-item-texto span { color: var(--ink); }
+.inicio-demo.anim .inicio-item[aria-pressed="false"] .inicio-item-texto span { display: none; }
+@media (max-width: 900px) { .inicio-demo { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .inicio-quadro, .inicio-foco, .inicio-item { transition: none; } }
 
 /* Rodapé "O gerador não valida..." : maior e centralizado */
 .legal { margin: 24px 0 0; font-size: 15px; line-height: 1.5; text-align: center; }
