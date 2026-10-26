@@ -1427,7 +1427,7 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'config', 'faq', 'suporte'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'config', 'faq', 'suporte', 'sobre'];
 // Configurações reúne um assunto por aba; o endereço #usuarios, #smtp ou #backup abre a aba certa.
 const CONFIG_TABS = ['usuarios', 'smtp', 'backup'];
 let configTab = 'usuarios';
@@ -1590,6 +1590,85 @@ async function loadBackup() {
 document.querySelector('[data-view-link]').addEventListener('click', event => {
   event.preventDefault();
   showView(event.currentTarget.dataset.viewLink);
+});
+
+// Início: demonstração dos 5 itens da Apostila, um de cada vez. O temporizador fica sempre ligado e confere as condições
+// na hora de avançar, então nenhum estado preso (toque, foco do teclado) impede a animação de voltar. Pausa só com o mouse
+// em cima (aparelho com mouse), no botão "Pausar animação" e com "reduzir movimento". Clicar num item reinicia a contagem.
+function iniciarDemoInicio() {
+  const demo = document.querySelector('.inicio-demo');
+  if (!demo) return;
+  const itens = [...demo.querySelectorAll('.inicio-item')];
+  const quadros = [...demo.querySelectorAll('.inicio-quadro')];
+  const foco = demo.querySelector('.inicio-foco');
+  const pausa = demo.querySelector('.inicio-pausa');
+  const reduzido = matchMedia('(prefers-reduced-motion: reduce)');
+  const comMouse = matchMedia('(hover: hover)');
+  const quadroDoPasso = n => (n <= 3 ? 'dados' : n === 4 ? 'tipo' : 'gerar');
+  let atual = 0;
+  let timer = null;
+  let pausado = reduzido.matches;
+
+  function mostrar(indice) {
+    atual = (indice + itens.length) % itens.length;
+    const item = itens[atual];
+    const passo = Number(item.dataset.passo);
+    demo.dataset.passo = String(passo);
+    itens.forEach(outro => outro.setAttribute('aria-pressed', String(outro === item)));
+    quadros.forEach(quadro => { quadro.hidden = quadro.dataset.quadro !== quadroDoPasso(passo); });
+    const caixa = item.dataset.foco ? item.dataset.foco.split(',').map(Number) : null;
+    foco.hidden = !caixa;
+    if (caixa) {
+      ['x', 'y', 'w', 'h'].forEach((nome, i) => foco.style.setProperty(`--foco-${nome}`, `${caixa[i]}%`));
+    }
+  }
+  function ligar() {
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (pausado || document.hidden || workspace.dataset.view !== 'inicio') return;
+      if (comMouse.matches && demo.matches(':hover')) return;
+      mostrar(atual + 1);
+    }, 4000);
+  }
+  function atualizarBotao() {
+    pausa.textContent = pausado ? 'Continuar animação' : 'Pausar animação';
+    pausa.setAttribute('aria-pressed', String(pausado));
+  }
+
+  demo.classList.add('anim');
+  pausa.hidden = false;
+  atualizarBotao();
+  itens.forEach((item, i) => item.addEventListener('click', () => { mostrar(i); ligar(); }));
+  pausa.addEventListener('click', () => { pausado = !pausado; atualizarBotao(); ligar(); });
+  reduzido.addEventListener('change', event => { pausado = event.matches; atualizarBotao(); });
+  mostrar(0);
+  ligar();
+}
+iniciarDemoInicio();
+
+// Início: copia o prompt de exemplo inteiro (não só o trecho visível na caixa com rolagem).
+document.querySelector('#copiar-exemplo')?.addEventListener('click', async event => {
+  const button = event.currentTarget;
+  const texto = document.querySelector('#prompt-exemplo-texto').textContent;
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(texto);
+    else {
+      const area = Object.assign(document.createElement('textarea'), { value: texto });
+      document.body.append(area); area.select(); document.execCommand('copy'); area.remove();
+    }
+    const rotulo = button.querySelector('.copy-label');
+    button.classList.add('copied');
+    rotulo.textContent = 'Copiado!';
+    notify('Prompt copiado');
+    setTimeout(() => { button.classList.remove('copied'); rotulo.textContent = 'Copiar prompt'; }, 2200);
+  } catch { notify('Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'); }
+});
+
+document.querySelector('#pane').addEventListener('click', event => {
+  const go = event.target.closest('a[data-go-view]');
+  if (!go) return;
+  event.preventDefault();
+  showView(go.dataset.goView);
 });
 
 document.querySelector('#sidebar').addEventListener('click', event => {
@@ -2002,7 +2081,7 @@ document.querySelector('#signup-form').addEventListener('submit', async event =>
     signupEmail = email;
     formEl.password.value = '';
     formEl.repeat.value = '';
-    document.querySelector('#signup-confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido.`;
+    document.querySelector('#signup-confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido. Se o código não chegar e você já tem conta, volte e use "Esqueci a senha" na tela de entrada.`;
     showAuth('signup-confirm');
   } finally {
     submit.disabled = false;
@@ -2107,6 +2186,7 @@ document.querySelector('#profile-form').addEventListener('submit', async event =
   event.preventDefault();
   const status = document.querySelector('#profile-status');
   const formEl = event.currentTarget;
+  const faltavaTelefone = !currentUser.phone;
   const result = await postJson('api/auth/profile', { name: formEl.name.value, phone: formEl.phone.value });
   if (!result.ok) { status.textContent = result.data.error || 'Não foi possível salvar.'; return; }
   currentUser = result.data.user;
@@ -2114,6 +2194,8 @@ document.querySelector('#profile-form').addEventListener('submit', async event =
   document.querySelector('#user-name').textContent = currentUser.name;
   status.textContent = 'Perfil salvo.';
   notify('Perfil salvo');
+  // Cadastro novo: o app leva a "Minha conta" para pedir o telefone; ao salvar o telefone, segue para o Início.
+  if (faltavaTelefone && currentUser.phone) showView('inicio');
 });
 
 document.querySelector('#password-form').addEventListener('submit', async event => {

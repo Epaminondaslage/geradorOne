@@ -474,6 +474,7 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
   .workspace[data-step="resultado"] .pane { display: none; }
   .workspace[data-step="dados"] .out-panel { display: none; }
   .workspace[data-view="inicio"] .mobile-steps, .workspace[data-view="projetos"] .mobile-steps { display: none; }
+  .workspace[data-view="sobre"] .mobile-steps { display: none; }
   .view-head h1 { font-size: 30px; }
   .crumbs { padding: 10px 16px; }
   .crumb-actions { width: 100%; }
@@ -531,6 +532,62 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .home-text p { margin: 0; }
 .home-text a { color: var(--accent); text-decoration: underline; overflow-wrap: anywhere; }
 @media (max-width: 900px) { .home-title { font-size: 32px; } .home-tagline { font-size: 16px; } }
+
+/* Início: título, três passos, captura da Apostila e prompt de exemplo */
+.inicio { display: grid; gap: 32px; max-width: 960px; margin: 0 auto; padding: 8px 0 48px; }
+.inicio-cabecalho { display: flex; align-items: center; gap: 14px; padding-bottom: 16px; border-bottom: 2px solid var(--ink); }
+.inicio-logo.brand-mark.logo { flex: none; width: 40px; height: 45px; }
+.inicio-guia { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--ink); }
+.inicio-title { margin: 0; font-size: 40px; line-height: 1.12; max-width: 22ch; }
+.inicio-lead { margin: -20px 0 0; font-size: 18px; color: var(--muted); max-width: 56ch; }
+.inicio-bloco { display: grid; gap: 14px; }
+.inicio-bloco h2 { margin: 0; font-size: 24px; }
+.inicio-apoio { margin: 0; color: var(--muted); max-width: 64ch; line-height: 1.6; }
+.inicio-passos { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.inicio-passos li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.inicio-passos { grid-template-columns: repeat(3, 1fr); }
+.inicio-passos li { grid-template-columns: 1fr; align-content: start; border: 1px solid var(--line); background: var(--paper); padding: 16px; }
+.inicio-passos li > div { display: grid; gap: 6px; }
+.inicio-passos h3 { margin: 0; font-size: 17px; }
+.inicio-passos p { margin: 0; line-height: 1.55; color: var(--muted); }
+.inicio-num { display: inline-grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font-weight: 700; font-size: 15px; }
+.inicio-passos .inicio-num { margin-bottom: 10px; }
+.inicio-acao { margin: 0; }
+.inicio-acao .primary { display: inline-flex; align-items: center; text-decoration: none; }
+.inicio-prompt-barra { display: flex; justify-content: flex-end; }
+.inicio-prompt-barra button.copied { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.inicio-prompt { margin: 0; height: 420px; overflow-y: scroll; padding: 16px; border: 2px solid var(--accent); background: var(--paper); color: var(--ink); font: 13.5px/1.6 var(--sans); white-space: pre-wrap; overflow-wrap: anywhere; }
+@supports not selector(::-webkit-scrollbar) { .inicio-prompt { scrollbar-color: var(--ink) var(--line); } }
+.inicio-prompt::-webkit-scrollbar { width: 14px; }
+.inicio-prompt::-webkit-scrollbar-track { background: var(--line); }
+.inicio-prompt::-webkit-scrollbar-thumb { background: var(--ink); border: 3px solid var(--line); }
+@media (max-width: 900px) {
+  .inicio-title { font-size: 30px; }
+  .inicio-guia { font-size: 18px; }
+  .inicio-passos, }
+
+/* Início: demonstração animada dos 5 itens. A cor do passo vem dos tokens do tema. */
+.inicio-demo { --passo: var(--accent); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.inicio-demo[data-passo="2"] { --passo: var(--ink); }
+.inicio-demo[data-passo="3"] { --passo: var(--danger); }
+.inicio-demo[data-passo="4"] { --passo: color-mix(in srgb, var(--accent) 50%, var(--ink)); }
+.inicio-demo[data-passo="5"] { --passo: color-mix(in srgb, var(--accent) 55%, var(--danger)); }
+.inicio-palco { display: grid; align-content: start; }
+.inicio-quadro { position: relative; border: 3px solid var(--passo); background: var(--paper); transition: border-color .35s; }
+.inicio-quadro[hidden] { display: none; }
+.inicio-captura { display: block; width: 100%; height: auto; }
+.inicio-foco { position: absolute; left: var(--foco-x, 0); top: var(--foco-y, 0); width: var(--foco-w, 0); height: var(--foco-h, 0); border: 3px solid var(--passo); outline: 2px solid var(--paper); transition: left .35s, top .35s, border-color .35s; pointer-events: none; }
+.inicio-lado { display: grid; gap: 10px; justify-items: start; }
+.inicio-itens { display: grid; gap: 8px; width: 100%; margin: 0; padding: 0; list-style: none; }
+.inicio-item { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-left: 6px solid var(--line); background: var(--paper); color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .35s, background-color .35s; }
+.inicio-item-texto { display: grid; gap: 4px; }
+.inicio-item-texto span { color: var(--muted); line-height: 1.5; }
+.inicio-item[aria-pressed="true"] { border-color: var(--passo); background: color-mix(in srgb, var(--passo) 12%, var(--paper)); }
+.inicio-item[aria-pressed="true"] .inicio-num { background: var(--passo); border-color: var(--passo); }
+.inicio-item[aria-pressed="true"] .inicio-item-texto span { color: var(--ink); }
+.inicio-demo.anim .inicio-item[aria-pressed="false"] .inicio-item-texto span { display: none; }
+@media (max-width: 900px) { .inicio-demo { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .inicio-quadro, .inicio-foco, .inicio-item { transition: none; } }
 
 /* Rodapé "O gerador não valida..." : maior e centralizado */
 .legal { margin: 24px 0 0; font-size: 15px; line-height: 1.5; text-align: center; }
@@ -639,3 +696,15 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .act .act-label { display: none; }
 .data-table .row-actions .act.armed, .project-buttons .act.armed { padding: 0 10px; border-color: var(--danger); background: var(--danger); color: var(--bg); }
 .act.armed .act-label { display: inline; white-space: nowrap; }
+
+/* Menu no celular: a gaveta ocupa só a área visível (top e bottom em 0, sem height: 100vh, que inclui a barra do navegador e escondia Tema, Sobre e Sair). Em tela baixa, os itens ficam mais compactos e a gaveta rola. */
+@media (max-width: 900px) {
+  .sidebar { height: auto; bottom: 0; overscroll-behavior: contain; padding-bottom: env(safe-area-inset-bottom); }
+  .sidebar-foot { flex: none; }
+}
+@media (max-width: 900px) and (max-height: 760px) {
+  .sidebar-head { min-height: 56px; padding: 8px 14px; }
+  .nav { gap: 2px; padding: 6px 10px; }
+  .nav-item { min-height: 36px; }
+  .sidebar-foot { padding: 8px 10px; }
+}

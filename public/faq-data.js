@@ -19,6 +19,11 @@ const FAQ_ITEMS = [
   },
   {
     categoria: 'Primeiros passos',
+    pergunta: 'Onde ficam o texto de apresentação, a licença e o link do código?',
+    resposta: 'Na aba "Sobre", no fim do menu, logo abaixo de "Tema". Ela está disponível para todos os usuários e traz o texto de apresentação do GeradorOne, os dados técnicos e a licença AGPL-3.0.\n\nO "Início" mostra os três passos do pedido ao material e um exemplo de prompt gerado com os campos básicos da Apostila.',
+  },
+  {
+    categoria: 'Primeiros passos',
     pergunta: 'Por onde eu começo?',
     resposta: '1. Abra "Apostila" ou "Capa" no menu.\n2. Preencha os campos com * (são os obrigatórios).\n3. Escolha o estilo das ilustrações, a paleta e o formato.\n4. Clique em "Gerar prompt completo" (Apostila) ou "Gerar prompt da capa" (Capa).\n5. No painel "Resultado", clique em "Copiar" e cole o prompt na sua ferramenta de IA de imagens.'
   },
@@ -47,7 +52,7 @@ const FAQ_ITEMS = [
   {
     categoria: 'Conta e acesso',
     pergunta: 'Não recebi o código por e-mail.',
-    resposta: '- Procure na caixa de spam ou lixo eletrônico.\n- Confira se digitou o e-mail certo. Se precisar, volte e refaça o cadastro: um novo pedido gera um novo código.\n- Se esse e-mail já tem conta, o app não envia código de cadastro (e não avisa, por segurança). Nesse caso entre normalmente ou use "Esqueci a senha".\n- Depois de muitos pedidos seguidos, o app pede para aguardar 15 minutos.\n\nO código vale por 10 minutos.'
+    resposta: '- Procure na caixa de spam ou lixo eletrônico.\n- Confira se digitou o e-mail certo. Se precisar, volte e refaça o cadastro: um novo pedido gera um novo código.\n- Se esse e-mail já tem conta, o app não envia código de cadastro e não diz isso na resposta, por segurança. A tela do código lembra disso. Nesse caso entre normalmente ou use "Esqueci a senha".\n- Depois de muitos pedidos seguidos, o app pede para aguardar 15 minutos.\n\nO código vale por 10 minutos.'
   },
   {
     categoria: 'Conta e acesso',
