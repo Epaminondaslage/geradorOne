@@ -491,7 +491,24 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .faq-intro[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 .faq-intro p, .faq-intro ul { margin: 0 0 12px; color: var(--muted); line-height: 1.6; }
 .faq-intro ul { padding-left: 1.3em; }
-.faq-table .faq-cat { width: 220px; color: var(--muted); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.faq-table .faq-cat { width: 220px; white-space: nowrap; }
+/* Categorias como badges: a cor é um token do tema (ou mistura de tokens), então vale nos seis temas. O texto fica sempre em --ink sobre fundo claro do tema. */
+.faq-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.faq-badge { --cor: var(--accent); display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border: 1px solid var(--cor); border-radius: 2px; background: color-mix(in srgb, var(--cor) 14%, var(--paper)); color: var(--ink); font: inherit; font-size: 12.5px; font-weight: 700; line-height: 1.3; cursor: pointer; }
+.faq-badge[data-cor="todas"] { --cor: var(--ink); }
+.faq-badge[data-cor="0"] { --cor: var(--accent); }
+.faq-badge[data-cor="1"] { --cor: var(--danger); }
+.faq-badge[data-cor="2"] { --cor: var(--ink); }
+.faq-badge[data-cor="3"] { --cor: color-mix(in srgb, var(--accent) 55%, var(--danger)); }
+.faq-badge[data-cor="4"] { --cor: color-mix(in srgb, var(--accent) 50%, var(--ink)); }
+.faq-badge[data-cor="5"] { --cor: color-mix(in srgb, var(--danger) 55%, var(--ink)); }
+.faq-badge[data-cor="6"] { --cor: var(--muted); }
+.faq-badge[data-cor="7"] { --cor: color-mix(in srgb, var(--accent) 60%, var(--muted)); }
+.faq-badge-n { padding: 0 6px; border-radius: 2px; background: var(--cor); color: var(--paper); font-size: 11.5px; }
+.faq-badge[aria-pressed="true"] { background: var(--cor); color: var(--paper); }
+.faq-badge[aria-pressed="true"] .faq-badge-n { background: var(--paper); color: var(--ink); }
+span.faq-badge { cursor: default; }
+.faq-toggle .faq-badge { align-self: flex-start; width: fit-content; }
 .faq-table .faq-q { padding: 0; }
 .faq-toggle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border: 0; border-radius: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
 .faq-toggle::after { content: "+"; flex: none; color: var(--muted); font-weight: 700; }
