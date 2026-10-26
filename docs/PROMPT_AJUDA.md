@@ -27,7 +27,7 @@ Aplicativo web que gera prompts de imagem para apostilas e capas didáticas. Voc
 6. Esqueceu a senha? Use "Esqueci a senha" (também depende do envio de e-mail): informe e-mail e a nova senha, e confirme com o código de 6 dígitos.
 
 # Menu lateral
-Início (os três passos do pedido ao material, uma demonstração animada dos 5 itens da Apostila, com botão "Pausar animação", e um prompt de exemplo), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta, FAQ (perguntas e respostas, com busca), Suporte (formulário "Fale com o suporte") e, embaixo, Tema, Sobre (apresentação do GeradorOne, selos de tecnologia e licença AGPL-3.0, para todos os perfis) e Sair. Administradores também veem Configurações, com três abas: Usuários, E-mail (SMTP) e Backup.
+Início (os três passos do pedido ao material, uma demonstração animada dos 5 itens da Apostila, com botão "Pausar animação", e um prompt de exemplo completo, com barra de rolagem e botão "Copiar prompt"), Apostila, Capa, Meus projetos, Minha chave de IA, Minha conta, FAQ (perguntas e respostas, com busca), Suporte (formulário "Fale com o suporte") e, embaixo, Tema, Sobre (apresentação do GeradorOne, selos de tecnologia e licença AGPL-3.0, para todos os perfis) e Sair. Administradores também veem Configurações, com três abas: Usuários, E-mail (SMTP) e Backup.
 
 # Gerar o prompt de uma apostila
 1. Abra "Apostila". Os campos com * são obrigatórios.

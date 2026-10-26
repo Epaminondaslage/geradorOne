@@ -1649,6 +1649,24 @@ function iniciarDemoInicio() {
 }
 iniciarDemoInicio();
 
+// Início: copia o prompt de exemplo inteiro (não só o trecho visível na caixa com rolagem).
+document.querySelector('#copiar-exemplo')?.addEventListener('click', async event => {
+  const button = event.currentTarget;
+  const texto = document.querySelector('#prompt-exemplo-texto').textContent;
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(texto);
+    else {
+      const area = Object.assign(document.createElement('textarea'), { value: texto });
+      document.body.append(area); area.select(); document.execCommand('copy'); area.remove();
+    }
+    const rotulo = button.querySelector('.copy-label');
+    button.classList.add('copied');
+    rotulo.textContent = 'Copiado!';
+    notify('Prompt copiado');
+    setTimeout(() => { button.classList.remove('copied'); rotulo.textContent = 'Copiar prompt'; }, 2200);
+  } catch { notify('Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'); }
+});
+
 document.querySelector('#pane').addEventListener('click', event => {
   const go = event.target.closest('a[data-go-view]');
   if (!go) return;
