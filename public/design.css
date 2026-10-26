@@ -535,6 +535,9 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 
 /* Início: título, três passos, captura da Apostila e prompt de exemplo */
 .inicio { display: grid; gap: 32px; max-width: 960px; margin: 0 auto; padding: 8px 0 48px; }
+.inicio-cabecalho { display: flex; align-items: center; gap: 14px; padding-bottom: 16px; border-bottom: 2px solid var(--ink); }
+.inicio-logo.brand-mark.logo { flex: none; width: 40px; height: 45px; }
+.inicio-guia { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--ink); }
 .inicio-title { margin: 0; font-size: 40px; line-height: 1.12; max-width: 22ch; }
 .inicio-lead { margin: -20px 0 0; font-size: 18px; color: var(--muted); max-width: 56ch; }
 .inicio-bloco { display: grid; gap: 14px; }
@@ -560,6 +563,7 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .inicio-prompt::-webkit-scrollbar-thumb { background: var(--ink); border: 3px solid var(--line); }
 @media (max-width: 900px) {
   .inicio-title { font-size: 30px; }
+  .inicio-guia { font-size: 18px; }
   .inicio-passos, }
 
 /* Início: demonstração animada dos 5 itens. A cor do passo vem dos tokens do tema. */

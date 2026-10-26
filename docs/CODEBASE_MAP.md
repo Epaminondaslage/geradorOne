@@ -189,7 +189,7 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 
 | Página (`data-view`) | Função | Chamadas |
 |---|---|---|
-| `inicio` | Título, três passos do pedido ao material, demonstração animada dos 5 itens da Apostila (`iniciarDemoInicio` em `public/app.js`: troca de item a cada 4 s, pausa só com o mouse em cima e no botão "Pausar animação", parada com "reduzir movimento"; capturas em `public/assets/inicio/`) e prompt de exemplo completo em caixa com barra de rolagem e botão "Copiar prompt" (`#copiar-exemplo`); o botão "Abrir a Apostila" usa `data-go-view` | nenhuma |
+| `inicio` | Cabeçalho (logo, "Guia dos primeiros passos no GeradorOne" e linha), título, três passos do pedido ao material, demonstração animada dos 5 itens da Apostila (`iniciarDemoInicio` em `public/app.js`: troca de item a cada 4 s, pausa só com o mouse em cima e no botão "Pausar animação", parada com "reduzir movimento"; capturas em `public/assets/inicio/`) e prompt de exemplo completo em caixa com barra de rolagem e botão "Copiar prompt" (`#copiar-exemplo`); o botão "Iniciar" usa `data-go-view` | nenhuma |
 | `sobre` | Logo, selos de tecnologia, texto de apresentação e licença AGPL-3.0; item "Sobre" no rodapé do menu, abaixo de "Tema", para todos os perfis | nenhuma |
 | `apostila` | Formulário e geração do prompt (`form#formulario`) | `/api/generate` (modo IA) |
 | `capa` | Prompt da arte frontal (`form#form-capa`) | nenhuma |
