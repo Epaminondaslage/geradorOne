@@ -551,7 +551,13 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .inicio-passos .inicio-num { margin-bottom: 10px; }
 .inicio-acao { margin: 0; }
 .inicio-acao .primary { display: inline-flex; align-items: center; text-decoration: none; }
-.inicio-prompt { margin: 0; max-height: 360px; overflow: auto; padding: 16px; border: 2px solid var(--accent); background: var(--paper); color: var(--ink); font: 13.5px/1.6 var(--sans); white-space: pre-wrap; overflow-wrap: anywhere; }
+.inicio-prompt-barra { display: flex; justify-content: flex-end; }
+.inicio-prompt-barra button.copied { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.inicio-prompt { margin: 0; height: 420px; overflow-y: scroll; padding: 16px; border: 2px solid var(--accent); background: var(--paper); color: var(--ink); font: 13.5px/1.6 var(--sans); white-space: pre-wrap; overflow-wrap: anywhere; }
+@supports not selector(::-webkit-scrollbar) { .inicio-prompt { scrollbar-color: var(--ink) var(--line); } }
+.inicio-prompt::-webkit-scrollbar { width: 14px; }
+.inicio-prompt::-webkit-scrollbar-track { background: var(--line); }
+.inicio-prompt::-webkit-scrollbar-thumb { background: var(--ink); border: 3px solid var(--line); }
 @media (max-width: 900px) {
   .inicio-title { font-size: 30px; }
   .inicio-passos, }
