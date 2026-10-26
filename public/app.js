@@ -1592,8 +1592,9 @@ document.querySelector('[data-view-link]').addEventListener('click', event => {
   showView(event.currentTarget.dataset.viewLink);
 });
 
-// Início: demonstração dos 5 itens da Apostila, um de cada vez. Anda sozinha, para no mouse, no foco e no botão "Pausar",
-// e não anda sozinha para quem pede menos movimento. Cada item também abre ao clicar.
+// Início: demonstração dos 5 itens da Apostila, um de cada vez. O temporizador fica sempre ligado e confere as condições
+// na hora de avançar, então nenhum estado preso (toque, foco do teclado) impede a animação de voltar. Pausa só com o mouse
+// em cima (aparelho com mouse), no botão "Pausar animação" e com "reduzir movimento". Clicar num item reinicia a contagem.
 function iniciarDemoInicio() {
   const demo = document.querySelector('.inicio-demo');
   if (!demo) return;
@@ -1602,6 +1603,7 @@ function iniciarDemoInicio() {
   const foco = demo.querySelector('.inicio-foco');
   const pausa = demo.querySelector('.inicio-pausa');
   const reduzido = matchMedia('(prefers-reduced-motion: reduce)');
+  const comMouse = matchMedia('(hover: hover)');
   const quadroDoPasso = n => (n <= 3 ? 'dados' : n === 4 ? 'tipo' : 'gerar');
   let atual = 0;
   let timer = null;
@@ -1620,12 +1622,12 @@ function iniciarDemoInicio() {
       ['x', 'y', 'w', 'h'].forEach((nome, i) => foco.style.setProperty(`--foco-${nome}`, `${caixa[i]}%`));
     }
   }
-  function parar() { clearInterval(timer); timer = null; }
-  function andar() {
-    parar();
-    if (pausado || document.hidden || demo.matches(':hover, :has(:focus-visible)')) return;
+  function ligar() {
+    clearInterval(timer);
     timer = setInterval(() => {
-      if (workspace.dataset.view === 'inicio') mostrar(atual + 1);
+      if (pausado || document.hidden || workspace.dataset.view !== 'inicio') return;
+      if (comMouse.matches && demo.matches(':hover')) return;
+      mostrar(atual + 1);
     }, 4000);
   }
   function atualizarBotao() {
@@ -1636,16 +1638,11 @@ function iniciarDemoInicio() {
   demo.classList.add('anim');
   pausa.hidden = false;
   atualizarBotao();
-  itens.forEach((item, i) => item.addEventListener('click', () => { mostrar(i); andar(); }));
-  pausa.addEventListener('click', () => { pausado = !pausado; atualizarBotao(); andar(); });
-  demo.addEventListener('mouseenter', parar);
-  demo.addEventListener('mouseleave', andar);
-  demo.addEventListener('focusin', () => { if (demo.matches(':has(:focus-visible)')) parar(); });
-  demo.addEventListener('focusout', () => setTimeout(andar, 0));
-  document.addEventListener('visibilitychange', andar);
-  reduzido.addEventListener('change', event => { pausado = event.matches; atualizarBotao(); andar(); });
+  itens.forEach((item, i) => item.addEventListener('click', () => { mostrar(i); ligar(); }));
+  pausa.addEventListener('click', () => { pausado = !pausado; atualizarBotao(); ligar(); });
+  reduzido.addEventListener('change', event => { pausado = event.matches; atualizarBotao(); });
   mostrar(0);
-  andar();
+  ligar();
 }
 iniciarDemoInicio();
 
