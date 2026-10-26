@@ -2186,6 +2186,7 @@ document.querySelector('#profile-form').addEventListener('submit', async event =
   event.preventDefault();
   const status = document.querySelector('#profile-status');
   const formEl = event.currentTarget;
+  const faltavaTelefone = !currentUser.phone;
   const result = await postJson('api/auth/profile', { name: formEl.name.value, phone: formEl.phone.value });
   if (!result.ok) { status.textContent = result.data.error || 'Não foi possível salvar.'; return; }
   currentUser = result.data.user;
@@ -2193,6 +2194,8 @@ document.querySelector('#profile-form').addEventListener('submit', async event =
   document.querySelector('#user-name').textContent = currentUser.name;
   status.textContent = 'Perfil salvo.';
   notify('Perfil salvo');
+  // Cadastro novo: o app leva a "Minha conta" para pedir o telefone; ao salvar o telefone, segue para o Início.
+  if (faltavaTelefone && currentUser.phone) showView('inicio');
 });
 
 document.querySelector('#password-form').addEventListener('submit', async event => {
