@@ -35,6 +35,8 @@ body { margin: 0; background: var(--bg); }
 .workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, 1fr); gap: 22px; align-items: start; padding: 22px; }
 .workspace[data-view="projetos"], .workspace[data-view="ia"], .workspace[data-view="conta"], .workspace[data-view="tema"], .workspace[data-view="config"], .workspace[data-view="faq"], .workspace[data-view="suporte"] { grid-template-columns: minmax(0, 880px); }
 .workspace[data-view="inicio"] { grid-template-columns: minmax(0, 1fr); }
+.workspace[data-view="sobre"] { grid-template-columns: minmax(0, 1fr); }
+.workspace[data-view="sobre"] .out-panel { display: none; }
 .workspace[data-view="inicio"] .out-panel, .workspace[data-view="projetos"] .out-panel, .workspace[data-view="ia"] .out-panel, .workspace[data-view="conta"] .out-panel, .workspace[data-view="tema"] .out-panel, .workspace[data-view="config"] .out-panel, .workspace[data-view="faq"] .out-panel, .workspace[data-view="suporte"] .out-panel { display: none; }
 .pane { min-width: 0; display: grid; gap: 18px; }
 .view[hidden] { display: none; }

@@ -474,6 +474,7 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
   .workspace[data-step="resultado"] .pane { display: none; }
   .workspace[data-step="dados"] .out-panel { display: none; }
   .workspace[data-view="inicio"] .mobile-steps, .workspace[data-view="projetos"] .mobile-steps { display: none; }
+  .workspace[data-view="sobre"] .mobile-steps { display: none; }
   .view-head h1 { font-size: 30px; }
   .crumbs { padding: 10px 16px; }
   .crumb-actions { width: 100%; }
