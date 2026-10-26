@@ -1879,7 +1879,9 @@ supportForm.addEventListener('submit', async event => {
 
 // FAQ: lista filtrável com resposta que abre na própria linha. O texto vem de faq-data.js e é montado por nós de texto (sem innerHTML).
 const faqSearch = document.querySelector('#faq-search');
-const faqCategory = document.querySelector('#faq-category');
+const faqBadges = document.querySelector('#faq-badges');
+let faqCategoria = '';
+let faqCategorias = [];
 const faqList = document.querySelector('#faq-list');
 const faqCount = document.querySelector('#faq-count');
 let faqOpen = -1;
@@ -1930,14 +1932,40 @@ function faqAnswer(text) {
   return box;
 }
 
+// Categorias da FAQ como badges coloridos: a cor sai da posição da categoria na lista (as cores são tokens do tema, em design.css).
+function faqCor(categoria) { return String(Math.max(0, faqCategorias.indexOf(categoria)) % 8); }
+function faqBadge(categoria, { botao = false, inline = false, total = null } = {}) {
+  const badge = faqEl(botao ? 'button' : 'span', inline ? 'faq-badge faq-cat-inline' : 'faq-badge');
+  if (botao) { badge.type = 'button'; badge.dataset.faqCat = categoria; badge.setAttribute('aria-pressed', String(categoria === faqCategoria)); badge.title = `Mostrar só: ${categoria}`; }
+  badge.dataset.cor = categoria === null ? 'todas' : faqCor(categoria);
+  badge.append(faqEl('span', 'faq-badge-nome', categoria));
+  if (total !== null) badge.append(faqEl('span', 'faq-badge-n', String(total)));
+  return badge;
+}
+function renderFaqBadges() {
+  const todas = faqEl('button', 'faq-badge');
+  todas.type = 'button'; todas.dataset.faqCat = ''; todas.dataset.cor = 'todas';
+  todas.setAttribute('aria-pressed', String(faqCategoria === ''));
+  todas.append(faqEl('span', 'faq-badge-nome', 'Todas'), faqEl('span', 'faq-badge-n', String(FAQ_ITEMS.length)));
+  const lista = faqCategorias.map(nome => faqBadge(nome, { botao: true, total: FAQ_ITEMS.filter(item => item.categoria === nome).length }));
+  faqBadges.replaceChildren(todas, ...lista);
+}
+// Clicar no badge filtra; clicar de novo no badge ativo volta para Todas.
+function faqFiltrarPor(categoria) {
+  faqCategoria = faqCategoria === categoria ? '' : categoria;
+  faqOpen = -1;
+  renderFaq();
+}
+
 function renderFaq() {
   if (typeof FAQ_ITEMS === 'undefined') { faqList.replaceChildren(); faqCount.textContent = 'Não foi possível carregar a FAQ.'; return; }
   if (!faqReady) {
-    [...new Set(FAQ_ITEMS.map(item => item.categoria))].forEach(name => faqCategory.append(new Option(name, name)));
+    faqCategorias = [...new Set(FAQ_ITEMS.map(item => item.categoria))];
     faqReady = true;
   }
+  renderFaqBadges();
   const term = faqNormalize(faqSearch.value.trim());
-  const category = faqCategory.value;
+  const category = faqCategoria;
   const shown = FAQ_ITEMS.map((item, index) => ({ item, index })).filter(({ item }) => (!category || item.categoria === category) && (!term || faqNormalize(`${item.pergunta} ${item.resposta} ${item.categoria}`).includes(term)));
   faqCount.textContent = `${shown.length} de ${FAQ_ITEMS.length} perguntas`;
   const head = faqEl('thead');
@@ -1947,7 +1975,7 @@ function renderFaq() {
   const body = faqEl('tbody');
   if (!shown.length) {
     const row = faqEl('tr');
-    const cell = faqEl('td', 'table-empty', 'Nenhuma pergunta encontrada. Tente outras palavras ou escolha "Todas as categorias".');
+    const cell = faqEl('td', 'table-empty', 'Nenhuma pergunta encontrada. Tente outras palavras ou escolha "Todas".');
     cell.colSpan = 2;
     row.append(cell);
     body.append(row);
@@ -1955,13 +1983,15 @@ function renderFaq() {
   shown.forEach(({ item, index }) => {
     const open = index === faqOpen;
     const row = faqEl('tr', open ? 'faq-row open' : 'faq-row');
-    row.append(faqEl('td', 'faq-cat', item.categoria));
+    const catCell = faqEl('td', 'faq-cat');
+    catCell.append(faqBadge(item.categoria, { botao: true }));
+    row.append(catCell);
     const cell = faqEl('td', 'faq-q');
     const button = faqEl('button', 'faq-toggle');
     button.type = 'button';
     button.dataset.faq = String(index);
     button.setAttribute('aria-expanded', String(open));
-    button.append(faqEl('span', 'faq-cat-inline', item.categoria), faqEl('span', 'faq-q-text', item.pergunta));
+    button.append(faqBadge(item.categoria, { inline: true }), faqEl('span', 'faq-q-text', item.pergunta));
     cell.append(button);
     row.append(cell);
     body.append(row);
@@ -1978,8 +2008,13 @@ function renderFaq() {
 }
 
 faqSearch.addEventListener('input', () => { faqOpen = -1; renderFaq(); });
-faqCategory.addEventListener('change', () => { faqOpen = -1; renderFaq(); });
+faqBadges.addEventListener('click', event => {
+  const badge = event.target.closest('[data-faq-cat]');
+  if (badge) faqFiltrarPor(badge.dataset.faqCat);
+});
 faqList.addEventListener('click', event => {
+  const badge = event.target.closest('[data-faq-cat]');
+  if (badge) { faqFiltrarPor(badge.dataset.faqCat); return; }
   const button = event.target.closest('[data-faq]');
   if (!button) return;
   const index = Number(button.dataset.faq);
