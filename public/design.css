@@ -532,6 +532,34 @@ select { appearance: none; -webkit-appearance: none; padding-right: 36px !import
 .home-text a { color: var(--accent); text-decoration: underline; overflow-wrap: anywhere; }
 @media (max-width: 900px) { .home-title { font-size: 32px; } .home-tagline { font-size: 16px; } }
 
+/* Início: título, três passos, captura da Apostila e prompt de exemplo */
+.inicio { display: grid; gap: 32px; max-width: 960px; margin: 0 auto; padding: 8px 0 48px; }
+.inicio-title { margin: 0; font-size: 40px; line-height: 1.12; max-width: 22ch; }
+.inicio-lead { margin: -20px 0 0; font-size: 18px; color: var(--muted); max-width: 56ch; }
+.inicio-bloco { display: grid; gap: 14px; }
+.inicio-bloco h2 { margin: 0; font-size: 24px; }
+.inicio-apoio { margin: 0; color: var(--muted); max-width: 64ch; line-height: 1.6; }
+.inicio-passos, .inicio-itens { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.inicio-passos li, .inicio-itens li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.inicio-passos { grid-template-columns: repeat(3, 1fr); }
+.inicio-passos li { grid-template-columns: 1fr; align-content: start; border: 1px solid var(--line); background: var(--paper); padding: 16px; }
+.inicio-passos li > div { display: grid; gap: 6px; }
+.inicio-passos h3 { margin: 0; font-size: 17px; }
+.inicio-passos p, .inicio-itens p { margin: 0; line-height: 1.55; color: var(--muted); }
+.inicio-num { display: inline-grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font-weight: 700; font-size: 15px; }
+.inicio-passos .inicio-num { margin-bottom: 10px; }
+.inicio-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.inicio-captura { display: block; width: 100%; height: auto; border: 1px solid var(--ink); background: var(--paper); }
+.inicio-itens li > div { display: grid; gap: 4px; }
+.inicio-captura-botao { margin-top: 8px; max-width: 360px; }
+.inicio-acao { margin: 0; }
+.inicio-acao .primary { display: inline-flex; align-items: center; text-decoration: none; }
+.inicio-prompt { margin: 0; max-height: 360px; overflow: auto; padding: 16px; border: 2px solid var(--accent); background: var(--paper); color: var(--ink); font: 13.5px/1.6 var(--sans); white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 900px) {
+  .inicio-title { font-size: 30px; }
+  .inicio-passos, .inicio-demo { grid-template-columns: 1fr; }
+}
+
 /* Rodapé "O gerador não valida..." : maior e centralizado */
 .legal { margin: 24px 0 0; font-size: 15px; line-height: 1.5; text-align: center; }
 

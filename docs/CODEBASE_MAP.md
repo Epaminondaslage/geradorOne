@@ -189,7 +189,8 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 
 | Página (`data-view`) | Função | Chamadas |
 |---|---|---|
-| `inicio` | Só o logo | nenhuma |
+| `inicio` | Título, três passos do pedido ao material, capturas da Apostila (`public/assets/inicio/`) com 5 itens e prompt de exemplo; o botão "Abrir a Apostila" usa `data-go-view` | nenhuma |
+| `sobre` | Logo, selos de tecnologia, texto de apresentação e licença AGPL-3.0; item "Sobre" no rodapé do menu, abaixo de "Tema", para todos os perfis | nenhuma |
 | `apostila` | Formulário e geração do prompt (`form#formulario`) | `/api/generate` (modo IA) |
 | `capa` | Prompt da arte frontal (`form#form-capa`) | nenhuma |
 | `projetos` | Listar, abrir, excluir e importar | `/api/projects` |

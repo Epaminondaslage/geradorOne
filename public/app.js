@@ -1427,7 +1427,7 @@ document.addEventListener('keydown', event => {
 });
 matchMedia('(max-width: 900px)').addEventListener('change', () => setMobileMenu(false));
 
-const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'config', 'faq', 'suporte'];
+const VIEWS = ['inicio', 'apostila', 'capa', 'projetos', 'ia', 'conta', 'tema', 'config', 'faq', 'suporte', 'sobre'];
 // Configurações reúne um assunto por aba; o endereço #usuarios, #smtp ou #backup abre a aba certa.
 const CONFIG_TABS = ['usuarios', 'smtp', 'backup'];
 let configTab = 'usuarios';
@@ -1590,6 +1590,13 @@ async function loadBackup() {
 document.querySelector('[data-view-link]').addEventListener('click', event => {
   event.preventDefault();
   showView(event.currentTarget.dataset.viewLink);
+});
+
+document.querySelector('#pane').addEventListener('click', event => {
+  const go = event.target.closest('a[data-go-view]');
+  if (!go) return;
+  event.preventDefault();
+  showView(go.dataset.goView);
 });
 
 document.querySelector('#sidebar').addEventListener('click', event => {

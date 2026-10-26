@@ -19,6 +19,11 @@ const FAQ_ITEMS = [
   },
   {
     categoria: 'Primeiros passos',
+    pergunta: 'Onde ficam o texto de apresentação, a licença e o link do código?',
+    resposta: 'Na aba "Sobre", no fim do menu, logo abaixo de "Tema". Ela está disponível para todos os usuários e traz o texto de apresentação do GeradorOne, os dados técnicos e a licença AGPL-3.0.\n\nO "Início" mostra os três passos do pedido ao material e um exemplo de prompt gerado com os campos básicos da Apostila.',
+  },
+  {
+    categoria: 'Primeiros passos',
     pergunta: 'Por onde eu começo?',
     resposta: '1. Abra "Apostila" ou "Capa" no menu.\n2. Preencha os campos com * (são os obrigatórios).\n3. Escolha o estilo das ilustrações, a paleta e o formato.\n4. Clique em "Gerar prompt completo" (Apostila) ou "Gerar prompt da capa" (Capa).\n5. No painel "Resultado", clique em "Copiar" e cole o prompt na sua ferramenta de IA de imagens.'
   },
