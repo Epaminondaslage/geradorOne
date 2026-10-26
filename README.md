@@ -226,10 +226,3 @@ O backup do banco é uma rotina agendada, não um passo do deploy: `scripts/back
 │   └── theme.css
 └── test/                # rodam contra um Postgres descartável (npm test)
 ```
-
-## Limitações e próximas integrações
-
-- Autenticação, limites por usuário e histórico persistente de projetos.
-- Proxy HTTPS e domínio definitivo para acesso fora da rede local.
-
-Chaves de API nunca devem ser colocadas nos arquivos de `public/` nem enviadas ao repositório.
