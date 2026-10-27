@@ -14,6 +14,8 @@ COPY --chown=node:node package.json package-lock.json server.js ./
 COPY --chown=node:node lib ./lib
 COPY --chown=node:node vendor ./vendor
 COPY --chown=node:node scripts ./scripts
+# Recusa uma imagem base com Node abaixo do mínimo do package.json (cache antigo do node:22-alpine). Build novo: docker build --pull.
+RUN node scripts/node-minimo.js
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --chown=node:node public ./public
 
