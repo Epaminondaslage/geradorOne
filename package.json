@@ -19,7 +19,7 @@
     "test:node": "node --test test/*.test.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.23.4"
   },
   "dependencies": {
     "nodemailer": "10.2.1",
