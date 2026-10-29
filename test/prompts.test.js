@@ -7,16 +7,9 @@ const i18n = require('../public/i18n.js');
 const { criarGeradores } = require('../public/prompts.js');
 
 const DOURADO = require('./fixtures/prompts-pt-BR.json');
-const PARTES = '/tmp/claude-1000/-opt-geradorOne/78efa090-6331-46fb-aaae-dbae889bff94/scratchpad/partes/prompts.json';
 const DIR = path.join(__dirname, '..', 'public', 'i18n');
 
-// Dicionário pt-BR dos prompts: o do projeto, ou (antes do merge) o JSON da fase 3.
-function lerDicionarioPt() {
-  const real = require(path.join(DIR, 'pt-BR.js'));
-  if (real['prompt.apostila.atencao']) return real;
-  return JSON.parse(fs.readFileSync(PARTES, 'utf8'));
-}
-const ptBR = lerDicionarioPt();
+const ptBR = require(path.join(DIR, 'pt-BR.js'));
 const LINGUAS = ['en', 'es', 'de', 'it'];
 const prefixo = codigo => `[${codigo}]`;
 // Dicionário espelho: o texto em português com o código do idioma na frente, só nas chaves prompt.*.
