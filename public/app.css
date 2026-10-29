@@ -207,9 +207,10 @@ body { margin: 0; background: var(--bg); }
 .idioma { position: relative; display: inline-block; }
 .idioma-botao { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px; background: var(--paper); color: var(--ink); border: 1px solid var(--field); border-radius: 2px; font: inherit; cursor: pointer; }
 .idioma-botao svg, .idioma-lista svg { flex: none; border: 1px solid var(--line); }
-.idioma-lista { position: absolute; z-index: 40; inset-inline-start: 0; margin: 4px 0 0; padding: 4px; list-style: none; min-width: 100%; background: var(--paper); border: 1px solid var(--ink); border-radius: 2px; }
+.idioma-lista { width: max-content; position: absolute; z-index: 40; inset-inline-start: 0; margin: 4px 0 0; padding: 4px; list-style: none; min-width: 100%; background: var(--paper); border: 1px solid var(--ink); border-radius: 2px; }
 .idioma-lista[hidden] { display: none; }
 .idioma-lista li { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
 .idioma-lista li:hover, .idioma-lista li:focus-visible { background: var(--aqua); outline: 2px solid var(--accent); outline-offset: -2px; }
 .idioma-lista li[aria-selected="true"] { font-weight: 700; }
 .sidebar-foot .idioma-lista { inset-block-end: 100%; margin: 0 0 4px; }
+.ressalva-legal { margin: 0; padding: 8px 12px; border: 1px solid var(--line); border-inline-start: 4px solid var(--accent); border-radius: 2px; background: var(--paper); }

@@ -1,3 +1,4 @@
+(function () {
 const dicionario = {
   "admin.administrador": "Amministratore",
   "admin.administradores": "Amministratori",
@@ -1579,3 +1580,4 @@ const dicionario = {
 };
 if (typeof module === 'object' && module.exports) module.exports = dicionario;
 else (window.I18N_DICT = window.I18N_DICT || {})['it'] = dicionario;
+})();

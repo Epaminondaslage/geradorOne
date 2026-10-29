@@ -17,6 +17,8 @@
   function traduzirDocumento(raiz = document) {
     document.documentElement.lang = atual;
     for (const el of raiz.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+    // Avisos que só fazem sentido fora do português (ex.: texto legal só em português do Brasil).
+    for (const el of raiz.querySelectorAll('[data-fora-pt]')) el.hidden = atual === 'pt-BR';
     for (const el of raiz.querySelectorAll('[data-i18n-attr]')) {
       for (const par of el.dataset.i18nAttr.split(';')) {
         const [atributo, chave] = par.split(':');

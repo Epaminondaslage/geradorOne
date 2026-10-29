@@ -1,4 +1,5 @@
 // Fonte dos textos: português do Brasil. Os outros idiomas seguem exatamente estas chaves.
+(function () {
 const dicionario = {
   "admin.administrador": "Administrador",
   "admin.administradores": "Administradores",
@@ -1580,3 +1581,4 @@ const dicionario = {
 };
 if (typeof module === 'object' && module.exports) module.exports = dicionario;
 else (window.I18N_DICT = window.I18N_DICT || {})['pt-BR'] = dicionario;
+})();
