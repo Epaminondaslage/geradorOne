@@ -1,6 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { FAQ_ITEMS } = require('../public/faq-data.js');
+const { FAQ_ITEMS, FAQ_ESTRUTURA } = require('../public/faq-data.js');
+
+// Os itens leem o dicionário pt-BR (public/i18n/pt-BR.js) pelas chaves faq.*; os testes abaixo
+// valem para os textos em português e a última garante as mesmas chaves nos cinco idiomas.
+const IDIOMAS = ['pt-BR', 'en', 'es', 'de', 'it'];
 
 test('FAQ: todo item tem categoria, pergunta e resposta preenchidas', () => {
   assert.ok(FAQ_ITEMS.length >= 40);
@@ -38,4 +42,23 @@ test('FAQ: textos sem travessão e sem chave de exemplo parecida com segredo rea
   const textos = FAQ_ITEMS.map(item => `${item.pergunta} ${item.resposta}`).join('\n');
   assert.ok(!textos.includes('—'), 'travessão no texto');
   assert.ok(!/sk-[A-Za-z0-9]{10,}|AIza[0-9A-Za-z_-]{20,}/.test(textos), 'parece uma chave real');
+});
+
+test('FAQ: cada item tem id estável e único', () => {
+  const ids = FAQ_ITEMS.map(item => item.id);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const id of ids) assert.match(id, /^faq\.\d+$/);
+});
+
+test('FAQ: os cinco idiomas têm as mesmas chaves (categorias, perguntas e respostas)', () => {
+  const chaves = [];
+  for (const [id, categoria] of FAQ_ESTRUTURA) chaves.push(`faq.cat.${categoria}`, `faq.${id}.pergunta`, `faq.${id}.resposta`);
+  assert.equal(FAQ_ESTRUTURA.length, FAQ_ITEMS.length);
+  for (const idioma of IDIOMAS) {
+    const dict = require(`../public/i18n/${idioma}.js`);
+    for (const chave of chaves) {
+      assert.equal(typeof dict[chave], 'string', `${idioma}: falta ${chave}`);
+      assert.ok(dict[chave].trim().length > 0, `${idioma}: ${chave} vazio`);
+    }
+  }
 });

@@ -1,19 +1,20 @@
-const styles = [
-  ['Cartoon','Traço amigável e expressivo'],['Hand-drawn','Aparência desenhada à mão'],['Doodle','Rabiscos leves e criativos'],['Cartoon Educacional','Cartoon com foco pedagógico'],['Scientific Illustration','Precisão científica'],['Futuristic Digital','Visual digital moderno'],['Infográfico Moderno','Blocos, ícones e dados'],['Minimalista','Poucos elementos, muito ar'],['3D Educacional','Volumes suaves em 3D'],['Realista','Aparência fotográfica'],['Livro Didático','Padrão editorial clássico'],['Colorido Infantil','Cores vivas para crianças']
-];
+// Os valores (ids) seguem estáveis para os projetos antigos; só o nome e a descrição exibidos passam por t().
+const styles = ['Cartoon', 'Hand-drawn', 'Doodle', 'Cartoon Educacional', 'Scientific Illustration', 'Futuristic Digital', 'Infográfico Moderno', 'Minimalista', '3D Educacional', 'Realista', 'Livro Didático', 'Colorido Infantil'];
+const styleSlug = name => name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+// O título em português segue aqui como referência; a tela usa js.recurso.<id>.titulo e .desc, e o prompt usa prompt.recurso.<id> (prompts.js).
 const resources = [
   ['mapasMentais','◉','Mapas mentais','Síntese radial e conexões'],['diagramas','◇','Diagramas','Processos, relações e fluxos'],['ilustracoes','✦','Ilustrações','Conceitos, cenas e objetos'],['infograficos','▦','Infográficos','Dados e explicações visuais'],['graficos','⌁','Gráficos','Somente com dados verificáveis'],['quadros','▤','Quadros comparativos','Contrastes e classificações'],['linhas','↝','Linhas do tempo','Eventos em sequência'],['icones','⬡','Ícones e sinalização','Navegação e destaques']
 ];
+const resourceSlug = name => name.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
-const THEME_LIST = [
-  { id: 'papel', nome: 'Papel', desc: 'Claro e quente, o padrão. Folha de caderno e caneta verde de correção.' },
-  { id: 'grafite', nome: 'Grafite', desc: 'Escuro neutro para trabalhar à noite. Acento laranja de marca-texto.' },
-  { id: 'lousa', nome: 'Lousa', desc: 'Verde-escuro de sala de aula, texto cor de giz e acento de giz amarelo.' },
-  { id: 'azul-tinta', nome: 'Azul-tinta', desc: 'Claro e frio, com o azul da caneta esferográfica nas ações.' },
-  { id: 'sepia', nome: 'Sépia', desc: 'Papel envelhecido e tinta marrom, para sessões longas de leitura.' },
-  { id: 'alto-contraste', nome: 'Alto contraste', desc: 'Preto e branco puros, amarelo nas ações. Para baixa visão e projetor.' }
-];
-const themeNames = Object.fromEntries(THEME_LIST.map(theme => [theme.id, theme.nome]));
+const themeSlug = id => id.replace(/-/g, '_');
+const THEME_LIST = ['papel', 'grafite', 'lousa', 'azul-tinta', 'sepia', 'alto-contraste'].map(id => ({
+  id,
+  get nome() { return t(`js.tema.${themeSlug(id)}.nome`); },
+  get desc() { return t(`js.tema.${themeSlug(id)}.desc`); }
+}));
+const themeNames = Object.fromEntries(THEME_LIST.map(theme => [theme.id, theme.id]));
+const themeLabel = id => t(`js.tema.${themeSlug(id)}.nome`);
 const systemTheme = () => (matchMedia('(prefers-color-scheme: dark)').matches ? 'grafite' : 'papel');
 function storedTheme() {
   let saved = null;
@@ -29,7 +30,7 @@ let themeFollowsSystem = storedTheme() === 'sistema';
 function setTheme(theme, { persist = true } = {}) {
   document.documentElement.dataset.theme = theme;
   try { if (persist) localStorage.setItem('apostila-theme', themeFollowsSystem ? 'sistema' : theme); else localStorage.removeItem('apostila-theme'); } catch { /* armazenamento bloqueado */ }
-  document.querySelector('#theme-name').textContent = themeNames[theme];
+  document.querySelector('#theme-name').textContent = themeLabel(theme);
   renderThemeView();
 }
 
@@ -37,7 +38,7 @@ function saveThemeToAccount(theme) {
   if (!currentUser) return;
   postJson('api/auth/theme', { theme }).then(result => {
     if (result.ok) currentUser = result.data.user;
-    else notify('Tema aplicado neste navegador, mas não foi salvo na conta.');
+    else notify(t('js.tema.nao_salvo_conta'));
   });
 }
 function chooseTheme(id) {
@@ -64,8 +65,8 @@ function renderThemeView() {
   const current = document.documentElement.dataset.theme;
   document.querySelector('#theme-follow').checked = themeFollowsSystem;
   gallery.innerHTML = THEME_LIST.map(theme => `<button type="button" role="radio" class="theme-card" aria-checked="${theme.id === current}" data-theme-pick="${theme.id}">
-    <span class="theme-mini" data-theme-scope="${theme.id}" aria-hidden="true"><span class="mini-rail"><i></i><i></i><i></i><i></i></span><span class="mini-sheet"><b>Apostila</b><i class="mini-field"></i><i class="mini-field"></i><em>Gerar prompt</em></span></span>
-    <span class="theme-meta"><span class="theme-line"><strong>${theme.nome}</strong><span class="theme-mark">${theme.id === current ? 'Em uso' : ''}</span></span><span class="field-help">${theme.desc}</span></span>
+    <span class="theme-mini" data-theme-scope="${theme.id}" aria-hidden="true"><span class="mini-rail"><i></i><i></i><i></i><i></i></span><span class="mini-sheet"><b>${t('js.tema.mini_apostila')}</b><i class="mini-field"></i><i class="mini-field"></i><em>${t('js.tema.mini_gerar')}</em></span></span>
+    <span class="theme-meta"><span class="theme-line"><strong>${theme.nome}</strong><span class="theme-mark">${theme.id === current ? t('js.tema.em_uso') : ''}</span></span><span class="field-help">${theme.desc}</span></span>
   </button>`).join('');
 }
 document.querySelector('#theme-gallery').addEventListener('click', event => {
@@ -76,7 +77,10 @@ document.querySelector('#theme-follow').addEventListener('change', event => foll
 setTheme(themeFollowsSystem ? systemTheme() : (storedTheme() || 'papel'), { persist: Boolean(storedTheme()) });
 
 function renderStyleOptions(container, prefix) {
-  styles.forEach(([name, description], index) => container.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="${prefix}-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="${prefix}-${index}"><span class="style-sample">${styleArt(index, prefix)}</span><strong>${name}</strong><small>${description}</small></label></div>`));
+  const marcado = container.querySelector('input:checked')?.value;
+  container.replaceChildren();
+  styles.forEach((name, index) => container.insertAdjacentHTML('beforeend', `<div class="option"><input type="radio" name="estiloVisual" id="${prefix}-${index}" value="${name}" ${name === 'Livro Didático' ? 'checked' : ''}><label for="${prefix}-${index}"><span class="style-sample">${styleArt(index, prefix)}</span><strong>${t(`js.estilo.${styleSlug(name)}.nome`)}</strong><small>${t(`js.estilo.${styleSlug(name)}.desc`)}</small></label></div>`));
+  if (marcado) { const escolhido = [...container.querySelectorAll('input')].find(input => input.value === marcado); if (escolhido) escolhido.checked = true; }
 }
 renderStyleOptions(document.querySelector('#style-options'), 'style');
 renderStyleOptions(document.querySelector('#capa-style-options'), 'capa-style');
@@ -91,7 +95,12 @@ const visualSamples = {
   linhas:'<svg class="resource-icon" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 24h38"/><circle cx="13" cy="24" r="3"/><circle cx="24" cy="24" r="3"/><circle cx="35" cy="24" r="3"/><path d="M13 21v-8M35 21v-8M24 27v8"/><path d="M9 13h8M31 13h8M20 35h8"/></svg>',
   icones:'<svg class="resource-icon" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 5 42 37H6Z"/><path d="M24 17v10"/><circle cx="24" cy="32" r=".5"/></svg>'
 };
-resources.forEach(([name, icon, title, description]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><span class="resource-text"><strong>${title}</strong><small>${description}</small></span></label></div>`));
+function renderResources() {
+  const marcados = new Set([...resourceContainer.querySelectorAll('input:checked')].map(input => input.name));
+  resourceContainer.replaceChildren();
+  resources.forEach(([name, icon]) => resourceContainer.insertAdjacentHTML('beforeend', `<div class="resource"><input type="checkbox" name="${name}" id="${name}"${marcados.has(name) ? ' checked' : ''}><label for="${name}"><span class="resource-demo" aria-hidden="true">${visualSamples[name] || icon}</span><span class="resource-text"><strong>${t(`js.recurso.${resourceSlug(name)}.titulo`)}</strong><small>${t(`js.recurso.${resourceSlug(name)}.desc`)}</small></span></label></div>`));
+}
+renderResources();
 
 // Reaproveita os SVGs dos recursos visuais dentro do cérebro da marca.
 // O contorno permanece fixo; somente o pictograma troca com fade suave.
@@ -139,7 +148,7 @@ const AUTH_PUBLIC = ['api/auth/login', 'api/auth/forgot', 'api/auth/confirm', 'a
 
 async function apiFetch(url, options = {}) {
   const response = await fetch(url, { credentials: 'same-origin', ...options });
-  if (response.status === 401 && !AUTH_PUBLIC.includes(url)) showAuth('login', 'Sua sessão expirou. Entre novamente.');
+  if (response.status === 401 && !AUTH_PUBLIC.includes(url)) showAuth('login', t('js.erro.sessao_expirada'));
   if (response.status === 403 && currentUser && !currentUser.mustChangePassword) {
     const body = await response.clone().json().catch(() => ({}));
     if (body.code === 'PASSWORD_CHANGE_REQUIRED') { currentUser.mustChangePassword = true; showAuth('first'); }
@@ -177,7 +186,7 @@ let toastTimer;
 let currentFiles = [];
 
 function updateGenerationMode() {
-  document.querySelector('.generate-label').textContent = 'Gerar prompt completo';
+  document.querySelector('.generate-label').textContent = t('js.gerar.prompt_completo');
 }
 
 let aiAvailable = false;
@@ -190,10 +199,10 @@ async function checkAiAvailability() {
     const data = await response.json();
     aiAvailable = Boolean(data.available);
     aiImages = data.images !== false;
-    label.textContent = data.available ? `${data.provider} · texto ${data.model}${aiImages ? '' : ' · sem imagens por IA'}` : 'Sem chave de IA: salve a sua em "Minha chave de IA" para gerar o material pronto. O prompt continua disponível.';
+    label.textContent = data.available ? t(aiImages ? 'js.ia.disponivel' : 'js.ia.disponivel_sem_imagens', { provider: data.provider, model: data.model }) : t('js.ia.sem_chave');
     label.className = `field-status ${data.available ? 'available' : 'unavailable'}`;
   } catch {
-    label.textContent = 'Não foi possível verificar a IA.';
+    label.textContent = t('js.ia.erro_verificar');
     label.className = 'field-status unavailable';
   }
 }
@@ -241,410 +250,8 @@ function applyData(target, data) {
   updateCompletion();
 }
 
-function text(value, fallback = 'Não informado') { return value?.trim() || fallback; }
-
-function generatePrompt(data) {
-  const visualItems = selectedResources(data);
-  const bnccInstruction = data.sugerirBncc
-    ? 'Sugira habilidades da BNCC somente quando houver correspondência verificável com a etapa e o componente curricular. Informe código e descrição fiel; se não puder verificar, declare a limitação e não invente.'
-    : 'Use apenas os códigos da BNCC fornecidos. Não acrescente códigos por inferência.';
-  return `ATENÇÃO: siga rigorosamente todas as especificações abaixo. NÃO misture o tipo de material ou o estilo visual com outros não solicitados, NÃO altere o formato pedido e NÃO presuma informações que não foram fornecidas.\n\nATUE COMO ESPECIALISTA EM EDUCAÇÃO, DESIGN INSTRUCIONAL, DIREÇÃO DE ARTE EDITORIAL E PRODUÇÃO DE MATERIAL DIDÁTICO.\n\nTAREFA\nCrie um material do tipo "${data.tipo}" (OBRIGATORIAMENTE este tipo, não outro) sobre "${text(data.assunto)}" para a disciplina "${text(data.disciplina)}". Entregue o conteúdo em português brasileiro, sem termos em inglês ou outras variações do português.\n\n1. PERFIL PEDAGÓGICO\n- Público-alvo: ${data.publico}.\n- Objetivo de aprendizagem: ${text(data.objetivo)}.\n- Profundidade do conteúdo: ${data.profundidade}.\n- Estilo de escrita: ${data.escrita}.\n- Densidade do texto: ${data.densidade}.\n- Extensão alvo: ${data.extensao}.\n- Adapte linguagem, exemplos, vocabulário e progressão ao público.\n- Declare hipóteses quando faltarem dados indispensáveis.\n\n2. CONFIGURAÇÃO CURRICULAR E FONTES\n- Códigos BNCC informados: ${text(data.bncc, 'Nenhum')}.${data.bnccTextos ? `\n${data.bnccTextos}` : ''}\n- ${bnccInstruction}\n- Material de referência obrigatório:\n${text(data.referencias, 'Nenhum material fornecido. Não invente fontes, normas, números, citações ou resultados.')}\n- Diferencie explicitamente dados ilustrativos de dados medidos, documentados ou comprovados.\n\n3. ARQUITETURA DO MATERIAL\n- Apresente título, objetivos específicos, pré-requisitos e uma rota de aprendizagem.\n- Organize seções progressivas, com explicações completas, definições, exemplos resolvidos e aplicações contextualizadas quando pertinentes.\n- Inclua sínteses parciais, questões de verificação e indicações claras de transição entre assuntos.\n- Termine com síntese geral, atividades de fixação em dificuldade progressiva e gabarito comentado.\n- Respeite a extensão alvo definida no item 1 (${data.extensao}): dimensione o número de seções, a profundidade de cada uma e a quantidade de recursos visuais para que o material completo não ultrapasse o limite superior de páginas dessa faixa.\n- Faça revisão final de consistência pedagógica, conceitual, ortográfica e visual.\n\n4. SISTEMA VISUAL\n- Estilo visual: ${data.estiloVisual}.\n- Paleta: ${data.paleta}.\n- Formato prioritário: ${data.formato}.\n- Frequência: ${data.frequencia}.\n- Profundidade visual: ${data.profundidadeVisual}.\n- Recursos obrigatórios selecionados: ${visualItems.length ? visualItems.join(', ') : 'nenhum recurso obrigatório'}.\n- Use hierarquia tipográfica clara, espaçamento confortável, alto contraste, legendas e consistência visual. Garanta legibilidade em tela e impressão e não dependa apenas de cor para transmitir significado.\n- Não use figuras infantis ou personagens caso o público não seja infantil. Se houver personagens, eles devem ser da faixa etária de ${data.publico}, condizentes com o público-alvo.\n\n5. ESPECIFICAÇÃO DOS RECURSOS VISUAIS\nPara cada recurso visual, entregue: (a) objetivo pedagógico; (b) posição sugerida; (c) conteúdo exato; (d) título e legenda; (e) descrição de produção; (f) texto alternativo acessível.\n${data.mapasMentais ? '- MAPAS MENTAIS: crie estruturas ricas, com conceito central, 4 a 7 ramos principais, sub-ramos, palavras-chave curtas, relações nomeadas e uma legenda. Evite listas lineares disfarçadas de mapa.\n' : ''}${data.diagramas ? '- DIAGRAMAS: especifique nós, setas, relações, direção de leitura e uma versão textual equivalente. Quando útil, forneça código Mermaid válido e simples.\n' : ''}${data.ilustracoes ? '- ILUSTRAÇÕES: escreva briefings objetivos com cena, elementos, composição, enquadramento, estilo, paleta, diversidade e restrições. Não presuma que a imagem foi gerada.\n' : ''}${data.infograficos ? '- INFOGRÁFICOS: combine hierarquia, blocos informativos, ícones, números e percurso de leitura. Use somente informações presentes ou verificáveis.\n' : ''}${data.graficos ? '- GRÁFICOS: escolha o tipo adequado à comparação. Não fabrique dados. Se não houver dados reais, forneça apenas o modelo, os campos necessários e marque qualquer exemplo como ILUSTRATIVO.\n' : ''}${data.quadros ? '- QUADROS COMPARATIVOS: defina critérios consistentes, cabeçalhos claros e notas para exceções.\n' : ''}${data.linhas ? '- LINHAS DO TEMPO: inclua apenas datas verificáveis e diferencie ordem didática de cronologia histórica.\n' : ''}${data.icones ? '- ÍCONES: use um conjunto consistente com rótulos, sem substituir informação essencial somente por símbolos.\n' : ''}\nOrientações adicionais: ${text(data.orientacoes)}.\n\n6. SAÍDA E MARCAÇÕES TÉCNICAS\n- Escreva o material completo, não apenas um sumário.\n- Marque cada visual com blocos [VISUAL: tipo], [OBJETIVO], [CONTEÚDO], [INSTRUÇÃO GRÁFICA], [LEGENDA] e [TEXTO ALTERNATIVO].\n- Para diagramas Mermaid, use blocos de código separados. Para gráficos, entregue uma tabela de dados antes da especificação do gráfico.\n- Não declare que imagens ou gráficos foram renderizados se apenas descreveu sua produção.\n- Use unidades do SI e notação correta quando aplicável.\n\n7. MICROTEXTOS OBRIGATÓRIOS DE ABERTURA\n- Título em caixa alta com o assunto principal.\n- Linha de apoio: disciplina | tipo de material | público-alvo.\n- De 2 a 3 frases curtas explicando o que o leitor vai entender ao final.\n- Uma lista de 4 a 6 bullets resumindo os pontos-chave, cada um com no máximo uma linha.\n\n8. CHECKLIST DE QUALIDADE (VERIFIQUE ANTES DE ENTREGAR)\n- O tipo de material e o estilo visual pedidos foram respeitados sem mistura com outros?\n- A extensão ficou dentro do limite definido no item 1?\n- Todo dado, número, citação ou fonte sem comprovação está marcado como ILUSTRATIVO ou foi omitido?\n- Cada recurso visual selecionado tem objetivo pedagógico, posição, conteúdo, legenda e texto alternativo?\n- A progressão é lógica, sem presumir conhecimento ainda não apresentado?\n- Não há atividades, exercícios ou gabarito fora do que foi solicitado?\n- Todo o texto está em português do Brasil, sem erros de revisão?\n\nPRODUZA AGORA O MATERIAL SOLICITADO.`;
-}
-
-const imagePageFormats = {
-  'Somente tela': 'página vertical 4:5 (1080x1350 px), otimizada para leitura em tela',
-  'Apresentação 16:9': 'página horizontal 16:9 (1920x1080 px), layout de slide',
-};
-const defaultPageFormat = 'página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa';
-
-const typeProfiles = {
-  'Apostila didática': {
-    apoio: 'Apostila Didática',
-    foco: 'explicar o tema de forma progressiva, do conceito básico à aplicação',
-    microtextos: ['3 frases curtas de abertura explicando o que o aluno vai aprender.', 'Definição principal em uma caixa de destaque.', '5 bullets com ✓ resumindo os pontos-chave.', '2 exemplos práticos curtos iniciados por "Ex.:".'],
-    restricao: 'NÃO inclua exercícios, questões nem gabarito. A página é explicativa.',
-  },
-  'Material de revisão': {
-    apoio: 'Revisão Rápida',
-    foco: 'revisar o essencial do que já foi estudado, destacando erros comuns',
-    microtextos: ['1 frase de abertura dizendo o que será revisado.', '6 bullets com ✓ com os pontos essenciais.', 'Caixa "Erros comuns" com 3 itens curtos.', 'Caixa "Lembre-se" com a regra ou fórmula principal.'],
-    restricao: 'NÃO introduza conteúdo novo: revise apenas o essencial do tema.',
-  },
-  'Caderno de atividades': {
-    apoio: 'Caderno de Atividades',
-    foco: 'praticar o conteúdo com atividades em dificuldade crescente',
-    microtextos: ['Caixa "Relembre" com a regra ou fórmula principal, em no máximo 2 linhas.', '4 a 6 atividades numeradas, em dificuldade crescente, com linhas ou espaço em branco para a resposta.', 'Formatos variados: completar, associar, calcular, verdadeiro ou falso, interpretar figura.', 'Enunciados curtos, claros e sem ambiguidade, com valores numéricos coerentes.'],
-    restricao: 'NÃO mostre as respostas na mesma página das atividades.',
-  },
-  'Guia de estudos': {
-    apoio: 'Guia de Estudos',
-    foco: 'orientar o estudo autônomo do tema em etapas',
-    microtextos: ['Objetivo do estudo em 1 frase.', 'Roteiro de 4 a 5 etapas numeradas: o que estudar e em que ordem.', 'Caixa "Checklist de domínio" com 4 itens marcáveis.', '1 dica de estudo prática.'],
-    restricao: 'NÃO inclua gabarito nem exercícios resolvidos extensos.',
-  },
-  'Resumo visual': {
-    apoio: 'Guia Visual Rápido',
-    foco: 'condensar o tema em uma visão geral rápida e visual',
-    microtextos: ['3 frases curtas de abertura explicando o que o aluno vai entender.', '5 bullets com ✓ resumindo os pontos-chave.', '2 exemplos práticos curtos iniciados por "Ex.:".'],
-    restricao: 'NÃO inclua atividades, exercícios, questões nem gabarito. A página é apenas explicativa/visual.',
-  },
-  'Mapa mental': {
-    apoio: 'Mapa Mental',
-    foco: 'mostrar as relações entre os conceitos do tema',
-    microtextos: ['Nó central: o tema em caixa alta.', 'Ramos principais: os grandes conceitos do tema, em palavras-chave.', 'Sub-ramos: definições, fórmulas, exemplos e relações, em frases de no máximo 5 palavras.'],
-    restricao: 'NÃO inclua atividades, exercícios, gabarito, parágrafos ou texto corrido. NÃO gere layout em colunas, de apostila ou de infográfico: apenas mapa mental.',
-  },
-  'Material para concurso': {
-    apoio: 'Preparatório para Concursos',
-    foco: 'condensar o que é mais cobrado em provas, com pegadinhas e macetes',
-    microtextos: ['Caixa "Como costuma ser cobrado" com 2 a 3 itens.', '5 bullets com os pontos mais importantes.', 'Caixa "Pegadinhas" com 3 itens.', '1 macete ou mnemônico, somente se for amplamente conhecido e correto.'],
-    restricao: 'NÃO invente estatísticas de bancas nem cite questões ou bancas reais.',
-  },
-  'Material profissional': {
-    apoio: 'Material Profissional',
-    foco: 'aplicar o tema à prática de trabalho, com procedimento e segurança',
-    microtextos: ['Contexto de aplicação profissional em 1 a 2 frases.', 'Procedimento em 4 a 6 passos numerados.', 'Caixa "Atenção / Segurança" com os cuidados essenciais.', 'Caixa "Na prática" com 1 situação real de trabalho.'],
-    restricao: 'Cite normas técnicas somente com número e conteúdo corretos; se houver dúvida, escreva "consulte a norma vigente".',
-  },
-  'Material preparatório': {
-    apoio: 'Material Preparatório',
-    foco: 'preparar para uma prova ou etapa com o que é essencial e o que praticar',
-    microtextos: ['Objetivo da preparação em 1 frase.', 'Mapa dos conteúdos mais cobrados: 4 a 6 tópicos em ordem de prioridade.', 'Caixa "Como estudar" com 3 passos.', 'Caixa "Atenção" com 3 erros comuns.', 'Mini-checklist de domínio com 4 itens marcáveis.'],
-    restricao: 'NÃO inclua questões resolvidas extensas nem gabarito; indique o que praticar. NÃO invente estatísticas de provas.',
-  },
-  'Material complementar': {
-    apoio: 'Material Complementar',
-    foco: 'ampliar o tema com curiosidades, aplicações e contexto além do conteúdo básico',
-    microtextos: ['Pergunta instigante de abertura.', 'Texto-resumo curto (2 a 3 frases) que amplia o conteúdo.', 'Caixa "Você sabia?" com 2 curiosidades corretas e verificáveis.', 'Caixa "Na vida real" com 1 aplicação prática.', 'Caixa "Para ir além" com 2 sugestões de aprofundamento, sem citar sites, livros ou autores específicos.'],
-    restricao: 'NÃO invente curiosidades, datas, fontes ou números: use só fatos amplamente conhecidos e corretos.',
-  },
-  'Outro': {
-    apoio: 'Material Didático',
-    foco: 'apresentar o tema conforme as orientações adicionais indicadas',
-    microtextos: ['2 a 3 frases curtas de abertura.', '4 a 6 bullets com os pontos-chave.', '1 exemplo prático curto.'],
-    restricao: 'Siga as orientações adicionais indicadas e NÃO inclua gabarito.',
-  },
-  'Guia do professor': {
-    apoio: 'Guia do Professor',
-    foco: 'apoiar o professor a conduzir a aula sobre o tema',
-    microtextos: ['Objetivos da aula em 2 a 3 bullets.', 'Sequência da aula em 3 a 4 momentos numerados, com tempo sugerido.', 'Caixa "Dificuldades previstas" com 2 a 3 itens.', 'Caixa "Pergunta disparadora" com 1 pergunta para iniciar a aula.'],
-    restricao: 'Linguagem dirigida ao professor, não ao aluno.',
-  },
-  'Sequência didática': {
-    apoio: 'Sequência Didática',
-    foco: 'organizar o ensino do tema em etapas encadeadas',
-    microtextos: ['Objetivo geral em 1 frase.', '4 a 5 etapas numeradas, cada uma com título, ação principal e resultado esperado.', 'Seta ou linha conectando as etapas na ordem.', 'Caixa "Avaliação" com a forma de verificar a aprendizagem.'],
-    restricao: 'Mantenha cada etapa curta e visual.',
-  },
-};
-
-const typeLayouts = {
-  'Mapa mental': [
-    'A saída é EXCLUSIVAMENTE um MAPA MENTAL: não é apostila, não é infográfico em colunas, não é lista de texto.',
-    'Nó central com o tema em destaque, dentro de uma forma marcante (nuvem, balão ou caixa arredondada), no centro da página.',
-    '4 a 7 ramos principais saindo do centro e distribuídos por toda a altura da página; cada ramo com uma cor própria, mantendo a paleta.',
-    'Cada ramo com 2 a 4 sub-ramos; cada nó com no máximo 5 palavras.',
-    'Linhas curvas e orgânicas ligando os nós, mais grossas perto do centro e mais finas nas pontas.',
-    'Um ícone pequeno ao lado de cada ramo principal, ligado ao conceito daquele ramo.',
-    'O mapa ocupa a página inteira, equilibrado, sem áreas vazias grandes e sem nada cortado.',
-  ],
-  'Caderno de atividades': [
-    'Layout de folha de atividades: cabeçalho com título e linha "Nome: ________  Turma: ______  Data: ___/___/___".',
-    'Atividades em blocos separados, numeradas em ordem de dificuldade, cada uma com enunciado em negrito e área de resposta (linhas, quadros ou espaço para cálculo).',
-    'Ilustrações e esquemas servem de base para as questões (ex.: figura para completar, esquema para analisar, tabela para preencher).',
-  ],
-  'Material profissional': [
-    'Layout de ficha técnica de procedimento: cabeçalho com tema e área de aplicação, passos em fluxo numerado de cima para baixo.',
-    'Caixa de segurança com cor de alerta e ícone de atenção, sempre visível.',
-    'Imagens de equipamentos, ferramentas e situações reais de trabalho, com rótulos.',
-  ],
-  'Guia de estudos': [
-    'Layout de trilha: etapas numeradas ligadas por um caminho ou linha, do início ao fim da página.',
-    'Checklist com caixas de marcação no rodapé.',
-  ],
-  'Sequência didática': [
-    'Layout em linha do tempo vertical ou horizontal com as etapas na ordem de execução, ligadas por setas.',
-  ],
-  'Material para concurso': [
-    'Layout de ficha de revisão densa e organizada: blocos compactos, destaques fortes para pegadinhas e para o que mais cai.',
-  ],
-  'Material de revisão': [
-    'Layout de ficha de revisão: blocos compactos e escaneáveis, com destaque para fórmulas e regras.',
-  ],
-  'Material preparatório': [
-    'Layout de painel de preparação: tópicos em cartões ordenados por prioridade, cada um com um selo de prioridade (alta, média ou baixa).',
-    'Caixas "Como estudar", "Atenção" e o checklist de domínio em faixa própria, bem visíveis.',
-  ],
-  'Material complementar': [
-    'Layout de página de revista educativa: pergunta de abertura em destaque, uma ilustração principal grande e caixas laterais "Você sabia?", "Na vida real" e "Para ir além".',
-  ],
-};
-
-const typeElements = {
-  'Mapa mental': 'Use somente elementos de mapa mental: nós, ramos, conectores rotulados, ícones e, se fizer sentido, 1 a 2 balões de reforço ("Dica rápida", "Atenção").',
-};
-
-const styleProfiles = {
-  'Cartoon': {
-    ilustracao: 'ilustrações em cartoon com contorno preto definido, formas arredondadas, expressões claras e cores chapadas',
-    pagina: 'blocos com bordas grossas arredondadas, balões de fala e setas desenhadas com energia',
-    tipografia: 'títulos em fonte display arredondada e encorpada; corpo em sem serifa simples',
-    evitar: 'sombras realistas, texturas fotográficas e traço técnico',
-  },
-  'Hand-drawn': {
-    ilustracao: 'desenhos feitos à mão com traço de caneta e lápis levemente irregular, hachuras e aquarela suave',
-    pagina: 'fundo de papel levemente texturizado, molduras e setas desenhadas à mão, anotações à margem',
-    tipografia: 'títulos em letra manuscrita legível; corpo em sem serifa limpa para garantir leitura',
-    evitar: 'vetores perfeitos, gradientes digitais e aparência 3D',
-  },
-  'Doodle': {
-    ilustracao: 'rabiscos e doodles em traço fino de caneta, ícones simples desenhados, estrelas, setas e sublinhados',
-    pagina: 'composição solta, como página de caderno de anotações visuais (sketchnote), com fundo branco ou pautado',
-    tipografia: 'títulos em letras desenhadas em caixa alta; corpo em manuscrita clara ou sem serifa',
-    evitar: 'excesso de cor, fotografias e blocos rígidos',
-  },
-  'Cartoon Educacional': {
-    ilustracao: 'cartoon didático: personagens simpáticos e objetos do tema com contorno limpo, explicando os conceitos',
-    pagina: 'cartões arredondados, personagem guia com balão de fala, etapas numeradas e caixas de destaque',
-    tipografia: 'títulos encorpados e amigáveis; corpo em sem serifa muito legível',
-    evitar: 'humor que distraia do conteúdo e elementos sem função pedagógica',
-  },
-  'Scientific Illustration': {
-    ilustracao: 'ilustração científica precisa, em corte ou vista técnica, com proporções corretas, linhas de chamada e rótulos',
-    pagina: 'layout de prancha técnica, figuras numeradas (Fig. 1, Fig. 2) com legendas e escala quando aplicável',
-    tipografia: 'títulos sóbrios; rótulos pequenos e nítidos; corpo em sem serifa técnica',
-    evitar: 'personagens, cartoon e simplificações que distorçam o conceito',
-  },
-  'Futuristic Digital': {
-    ilustracao: 'visual digital futurista: linhas de circuito, elementos em neon, interfaces holográficas e ícones vetoriais finos',
-    pagina: 'fundo escuro azul-marinho ou grafite, painéis translúcidos com bordas luminosas e grade sutil',
-    tipografia: 'títulos em sem serifa geométrica larga; corpo claro sobre fundo escuro com contraste alto',
-    evitar: 'texturas de papel, traço manual e excesso de brilho que prejudique a leitura',
-  },
-  'Infográfico Moderno': {
-    ilustracao: 'ícones vetoriais flat, pictogramas, gráficos simples e números em destaque',
-    pagina: 'grade modular rígida, blocos de cor chapada, fluxos com setas e dados visualmente hierarquizados',
-    tipografia: 'títulos em sem serifa bold; números grandes; corpo curto',
-    evitar: 'ilustrações detalhadas, texturas e decoração sem dado',
-  },
-  'Minimalista': {
-    ilustracao: 'ícones e ilustrações de linha fina, poucos elementos, apenas o essencial',
-    pagina: 'muito espaço em branco, no máximo 2 cores de destaque, alinhamento rigoroso e poucos blocos',
-    tipografia: 'uma família sem serifa em pesos diferentes; hierarquia por tamanho e espaço',
-    evitar: 'sombras, molduras, excesso de ícones e caixas coloridas',
-  },
-  '3D Educacional': {
-    ilustracao: 'objetos e esquemas em 3D estilizado, volumes suaves, iluminação macia e materiais foscos',
-    pagina: 'fundo claro, objetos 3D como protagonistas de cada bloco, rótulos com linhas de chamada',
-    tipografia: 'sem serifa arredondada e limpa; rótulos legíveis sobre os objetos',
-    evitar: 'fotorrealismo excessivo e cenas carregadas',
-  },
-  'Realista': {
-    ilustracao: 'imagens com aparência fotográfica realista de objetos, equipamentos e situações reais do tema',
-    pagina: 'fotos recortadas ou em molduras limpas, com rótulos e linhas de chamada sobre as imagens',
-    tipografia: 'sem serifa sóbria e editorial; legendas sob as imagens',
-    evitar: 'cartoon, rabiscos e elementos fantasiosos',
-  },
-  'Livro Didático': {
-    ilustracao: 'ilustrações editoriais limpas de livro didático brasileiro, com contorno suave e cores equilibradas',
-    pagina: 'fundo branco, cartões de cantos arredondados com sombra suave, faixas de título coloridas, etapas numeradas em círculos e ícones lineares consistentes',
-    tipografia: 'títulos grandes, subtítulos médios e corpo pequeno, no máximo 2 famílias sem serifa',
-    evitar: 'estética de pôster publicitário e excesso de efeitos',
-  },
-  'Colorido Infantil': {
-    ilustracao: 'ilustrações alegres com cores vivas, formas simples e arredondadas',
-    pagina: 'blocos coloridos, molduras divertidas, ícones grandes e muitos elementos visuais de apoio',
-    tipografia: 'títulos grandes e arredondados; corpo grande e muito legível',
-    evitar: 'tons escuros, traço técnico e texto denso',
-  },
-};
-
-function pagePlan(total, tipo) {
-  if (total === 1) return [];
-  const plan = [`Página 1: abertura — título, visão geral do tema e conceito central.`];
-  const answerPage = tipo === 'Caderno de atividades';
-  const lastContent = answerPage ? total - 1 : total;
-  for (let page = 2; page < lastContent; page += 1) plan.push(`Página ${page}: desenvolvimento — parte ${page - 1} do tema (divida o conteúdo em subtópicos lógicos, sem repetir páginas anteriores).`);
-  if (lastContent >= 2) plan.push(answerPage ? `Página ${lastContent}: atividades finais de maior dificuldade.` : `Página ${lastContent}: síntese — resumo final, pontos-chave e conexões entre as partes.`);
-  if (answerPage) plan.push(`Página ${total}: gabarito comentado de todas as atividades, com resolução curta.`);
-  return plan;
-}
-
-function generateImagePrompt(data) {
-  const profile = typeProfiles[data.tipo] || typeProfiles['Apostila didática'];
-  const tipoNome = data.tipo === 'Outro' ? 'Material didático' : data.tipo;
-  const style = styleProfiles[data.estiloVisual] || styleProfiles['Livro Didático'];
-  const formato = imagePageFormats[data.formato] || defaultPageFormat;
-  const total = Math.max(1, Number.parseInt(data.paginas, 10) || 1);
-  const assunto = text(data.assunto);
-  const disciplina = text(data.disciplina);
-  const visualItems = selectedResources(data);
-  const plan = pagePlan(total, data.tipo);
-  const childAudience = ['Educação Infantil', 'Ensino Fundamental I'].includes(data.publico);
-  const learners = { 'Adulto': 'adultos', 'Outro': 'pessoas do público-alvo' }[data.publico] || `alunos de ${data.publico}`;
-  const extras = [
-    data.objetivo?.trim() && `Objetivo: ${data.objetivo.trim()}`,
-    data.bncc?.trim() && `Habilidades BNCC: ${data.bncc.trim()}`,
-    data.bnccTextos?.trim() && data.bnccTextos.trim(),
-  ].filter(Boolean);
-  const lines = [
-    'ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.',
-    total === 1
-      ? `A saída esperada é UMA IMAGEM ÚNICA: uma página visual de ${tipoNome.toLowerCase()} sobre ${assunto}, em ${formato}.`
-      : `A saída esperada é uma sequência de ${total} IMAGENS, uma por página, de ${tipoNome.toLowerCase()} sobre ${assunto}, em ${formato}. Gere UMA imagem por vez.`,
-    `O estilo visual deve ser OBRIGATORIAMENTE: ${data.estiloVisual}. Não misture com outros estilos.`,
-    `O tipo de material deve ser OBRIGATORIAMENTE: ${tipoNome}.`,
-    'Não responda com texto explicativo: produza a imagem descrita abaixo.',
-    '',
-    'PAPEL',
-    'Atue como designer instrucional e ilustrador de material didático visual brasileiro.',
-    '',
-    'CONTEXTO',
-    `Disciplina: ${disciplina}`,
-    `Tema: ${assunto}`,
-    `Público: ${data.publico}`,
-    `Nível de profundidade: ${data.profundidade}`,
-    `Tipo de material: ${tipoNome}`,
-    `Formato da página: ${formato}`,
-    `Total de páginas: ${total} ${total === 1 ? 'página' : 'páginas'}`,
-    `Estilo de escrita: ${data.escrita}`,
-    `Estilo visual: ${data.estiloVisual}`,
-    `Paleta visual: ${data.paleta}`,
-    ...extras,
-    '',
-    'REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)',
-    'Antes de desenhar, revise com rigor técnico todo o conteúdo que vai aparecer na imagem: fórmulas, unidades, datas, nomes, números, terminologia e as relações entre os conceitos. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.',
-    '',
-    'MISSÃO',
-    `${total === 1 ? 'Gerar a IMAGEM de uma página completa' : `Gerar ${total} páginas`} de ${tipoNome.toLowerCase()} sobre ${assunto}, no estilo ${data.estiloVisual}, ${total === 1 ? 'pronta' : 'prontas'} para impressão. Foco do material: ${profile.foco}.`,
-    '',
-    '1) DESCRIÇÃO DA IMAGEM (PRINCIPAL)',
-    `Página didática de ${tipoNome.toLowerCase()} sobre "${assunto}" em ${disciplina}, no padrão de material educacional brasileiro.`,
-    `Siga RIGOROSAMENTE o estilo ${data.estiloVisual}:`,
-    `- Ilustração: ${style.ilustracao}.`,
-    `- Página: ${style.pagina}.`,
-    `- Tipografia: ${style.tipografia}.`,
-    `- Evite: ${style.evitar}.`,
-    childAudience
-      ? `Personagens, se houver, devem ser crianças da faixa etária de ${data.publico}.`
-      : `NÃO use figuras infantis nem imagens de crianças. Personagens, se houver, devem ser ${learners}, condizentes com o público-alvo.`,
-    'Cada ilustração deve representar diretamente um conceito do conteúdo; nada decorativo sem função.',
-    'Textos curtos, rótulos em negrito e legíveis. Priorize a explicação visual sobre o texto corrido.',
-    'Seções bem delimitadas, espaço generoso entre os blocos, margens amplas e nenhum elemento cortado nas bordas.',
-    'Conceitos-chave em caixas de destaque ("Dica", "Atenção", "Resumo") no visual do estilo escolhido.',
-    data.paleta === 'Automática'
-      ? 'Paleta automática: escolha cores que combinem com o estilo e o tema, com alto contraste entre texto e fundo.'
-      : `Paleta ${data.paleta}: aplique-a em todo o material, com alto contraste entre texto e fundo.`,
-    'Fórmulas, unidades, símbolos e valores numéricos devem estar corretos e coerentes entre si.',
-    'Os textos de ensino são a prioridade: conteúdo correto, legível e focado no aprendizado.',
-    'Todo o texto em português do Brasil, sem termos em inglês. Sem mockup e sem marca d\'água.',
-    ...(typeLayouts[data.tipo] ? ['', `REGRA DE LAYOUT — ${data.tipo.toUpperCase()} (prevalece sobre qualquer outra instrução de layout)`, ...typeLayouts[data.tipo].map(rule => `- ${rule}`), ...(data.tipo === 'Mapa mental' && ['Doodle', 'Hand-drawn'].includes(data.estiloVisual) ? ['- Fundo de folha de caderno: pauta sutil azul-clara, margem vermelha à esquerda e espiral metálica na lateral; traço de caneta ou marcador e pequenos adesivos (estrelas, setas, lâmpadas) ao lado dos nós principais.'] : [])] : []),
-    '',
-    '2) MICROTEXTOS DENTRO DA IMAGEM',
-    `Título em caixa alta: ${assunto.toUpperCase()}`,
-    `Linha de apoio: ${disciplina} | ${profile.apoio} | ${data.publico}`,
-    ...profile.microtextos,
-    '',
-    '3) ELEMENTOS VISUAIS',
-    ...(typeElements[data.tipo] ? [typeElements[data.tipo]] : [
-      `Use de 4 a 6 elementos visuais${visualItems.length ? `, priorizando: ${visualItems.join(', ')}` : ''}. Para cada um, defina o que representa e por que ajuda a aprender.`,
-      'Opções: comparação lado a lado, esquema ou diagrama rotulado, fluxo de etapas com setas, tabela simples, ícones coloridos, caixa "Dica rápida" e mini-glossário ilustrado.',
-    ]),
-    '',
-    '4) DIFICULDADE DOS ALUNOS',
-    `Identifique a principal dificuldade de ${learners} ao estudar ${assunto} e faça o visual resolvê-la.`,
-  ];
-  if (data.referencias?.trim()) lines.push('', 'CONTEÚDO DE REFERÊNCIA (USE OBRIGATORIAMENTE)', data.referencias.trim());
-  if (plan.length) lines.push('', `PLANO DE PÁGINAS (${total})`, ...plan, 'Distribua os microtextos e elementos visuais entre as páginas conforme o plano: título e abertura na Página 1, resumo final na última.', '', 'Gere AGORA somente a Página 1. Depois de cada imagem, aguarde eu escrever "próxima" para gerar a página seguinte.', 'Mantenha em todas as páginas exatamente o mesmo estilo, paleta, tipografia e identidade visual, e numere cada página no rodapé (ex.: 1/' + total + ').');
-  lines.push(
-    '',
-    'RESTRIÇÃO',
-    profile.restricao,
-    '',
-    'CRITÉRIOS DE QUALIDADE',
-    '- Progressão lógica e linguagem adequada ao público.',
-    '- Não presumir conhecimento ainda não apresentado; explicar termos técnicos na primeira ocorrência.',
-    '- Evitar redundância e texto decorativo.',
-    '- Não inventar informações factuais, técnicas ou normativas; havendo incerteza, sinalizar a necessidade de validação.',
-  );
-  if (data.orientacoes?.trim()) lines.push('', 'ORIENTAÇÕES ADICIONAIS', data.orientacoes.trim());
-  return lines.join('\n');
-}
-
-const coverFormats = {
-  'Somente tela': 'vertical 4:5 (1080x1350 px), otimizada para tela',
-  'Apresentação 16:9': 'horizontal 16:9 (1920x1080 px)',
-};
-
-function generateCoverPrompt(data) {
-  const formato = coverFormats[data.formato] || 'vertical A4 (210x297 mm)';
-  const style = styleProfiles[data.estiloVisual] || styleProfiles['Livro Didático'];
-  const titulo = text(data.titulo);
-  const disciplina = data.disciplina?.trim();
-  const tema = disciplina ? `${titulo} (${disciplina})` : titulo;
-  const childAudience = ['Educação Infantil', 'Ensino Fundamental I'].includes(data.publico);
-  const learners = { 'Adulto': 'adultos', 'Outro': 'pessoas do público-alvo' }[data.publico] || `alunos de ${data.publico}`;
-  const texts = [
-    ['Texto superior', data.textoSuperior],
-    ['Título principal', data.titulo],
-    ['Subtítulo', data.subtitulo],
-    ['Frase inferior', data.fraseInferior],
-    ['Série', data.serie],
-    ['Professor(a)', data.professor],
-    ['Instituição', data.instituicao],
-  ].filter(([, value]) => value?.trim());
-  const hasCredits = [data.serie, data.professor, data.instituicao].some(value => value?.trim());
-  const lines = [
-    'ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.',
-    `A saída esperada é UMA IMAGEM ÚNICA: a arte frontal de uma capa de apostila educacional, em formato ${formato}.`,
-    `O estilo visual deve ser OBRIGATORIAMENTE: ${data.estiloVisual}. Não misture com outros estilos.`,
-    'Não responda com texto explicativo: produza somente a imagem descrita abaixo.',
-    '',
-    'PAPEL',
-    'Atue como designer gráfico editorial especializado em capas de material didático brasileiro.',
-    '',
-    'CONTEXTO',
-    ...(disciplina ? [`Disciplina: ${disciplina}`] : []),
-    `Tema da capa: ${titulo}`,
-    `Público: ${data.publico}`,
-    `Estilo visual: ${data.estiloVisual}`,
-    `Paleta visual: ${data.paleta}`,
-    '',
-    'REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)',
-    'Antes de desenhar, revise com rigor técnico os elementos ilustrados (fidelidade ao tema, proporções, símbolos e termos) e a grafia de cada texto da capa. Corrija o que estiver errado, simplifique o que não tiver certeza e não inclua dado, fonte ou citação que você não possa confirmar. Só depois gere a imagem, sem escrever essa revisão na resposta.',
-    '',
-    'TEXTOS DA CAPA (escreva exatamente como abaixo, letra por letra, com a acentuação indicada)',
-    ...texts.map(([label, value]) => `${label}: "${value.trim()}"`),
-    'Nenhum outro texto deve aparecer na capa: não invente slogans, datas, selos, logotipos ou assinaturas.',
-    '',
-    `DIREÇÃO DE ARTE — ${data.estiloVisual.toUpperCase()}`,
-    `- Ilustração: ${style.ilustracao}.`,
-    `- Página: ${style.pagina}.`,
-    `- Tipografia: ${style.tipografia}.`,
-    `- Evite: ${style.evitar}.`,
-    '',
-    'COMPOSIÇÃO',
-    '- Hierarquia tipográfica: texto superior pequeno, título principal muito grande e dominante, subtítulo médio e frase inferior pequena na base.',
-    `- Título em destaque, no centro ou no terço superior, com ilustrações ao redor relacionadas a ${tema}, sem cobrir nenhum texto.`,
-    ...(data.elementos?.trim() ? [`- Elementos obrigatórios na ilustração: ${data.elementos.trim()}.`] : []),
-    ...(hasCredits ? ['- Série, professor(a) e instituição em texto pequeno e discreto, em uma área própria (rodapé ou canto), sem competir com o título.'] : []),
-    '- Margens amplas, nada cortado nas bordas e alto contraste entre texto e fundo; tipografia extremamente legível.',
-    data.paleta === 'Automática'
-      ? '- Paleta automática: escolha cores que combinem com o estilo e o tema.'
-      : `- Paleta ${data.paleta}: aplique-a em toda a capa.`,
-    childAudience
-      ? `- Personagens, se houver, devem ser crianças da faixa etária de ${data.publico}.`
-      : `- NÃO use figuras infantis nem imagens de crianças. Personagens, se houver, devem ser ${learners}.`,
-    '',
-    'RESTRIÇÕES',
-    '- Evite excesso de elementos e fundos poluídos.',
-    `- Formato ${formato}.`,
-    '- Sem mockup. Sem livro físico, sem sombra de livro e sem moldura de dispositivo: apenas a arte frontal da capa.',
-    "- Sem marca d'água.",
-    '- Todo o texto em português do Brasil, sem erros de grafia.',
-  ];
-  return lines.join('\n');
-}
+// Os geradores de prompt (apostila, imagem e capa) ficam em prompts.js e recebem o t() do idioma atual.
+const geradores = () => window.prompts.criarGeradores(window.t, window.idioma.idioma);
 
 const workspace = document.querySelector('#workspace') || document.querySelector('.workspace');
 const outPanel = document.querySelector('#out-panel');
@@ -687,8 +294,8 @@ function armAction(button, confirmText, idleTitle, ms) {
     button.setAttribute('aria-label', idleTitle);
   }, ms);
 }
-const KIND_LABEL = { apostila: 'Apostila', capa: 'Capa' };
-const RESULT_BADGE = { apostila: 'Prompt da apostila', capa: 'Prompt da capa' };
+const KIND_LABEL = { get apostila() { return t('js.projetos.tipo_apostila'); }, get capa() { return t('js.projetos.tipo_capa'); } };
+const RESULT_BADGE = { get apostila() { return t('js.gerar.badge_apostila'); }, get capa() { return t('js.gerar.badge_capa'); } };
 
 function updateCompletion() {
   const data = dataObject(form);
@@ -711,11 +318,11 @@ function validateRequired(target) {
 }
 
 let savedAtLabel = '';
-const clockLabel = value => new Date(value || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const clockLabel = value => new Date(value || Date.now()).toLocaleTimeString(window.idioma.idioma, { hour: '2-digit', minute: '2-digit' });
 
 function updateCrumbs() {
-  document.querySelector('#crumb-name').textContent = projectName.value.trim() || 'Novo projeto';
-  document.querySelector('#crumb-state').textContent = currentProjectId ? (savedAtLabel ? `salvo às ${savedAtLabel}` : 'salvo') : 'não salvo';
+  document.querySelector('#crumb-name').textContent = projectName.value.trim() || t('js.projetos.novo');
+  document.querySelector('#crumb-state').textContent = currentProjectId ? (savedAtLabel ? t('js.projetos.salvo_as', { hora: savedAtLabel }) : t('js.projetos.salvo')) : t('js.projetos.nao_salvo');
 }
 function setProjectName(value) {
   projectName.value = value;
@@ -729,7 +336,7 @@ function toggleRename(open) {
 }
 
 function syncSaveButtons() {
-  saveProjectButton.querySelector('.save-label').textContent = currentProjectId ? 'Atualizar projeto' : 'Salvar projeto';
+  saveProjectButton.querySelector('.save-label').textContent = t(currentProjectId ? 'js.projetos.atualizar' : 'js.projetos.salvar');
   saveProjectNewButton.hidden = !currentProjectId;
   if (!currentProjectId) savedAtLabel = '';
   updateCrumbs();
@@ -756,7 +363,11 @@ mobileSteps.addEventListener('click', event => {
 });
 document.querySelector('#mobile-projects').addEventListener('click', () => showView('projetos'));
 
+let badgeAi = false;
+let badgeTime = null;
 function showResult({ prompt, kind, badge, files = false }) {
+  badgeAi = files;
+  badgeTime = new Date();
   currentPrompt = prompt;
   currentKind = kind;
   if (currentProjectId && currentProjectKind !== kind) currentProjectId = null;
@@ -764,7 +375,7 @@ function showResult({ prompt, kind, badge, files = false }) {
   currentFiles = [];
   outEmpty.hidden = true;
   outBody.hidden = false;
-  outBadge.textContent = `${badge} · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  outBadge.textContent = `${badge} · ${new Date().toLocaleTimeString(window.idioma.idioma, { hour: '2-digit', minute: '2-digit' })}`;
   outBadge.hidden = false;
   output.textContent = prompt;
   output.hidden = files;
@@ -781,8 +392,8 @@ function showResult({ prompt, kind, badge, files = false }) {
 }
 
 document.querySelector('#generate-ai').addEventListener('click', () => {
-  if (!aiAvailable) { notify('Salve a sua chave em "Minha chave de IA" para gerar o material.'); return; }
-  if (!aiImages && form.elements.modoImagem.value === 'gerar') { notify(AI_NO_IMAGES_MESSAGE); return; }
+  if (!aiAvailable) { notify(t('js.ia.salve_chave_gerar')); return; }
+  if (!aiImages && form.elements.modoImagem.value === 'gerar') { notify(aiNoImagesMessage()); return; }
   const mode = form.elements.modoGeracao;
   mode.value = 'ai';
   form.requestSubmit();
@@ -821,10 +432,7 @@ async function bnccTextBlock(raw) {
   try { await loadBncc(); } catch { return ''; }
   const known = codes.map(code => bncc.index.get(code)).filter(Boolean);
   const unknown = codes.filter(code => !bncc.index.has(code));
-  const lines = [];
-  if (known.length) lines.push(`- Texto oficial das habilidades informadas (fonte: ${bncc.data.fonte.nome}, versão ${bncc.data.versao}):`, ...known.map(item => `  * ${item.c}: ${item.t}`));
-  if (unknown.length) lines.push(`- Códigos que não constam na base de habilidades usada pelo GeradorOne (não os trate como válidos sem conferir no documento oficial): ${unknown.join(', ')}.`);
-  return lines.join('\n');
+  return geradores().blocoBncc({ conhecidas: known, desconhecidas: unknown, fonte: bncc.data.fonte.nome, versao: bncc.data.versao });
 }
 
 const bnccEls = {
@@ -834,13 +442,13 @@ const bnccEls = {
   status: document.querySelector('#bncc-status'), list: document.querySelector('#bncc-list'), count: document.querySelector('#bncc-selecionadas'),
   clear: document.querySelector('#bncc-limpar'), use: document.querySelector('#bncc-usar'), versao: document.querySelector('#bncc-versao'), input: form.elements.bncc
 };
-const BNCC_STAGE_SHORT = { EI: 'Ed. Infantil', EF: 'Ens. Fundamental', EM: 'Ens. Médio' };
-const BNCC_RECORTE = { EI: 'Faixa etária', EF: 'Ano', EM: '' };
-const BNCC_GRUPO = { EI: 'Campo de experiências', EF: 'Componente', EM: 'Área', '': 'Componente, área ou campo' };
+const BNCC_STAGE_SHORT = { get EI() { return t('js.bncc.etapa_ei'); }, get EF() { return t('js.bncc.etapa_ef'); }, get EM() { return t('js.bncc.etapa_em'); } };
+const BNCC_RECORTE = { get EI() { return t('js.bncc.recorte_ei'); }, get EF() { return t('js.bncc.recorte_ef'); }, EM: '' };
+const BNCC_GRUPO = { get EI() { return t('js.bncc.grupo_ei'); }, get EF() { return t('js.bncc.grupo_ef'); }, get EM() { return t('js.bncc.grupo_em'); }, get '' () { return t('js.bncc.grupo_todos'); } };
 const BNCC_EF_YEARS = Array.from({ length: 9 }, (_, index) => `${index + 1}º ano`);
 
-function bnccFillSelect(select, values, placeholder = 'Todos') {
-  select.replaceChildren(new Option(placeholder, ''), ...values.map(value => new Option(value, value)));
+function bnccFillSelect(select, values, placeholder = t('js.bncc.todos'), label = value => value) {
+  select.replaceChildren(new Option(placeholder, ''), ...values.map(value => new Option(label(value), value)));
 }
 
 function bnccRefreshOptions() {
@@ -850,9 +458,10 @@ function bnccRefreshOptions() {
   bnccFillSelect(bnccEls.grupo, groups);
   bnccEls.grupoLabel.textContent = BNCC_GRUPO[stage];
   const ranges = stage === 'EI' ? [...new Set(items.flatMap(item => item.r))] : stage === 'EF' ? BNCC_EF_YEARS : [];
-  bnccFillSelect(bnccEls.recorte, ranges);
+  // Os valores seguem em português (batem com o bncc.json); só o rótulo do ano é traduzido.
+  bnccFillSelect(bnccEls.recorte, ranges, undefined, stage === 'EF' ? value => t('js.bncc.ano_n', { n: Number.parseInt(value, 10) }) : undefined);
   bnccEls.recorte.disabled = !ranges.length;
-  bnccEls.recorteLabel.textContent = BNCC_RECORTE[stage] || (stage === 'EM' ? 'Sem seriação no Ensino Médio' : 'Ano ou faixa etária');
+  bnccEls.recorteLabel.textContent = BNCC_RECORTE[stage] || (stage === 'EM' ? t('js.bncc.sem_seriacao') : t('js.bncc.ano_ou_faixa'));
 }
 
 function bnccMatches() {
@@ -898,13 +507,13 @@ function bnccRender() {
     return row;
   }));
   bnccEls.status.textContent = !matches.length
-    ? 'Nenhuma habilidade encontrada. Ajuste os filtros ou a busca.'
-    : matches.length > shown.length ? `Mostrando ${shown.length} de ${matches.length} habilidades. Use os filtros ou a busca para refinar.` : `${matches.length} ${matches.length === 1 ? 'habilidade' : 'habilidades'}.`;
+    ? t('js.bncc.nenhuma_encontrada')
+    : matches.length > shown.length ? t('js.bncc.mostrando', { mostradas: shown.length, total: matches.length }) : t.plural('js.bncc.habilidades', matches.length);
 }
 
 function bnccUpdateCount() {
   const total = bncc.selected.size;
-  bnccEls.count.textContent = total ? `${total} ${total === 1 ? 'selecionada' : 'selecionadas'}` : 'Nenhuma selecionada';
+  bnccEls.count.textContent = total ? t.plural('js.bncc.selecionadas', total) : t('js.bncc.nenhuma_selecionada');
   bnccEls.use.disabled = !total;
 }
 
@@ -913,7 +522,7 @@ async function bnccCheckTyped() {
   if (!codes.length) { bnccEls.hint.textContent = ''; bnccEls.hint.className = 'field-status'; return; }
   try { await loadBncc(); } catch { bnccEls.hint.textContent = ''; return; }
   const unknown = codes.filter(code => !bncc.index.has(code));
-  bnccEls.hint.textContent = unknown.length ? `Não encontrei na BNCC: ${unknown.join(', ')}. Confira o código.` : `${codes.length} ${codes.length === 1 ? 'código reconhecido' : 'códigos reconhecidos'} na BNCC. O texto oficial entra no prompt.`;
+  bnccEls.hint.textContent = unknown.length ? t('js.bncc.nao_encontrei', { codigos: unknown.join(', ') }) : t.plural('js.bncc.reconhecidos', codes.length);
   bnccEls.hint.className = `field-status ${unknown.length ? 'unavailable' : 'available'}`;
 }
 
@@ -925,11 +534,11 @@ bnccEls.open.addEventListener('click', async () => {
   bnccEls.panel.hidden = !open;
   bnccEls.open.setAttribute('aria-expanded', String(open));
   if (!open) return;
-  bnccEls.status.textContent = 'Carregando as habilidades…';
+  bnccEls.status.textContent = t('js.bncc.carregando');
   try {
     await loadBncc();
   } catch {
-    bnccEls.status.textContent = 'Não foi possível carregar as habilidades da BNCC agora. Você ainda pode digitar os códigos.';
+    bnccEls.status.textContent = t('js.bncc.erro_carregar');
     return;
   }
   bnccEls.versao.textContent = bncc.data.versao;
@@ -963,7 +572,7 @@ bnccEls.use.addEventListener('click', () => {
   bnccEls.open.setAttribute('aria-expanded', 'false');
   bncc.selected.clear();
   bnccEls.input.focus();
-  notify(added.length ? `${added.length} ${added.length === 1 ? 'habilidade adicionada' : 'habilidades adicionadas'}` : 'As habilidades escolhidas já estavam no campo');
+  notify(added.length ? t.plural('js.bncc.adicionadas', added.length) : t('js.bncc.ja_estavam'));
 });
 
 form.addEventListener('submit', async event => {
@@ -971,43 +580,32 @@ form.addEventListener('submit', async event => {
   if (!validateRequired(form)) return;
   const settings = dataObject(form);
   settings.bnccTextos = await bnccTextBlock(settings.bncc);
-  const pages = Math.max(1, Number.parseInt(settings.paginas, 10) || 1);
-  settings.extensao = `${pages} ${pages === 1 ? 'página' : 'páginas'}, no máximo`;
   const aiMode = settings.modoGeracao === 'ai';
-  let prompt;
-  if (!aiMode) {
-    prompt = generateImagePrompt(settings);
-  } else {
-    const deliveryInstruction = settings.formatoEntrega === 'pdf'
-      ? `- Entregue UM ÚNICO ARQUIVO PDF FINAL, completo e pronto para download.\n- NÃO entregue HTML, arquivos Python (.py), scripts, notebooks, código-fonte ou instruções para gerar o PDF.\n- Use as ferramentas de criação de documentos disponíveis para produzir e anexar o PDF pronto.\n- Os mapas mentais, diagramas, infográficos, gráficos e ilustrações selecionados devem estar VISUALMENTE renderizados dentro do PDF, não apenas descritos.\n- Se imagens raster não estiverem disponíveis, crie ilustrações vetoriais e incorpore-as ao PDF.\n- Não responda apenas com texto: a entrega obrigatória é o arquivo .pdf final.`
-      : `- Entregue UM ÚNICO arquivo HTML completo, autônomo e pronto para abrir no navegador.\n- Incorpore todo o CSS e todos os SVGs dentro do próprio HTML. Não crie arquivos auxiliares.\n- NÃO gere arquivos Python (.py), scripts de renderização, notebooks ou pacotes de projeto.\n- Os recursos selecionados devem aparecer VISUALMENTE no HTML, não apenas como descrição.\n- Se imagens raster não estiverem disponíveis, produza ilustrações vetoriais em SVG acessível dentro do HTML.\n- Não responda com uma explicação: entregue o HTML final completo em um único bloco de código.`;
-    prompt = `${generatePrompt(settings)}\n\n9. PARÂMETROS DE PRODUÇÃO DIGITAL\n- Formato dos diagramas: ${settings.formatoDiagrama}.\n- Política de imagens por IA: ${settings.modoImagem}.\n- Formato final selecionado: ${settings.formatoEntrega === 'pdf' ? 'PDF' : 'HTML'}.\n- Não inclua chaves, credenciais ou dados pessoais em prompts de serviços externos.\n\n10. FORMATO DE ENTREGA OBRIGATÓRIO\n${deliveryInstruction}`;
-    if (settings.modoImagem === 'gerar') prompt += '\n\n11. IMAGENS OBRIGATÓRIAS\n- Gere imagens reais com IA e incorpore-as visualmente ao material final, se a plataforma usada tiver ferramenta própria de geração de imagem.\n- Se a plataforma não tiver ferramenta de geração de imagem raster, produza ilustrações vetoriais em SVG acessível e renderizadas no próprio arquivo, seguindo a mesma especificação do briefing.\n- Não entregue prompts de imagem, descrições de produção, caixas vazias ou espaços reservados no lugar das imagens.\n- A entrega está incompleta se nenhum visual estiver de fato renderizado (raster ou vetorial) no arquivo final.\n- Disponibilize também as imagens geradas como arquivos PNG separados quando a plataforma permitir.';
-  }
-  showResult({ prompt, kind: 'apostila', badge: aiMode ? 'Material gerado com IA' : RESULT_BADGE.apostila, files: aiMode });
+  const prompt = aiMode ? geradores().montarPromptApostila(settings) : geradores().generateImagePrompt(settings);
+  showResult({ prompt, kind: 'apostila', badge: aiMode ? t('js.gerar.badge_ia') : RESULT_BADGE.apostila, files: aiMode });
   if (!currentProjectId) setProjectName(settings.assunto);
   if (!aiMode) {
-    status.textContent = 'Prompt montado no navegador. Os dados só são enviados ao servidor ao pedir a prévia, o PDF ou melhorar com IA.';
+    status.textContent = t('js.gerar.prompt_montado');
     return;
   }
-  generatedFiles.innerHTML = '<div class="ai-loading"><span class="ai-spinner" aria-hidden="true"></span><strong>Produzindo o material…</strong><span>Esta etapa pode levar alguns minutos. Não saia desta página.</span></div>';
-  status.textContent = 'A IA está criando e finalizando o arquivo solicitado.';
+  generatedFiles.innerHTML = `<div class="ai-loading"><span class="ai-spinner" aria-hidden="true"></span><strong>${escapeUi(t('js.gerar.produzindo'))}</strong><span>${escapeUi(t('js.gerar.demora'))}</span></div>`;
+  status.textContent = t('js.gerar.ia_criando');
   const button = document.querySelector('#generate-button');
   const label = button.querySelector('.generate-label');
   const originalLabel = label.textContent;
   button.disabled = true;
-  label.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>Gerando…';
+  label.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>' + escapeUi(t('js.gerar.gerando'));
   try {
     const imageCount = settings.frequencia.startsWith('Intensa') ? 3 : settings.frequencia.startsWith('Equilibrada') ? 2 : 1;
-    const response = await apiFetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt, generateImages: settings.modoImagem === 'gerar', imageCount }) });
+    const response = await apiFetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt, generateImages: settings.modoImagem === 'gerar', imageCount, language: window.idioma.idioma }) });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível gerar o material.');
+    if (!response.ok) throw new Error(result.error || t('js.gerar.erro_material'));
     currentFiles = result.files || [];
     renderGeneratedFiles();
-    status.textContent = `${currentFiles.length} arquivo${currentFiles.length === 1 ? '' : 's'} gerado${currentFiles.length === 1 ? '' : 's'} com ${result.model}. Escolha onde salvar.`;
-    notify('Material gerado');
+    status.textContent = t.plural('js.gerar.arquivos_gerados', currentFiles.length, { model: result.model });
+    notify(t('js.msg.material_gerado'));
   } catch (error) {
-    generatedFiles.innerHTML = `<div class="ai-loading"><strong>Não foi possível gerar o material.</strong><span>${escapeUi(error.message)}</span></div>`;
+    generatedFiles.innerHTML = `<div class="ai-loading"><strong>${escapeUi(t('js.gerar.erro_material'))}</strong><span>${escapeUi(error.message)}</span></div>`;
     status.textContent = error.message;
   } finally {
     button.disabled = false;
@@ -1019,9 +617,9 @@ capaForm.addEventListener('submit', event => {
   event.preventDefault();
   if (!validateRequired(capaForm)) return;
   const settings = dataObject(capaForm);
-  showResult({ prompt: generateCoverPrompt(settings), kind: 'capa', badge: RESULT_BADGE.capa });
-  if (!currentProjectId) setProjectName(`Capa: ${settings.titulo}`);
-  status.textContent = 'Prompt da capa montado no navegador.';
+  showResult({ prompt: geradores().generateCoverPrompt(settings), kind: 'capa', badge: RESULT_BADGE.capa });
+  if (!currentProjectId) setProjectName(t('js.projetos.nome_capa', { titulo: settings.titulo }));
+  status.textContent = t('js.gerar.prompt_capa_montado');
 });
 
 [form, capaForm].forEach(target => target.addEventListener('reset', () => {
@@ -1049,14 +647,14 @@ function saveGeneratedFile(index) {
   const anchor = Object.assign(document.createElement('a'), { href: url, download: file.name });
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  notify(`${file.name} pronto para salvar`);
+  notify(t('js.msg.pronto_salvar', { nome: file.name }));
 }
 
 function renderGeneratedFiles() {
   generatedFiles.innerHTML = currentFiles.map((file, index) => {
     const extension = file.name.split('.').pop().toUpperCase();
     const size = Math.round((file.data.length * .75) / 1024);
-    return `<article class="generated-file"><span class="file-icon">${escapeUi(extension)}</span><div><h3>${escapeUi(file.name)}</h3><p>${escapeUi(file.mimeType)} · aproximadamente ${size} KB</p></div><button type="button" data-save-file="${index}">Salvar localmente</button></article>`;
+    return `<article class="generated-file"><span class="file-icon">${escapeUi(extension)}</span><div><h3>${escapeUi(file.name)}</h3><p>${escapeUi(t('js.exportar.arquivo_tamanho', { tipo: file.mimeType, kb: size }))}</p></div><button type="button" data-save-file="${index}">${escapeUi(t('js.exportar.salvar_local'))}</button></article>`;
   }).join('');
 }
 
@@ -1080,21 +678,22 @@ document.querySelector('#copy').addEventListener('click', async () => {
     }
     const copyIcon = button.querySelector('.copy-icon');
     const defaultIconHtml = copyIcon.innerHTML;
+    const defaultLabel = button.querySelector('.copy-label').textContent;
     button.classList.add('copied');
     copyIcon.innerHTML = '<svg class="icon-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    button.querySelector('.copy-label').textContent = 'Copiado!';
-    status.textContent = 'Prompt copiado para a área de transferência.';
-    notify('Prompt copiado');
-    setTimeout(() => { button.classList.remove('copied'); copyIcon.innerHTML = defaultIconHtml; button.querySelector('.copy-label').textContent = 'Copiar'; }, 2200);
-  } catch { status.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'; }
+    button.querySelector('.copy-label').textContent = t('js.msg.copiado');
+    status.textContent = t('js.msg.prompt_copiado_area');
+    notify(t('js.msg.prompt_copiado'));
+    setTimeout(() => { button.classList.remove('copied'); copyIcon.innerHTML = defaultIconHtml; button.querySelector('.copy-label').textContent = defaultLabel; }, 2200);
+  } catch { status.textContent = t('js.msg.erro_copiar'); }
 });
-document.querySelector('#export-txt').addEventListener('click', () => { download(`prompt-${currentKind}.txt`, currentPrompt, 'text/plain;charset=utf-8'); notify('Arquivo TXT preparado'); });
-document.querySelector('#export-json').addEventListener('click', () => { download('projeto-geradorone.json', JSON.stringify({ version: 3, kind: currentKind, createdAt: new Date().toISOString(), settings: dataObject(formFor(currentKind)), prompt: currentPrompt }, null, 2), 'application/json'); notify('Projeto JSON preparado'); });
+document.querySelector('#export-txt').addEventListener('click', () => { download(`prompt-${currentKind}.txt`, currentPrompt, 'text/plain;charset=utf-8'); notify(t('js.exportar.txt_preparado')); });
+document.querySelector('#export-json').addEventListener('click', () => { download('projeto-geradorone.json', JSON.stringify({ version: 3, kind: currentKind, createdAt: new Date().toISOString(), settings: dataObject(formFor(currentKind)), prompt: currentPrompt }, null, 2), 'application/json'); notify(t('js.exportar.json_preparado')); });
 previewButton.addEventListener('click', async () => {
-  status.textContent = 'Preparando prévia…';
+  status.textContent = t('js.exportar.preparando_previa');
   try {
     if (!currentPreviewHtml) {
-      const response = await apiFetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
+      const response = await apiFetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt, language: window.idioma.idioma }) });
       if (!response.ok) throw new Error('Falha na prévia');
       currentPreviewHtml = (await response.json()).html;
     }
@@ -1102,38 +701,44 @@ previewButton.addEventListener('click', async () => {
     previewFrame.hidden = false;
     output.hidden = true;
     setResultTab('preview');
-    status.textContent = 'Prévia HTML exibida.';
-  } catch { status.textContent = 'Não foi possível gerar a prévia. O prompt continua disponível.'; }
+    status.textContent = t('js.exportar.previa_exibida');
+  } catch { status.textContent = t('js.exportar.erro_previa'); }
 });
-showPromptButton.addEventListener('click', () => { previewFrame.hidden = true; output.hidden = false; setResultTab('prompt'); status.textContent = 'Exibindo o prompt completo.'; });
+showPromptButton.addEventListener('click', () => { previewFrame.hidden = true; output.hidden = false; setResultTab('prompt'); status.textContent = t('js.exportar.exibindo_prompt'); });
 document.querySelector('#export-pdf').addEventListener('click', async () => {
-  status.textContent = 'Gerando arquivo PDF…';
+  status.textContent = t('js.exportar.gerando_pdf');
   try {
-    const response = await apiFetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt }) });
+    const response = await apiFetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt, language: window.idioma.idioma }) });
     if (!response.ok) throw new Error('Falha no PDF');
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
     const anchor = Object.assign(document.createElement('a'), { href: url, download: 'prompt-geradorone.pdf' });
     anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    status.textContent = 'PDF gerado e baixado.';
-    notify('PDF gerado');
-  } catch { status.textContent = 'Não foi possível preparar o PDF.'; }
+    status.textContent = t('js.exportar.pdf_baixado');
+    notify(t('js.exportar.pdf_gerado'));
+  } catch { status.textContent = t('js.exportar.erro_pdf'); }
 });
 
+// O primeiro item é a chave do rótulo (js.melhorar.<chave>) e da instrução (prompt.melhorar.<chave>); o segundo é o texto em português, só de referência.
 const improveAdjustments = [
-  ['Mais detalhado', 'Aumente o detalhamento: mais subtópicos, exemplos e rótulos explicativos, sem ultrapassar o número de páginas.'],
-  ['Mais simples', 'Simplifique: menos blocos, frases mais curtas e vocabulário mais acessível.'],
-  ['Mais visual', 'Torne mais visual: mais esquemas, ícones e ilustrações, e menos texto.'],
-  ['Mais didático', 'Reforce o caráter didático: progressão passo a passo, analogias do cotidiano e destaque para os conceitos-chave.'],
-  ['Mais profissional', 'Dê um tom mais técnico e profissional, com termos da área e aplicação prática.'],
-  ['Adaptar para crianças', 'Adapte para crianças: linguagem simples, exemplos do dia a dia e visual acolhedor.'],
-  ['Aumentar dificuldade', 'Aumente a dificuldade: conceitos mais aprofundados e exemplos mais desafiadores.'],
-  ['Diminuir dificuldade', 'Diminua a dificuldade: foque no essencial, com exemplos básicos.'],
+  ['detalhado', 'Aumente o detalhamento: mais subtópicos, exemplos e rótulos explicativos, sem ultrapassar o número de páginas.'],
+  ['simples', 'Simplifique: menos blocos, frases mais curtas e vocabulário mais acessível.'],
+  ['visual', 'Torne mais visual: mais esquemas, ícones e ilustrações, e menos texto.'],
+  ['didatico', 'Reforce o caráter didático: progressão passo a passo, analogias do cotidiano e destaque para os conceitos-chave.'],
+  ['profissional', 'Dê um tom mais técnico e profissional, com termos da área e aplicação prática.'],
+  ['criancas', 'Adapte para crianças: linguagem simples, exemplos do dia a dia e visual acolhedor.'],
+  ['dificuldade_mais', 'Aumente a dificuldade: conceitos mais aprofundados e exemplos mais desafiadores.'],
+  ['dificuldade_menos', 'Diminua a dificuldade: foque no essencial, com exemplos básicos.'],
 ];
 const improveStatus = document.querySelector('#improve-status');
 const improveInstruction = document.querySelector('#improve-instruction');
-document.querySelector('#improve-options').innerHTML = improveAdjustments.map(([label], index) => `<label class="improve-chip"><input type="checkbox" name="adjust" value="${index}"><span>${label}</span></label>`).join('');
+const improveOptions = document.querySelector('#improve-options');
+function renderImproveChips() {
+  const marcados = new Set([...improveOptions.querySelectorAll('input:checked')].map(box => box.value));
+  improveOptions.innerHTML = improveAdjustments.map(([chave], index) => `<label class="improve-chip"><input type="checkbox" name="adjust" value="${index}"${marcados.has(String(index)) ? ' checked' : ''}><span>${t(`js.melhorar.${chave}`)}</span></label>`).join('');
+}
+renderImproveChips();
 
 function closeImprove() {
   improveBox.hidden = true;
@@ -1146,8 +751,8 @@ improveOpen.addEventListener('click', () => {
   improveInstruction.value = '';
   improveStatus.textContent = '';
   document.querySelector('#improve-mode').textContent = aiAvailable
-    ? 'A IA configurada no servidor vai reescrever o prompt aplicando os ajustes.'
-    : 'IA não configurada: os ajustes serão anexados ao fim do prompt. Configure a chave em "Minha chave de IA" para a IA reescrever o prompt.';
+    ? t('js.melhorar.modo_ia')
+    : t('js.melhorar.modo_sem_ia');
   improveBox.hidden = false;
   improveOpen.setAttribute('aria-expanded', 'true');
 });
@@ -1163,26 +768,26 @@ function replacePrompt(prompt) {
 }
 
 document.querySelector('#improve-apply').addEventListener('click', async () => {
-  const adjustments = [...improveBox.querySelectorAll('[name=adjust]:checked')].map(box => improveAdjustments[Number(box.value)][1]);
+  const adjustments = [...improveBox.querySelectorAll('[name=adjust]:checked')].map(box => t(`prompt.melhorar.${improveAdjustments[Number(box.value)][0]}`));
   const instruction = improveInstruction.value.trim();
-  if (!adjustments.length && !instruction) { improveStatus.textContent = 'Escolha ao menos um ajuste ou escreva uma instrução.'; return; }
+  if (!adjustments.length && !instruction) { improveStatus.textContent = t('js.melhorar.escolha'); return; }
   if (!aiAvailable) {
-    replacePrompt(`${currentPrompt}\n\nAJUSTES SOLICITADOS\n${[...adjustments, instruction].filter(Boolean).map(item => `- ${item}`).join('\n')}`);
+    replacePrompt(geradores().anexarAjustes(currentPrompt, [...adjustments, instruction]));
     closeImprove();
-    notify('Ajustes anexados ao prompt');
+    notify(t('js.melhorar.anexados'));
     return;
   }
   const apply = document.querySelector('#improve-apply');
   apply.disabled = true;
-  improveStatus.textContent = 'A IA está reescrevendo o prompt…';
+  improveStatus.textContent = t('js.melhorar.reescrevendo');
   try {
-    const response = await apiFetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction }) });
+    const response = await apiFetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction, language: window.idioma.idioma }) });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível melhorar o prompt.');
+    if (!response.ok) throw new Error(result.error || t('js.melhorar.erro'));
     replacePrompt(result.prompt);
     closeImprove();
-    status.textContent = `Prompt melhorado com ${result.model}.`;
-    notify('Prompt melhorado com IA');
+    status.textContent = t('js.melhorar.melhorado_com', { model: result.model });
+    notify(t('js.melhorar.melhorado_ia'));
   } catch (error) {
     improveStatus.textContent = error.message;
   } finally {
@@ -1191,20 +796,20 @@ document.querySelector('#improve-apply').addEventListener('click', async () => {
 });
 
 async function saveProject(asNew) {
-  if (!currentPrompt) { notify('Gere o prompt antes de salvar o projeto.'); return; }
+  if (!currentPrompt) { notify(t('js.projetos.gere_antes')); return; }
   const name = projectName.value.trim();
-  if (!name) { toggleRename(true); notify('Dê um nome ao projeto'); return; }
+  if (!name) { toggleRename(true); notify(t('js.projetos.de_nome')); return; }
   try {
     const response = await apiFetch('api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: asNew ? undefined : currentProjectId || undefined, name, kind: currentKind, settings: dataObject(formFor(currentKind)), prompt: currentPrompt }) });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível salvar o projeto.');
+    if (!response.ok) throw new Error(result.error || t('js.projetos.erro_salvar'));
     currentProjectId = result.project.id;
     currentProjectKind = result.project.kind;
     syncSaveButtons();
     savedAtLabel = clockLabel(result.project.updatedAt);
     updateCrumbs();
-    status.textContent = `Projeto "${result.project.name}" salvo em Meus projetos.`;
-    notify('Projeto salvo em Meus projetos');
+    status.textContent = t('js.projetos.salvo_em', { nome: result.project.name });
+    notify(t('js.projetos.salvo_msg'));
   } catch (error) {
     status.textContent = error.message;
     notify(error.message);
@@ -1226,16 +831,16 @@ document.querySelector('#crumb-projects').addEventListener('click', () => showVi
 const projectsList = document.querySelector('#projects-list');
 
 async function loadProjects() {
-  projectsList.innerHTML = '<p class="field-status">Carregando projetos…</p>';
+  projectsList.innerHTML = `<p class="field-status">${escapeUi(t('js.projetos.carregando'))}</p>`;
   try {
     const response = await apiFetch('api/projects');
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Não foi possível carregar os projetos.');
+    if (!response.ok) throw new Error(data.error || t('js.projetos.erro_carregar'));
     if (!data.projects.length) {
-      projectsList.innerHTML = '<div class="projects-empty"><strong>Nenhum projeto salvo</strong><span>Gere uma apostila ou capa e use "Salvar em Meus projetos" no resultado.</span></div>';
+      projectsList.innerHTML = `<div class="projects-empty"><strong>${escapeUi(t('js.projetos.vazio_titulo'))}</strong><span>${escapeUi(t('js.projetos.vazio_texto'))}</span></div>`;
       return;
     }
-    projectsList.innerHTML = data.projects.map(project => `<article class="project-card"><div class="project-main"><strong>${escapeUi(project.name)}</strong><small><span class="project-kind">${escapeUi(KIND_LABEL[project.kind] || project.kind)}</span>${escapeUi(new Date(project.updatedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }))}</small></div><div class="project-buttons">${actionButton('edit', 'edit', 'Abrir projeto', `data-open-project="${escapeUi(project.id)}"`)}${actionButton('del', 'trash', 'Excluir projeto', `data-delete-project="${escapeUi(project.id)}"`)}</div></article>`).join('');
+    projectsList.innerHTML = data.projects.map(project => `<article class="project-card"><div class="project-main"><strong>${escapeUi(project.name)}</strong><small><span class="project-kind">${escapeUi(KIND_LABEL[project.kind] || project.kind)}</span>${escapeUi(new Date(project.updatedAt).toLocaleString(window.idioma.idioma, { dateStyle: 'short', timeStyle: 'short' }))}</small></div><div class="project-buttons">${actionButton('edit', 'edit', t('js.projetos.abrir'), `data-open-project="${escapeUi(project.id)}"`)}${actionButton('del', 'trash', t('js.projetos.excluir'), `data-delete-project="${escapeUi(project.id)}"`)}</div></article>`).join('');
   } catch (error) {
     projectsList.innerHTML = `<p class="field-status unavailable">${escapeUi(error.message)}</p>`;
   }
@@ -1245,7 +850,7 @@ async function openProject(id) {
   try {
     const response = await apiFetch(`api/projects/${encodeURIComponent(id)}`);
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Não foi possível abrir o projeto.');
+    if (!response.ok) throw new Error(data.error || t('js.projetos.erro_abrir'));
     const { project } = data;
     const target = formFor(project.kind);
     target.reset();
@@ -1253,12 +858,12 @@ async function openProject(id) {
     currentProjectId = project.id;
     currentProjectKind = project.kind;
     showView(project.kind);
-    showResult({ prompt: project.prompt, kind: project.kind, badge: RESULT_BADGE[project.kind] || 'Projeto' });
+    showResult({ prompt: project.prompt, kind: project.kind, badge: RESULT_BADGE[project.kind] || t('js.projetos.projeto') });
     setProjectName(project.name);
     savedAtLabel = project.updatedAt ? clockLabel(project.updatedAt) : '';
     updateCrumbs();
-    status.textContent = `Projeto "${project.name}" aberto.`;
-    notify('Projeto aberto');
+    status.textContent = t('js.projetos.aberto_nome', { nome: project.name });
+    notify(t('js.projetos.aberto'));
   } catch (error) {
     notify(error.message);
   }
@@ -1268,9 +873,9 @@ async function deleteProject(id) {
   try {
     const response = await apiFetch(`api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Não foi possível excluir o projeto.');
+    if (!response.ok) throw new Error(data.error || t('js.projetos.erro_excluir'));
     if (currentProjectId === id) { currentProjectId = null; syncSaveButtons(); }
-    notify('Projeto excluído');
+    notify(t('js.projetos.excluido'));
     loadProjects();
   } catch (error) {
     notify(error.message);
@@ -1283,7 +888,7 @@ projectsList.addEventListener('click', event => {
   const del = event.target.closest('[data-delete-project]');
   if (!del) return;
   if (del.classList.contains('armed')) { deleteProject(del.dataset.deleteProject); return; }
-  armAction(del, 'Confirmar exclusão', 'Excluir projeto', 3500);
+  armAction(del, t('js.projetos.confirmar_exclusao_curto'), t('js.projetos.excluir'), 3500);
 });
 
 const projectFile = document.querySelector('#project-file');
@@ -1291,7 +896,7 @@ document.querySelector('#import-project').addEventListener('click', () => projec
 projectFile.addEventListener('change', async () => {
   const file = projectFile.files[0];
   if (!file) return;
-  if (file.size > 1_000_000) { notify('Arquivo maior que 1 MB não aceito'); return; }
+  if (file.size > 1_000_000) { notify(t('js.msg.arquivo_grande')); return; }
   try {
     const project = JSON.parse(await file.text());
     if (!project.settings || typeof project.settings !== 'object') throw new Error('Formato inválido');
@@ -1305,8 +910,8 @@ projectFile.addEventListener('change', async () => {
       showResult({ prompt: project.prompt, kind, badge: RESULT_BADGE[kind] });
       setProjectName('');
     }
-    notify('Projeto importado. Revise antes de gerar');
-  } catch { notify('Projeto inválido. Use um JSON exportado pela plataforma'); }
+    notify(t('js.projetos.importado'));
+  } catch { notify(t('js.projetos.importado_invalido')); }
   projectFile.value = '';
 });
 
@@ -1318,7 +923,7 @@ const aiConfigModelInput = document.querySelector('#ai-config-model');
 const aiConfigImageModelInput = document.querySelector('#ai-config-image-model');
 
 const AI_PROVIDER_LABEL = { openai: 'OpenAI', gemini: 'Gemini', anthropic: 'Anthropic' };
-const AI_NO_IMAGES_MESSAGE = 'A Anthropic gera só texto. Em "Imagens por IA", escolha "Não usar imagens geradas por IA", ou use uma chave da OpenAI ou do Gemini.';
+const aiNoImagesMessage = () => t('js.ia.sem_imagens_anthropic');
 
 function applyAiConfigDatalists() {
   const provider = aiConfigProvider.value;
@@ -1327,7 +932,7 @@ function applyAiConfigDatalists() {
   // A Anthropic não gera imagens: o campo de modelo de imagem fica desligado.
   const noImages = provider === 'anthropic';
   aiConfigImageModelInput.disabled = noImages;
-  aiConfigImageModelInput.placeholder = noImages ? 'Não se aplica: a Anthropic gera só texto' : 'gpt-image-2.5-flare';
+  aiConfigImageModelInput.placeholder = noImages ? t('js.ia.nao_se_aplica') : 'gpt-image-2.5-flare';
   if (noImages) aiConfigImageModelInput.value = '';
   aiConfigModelInput.placeholder = provider === 'anthropic' ? 'claude-sonnet-5-5' : provider === 'gemini' ? 'gemini-3.8-flash' : 'gpt-6-astra';
 }
@@ -1338,29 +943,37 @@ aiConfigProvider.addEventListener('change', () => {
 });
 applyAiConfigDatalists();
 
+let aiConfigData = null;
+function renderAiConfigCurrent() {
+  if (!aiConfigData) return;
+  const data = aiConfigData;
+  const providerLabel = AI_PROVIDER_LABEL[data.provider] || 'OpenAI';
+  aiConfigCurrent.textContent = data.hasApiKey ? t('js.ia.chave_salva', { dica: data.keyHint, provider: providerLabel, model: data.model }) : t('js.ia.sem_chave_salva', { provider: providerLabel });
+  aiConfigCurrent.className = `field-status ${data.hasApiKey ? 'available' : 'unavailable'}`;
+}
+
 async function loadAiConfig() {
-  aiConfigCurrent.textContent = 'Verificando configuração…';
+  aiConfigCurrent.textContent = t('js.ia.verificando');
   aiConfigCurrent.className = 'field-status';
   try {
     const response = await apiFetch('api/ai/config');
     const data = await response.json();
-    const providerLabel = AI_PROVIDER_LABEL[data.provider] || 'OpenAI';
-    aiConfigCurrent.textContent = data.hasApiKey ? `Sua chave está salva (${data.keyHint}) · ${providerLabel} · modelo ${data.model}` : `Você ainda não salvou uma chave (${providerLabel}). Gerar com IA e Melhorar com IA exigem a sua chave.`;
-    aiConfigCurrent.className = `field-status ${data.hasApiKey ? 'available' : 'unavailable'}`;
+    aiConfigData = data;
+    renderAiConfigCurrent();
     aiConfigProvider.value = data.provider || 'openai';
     applyAiConfigDatalists();
     aiConfigModelInput.value = data.model || '';
     aiConfigImageModelInput.value = data.imageModel || '';
     document.querySelector('#ai-config-key').value = '';
   } catch {
-    aiConfigCurrent.textContent = 'Não foi possível carregar a configuração atual.';
+    aiConfigCurrent.textContent = t('js.ia.erro_config');
     aiConfigCurrent.className = 'field-status unavailable';
   }
 }
 
 aiConfigForm.addEventListener('submit', async event => {
   event.preventDefault();
-  aiConfigStatus.textContent = 'Salvando…';
+  aiConfigStatus.textContent = t('js.msg.salvando');
   try {
     const body = {
       provider: aiConfigProvider.value,
@@ -1370,9 +983,9 @@ aiConfigForm.addEventListener('submit', async event => {
     };
     const response = await apiFetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível salvar.');
-    aiConfigStatus.textContent = 'Configuração salva. Aplicada imediatamente, sem reiniciar o servidor.';
-    notify('Configuração de IA salva');
+    if (!response.ok) throw new Error(result.error || t('js.msg.erro_salvar'));
+    aiConfigStatus.textContent = t('js.ia.config_salva');
+    notify(t('js.ia.config_salva_toast'));
     await loadAiConfig();
     checkAiAvailability();
   } catch (error) {
@@ -1381,13 +994,13 @@ aiConfigForm.addEventListener('submit', async event => {
 });
 
 document.querySelector('#ai-config-clear').addEventListener('click', async () => {
-  aiConfigStatus.textContent = 'Removendo chave…';
+  aiConfigStatus.textContent = t('js.ia.removendo');
   try {
     const response = await apiFetch('api/ai/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clearApiKey: true }) });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível remover a chave.');
-    aiConfigStatus.textContent = 'Chave removida.';
-    notify('Chave de IA removida');
+    if (!response.ok) throw new Error(result.error || t('js.ia.erro_remover'));
+    aiConfigStatus.textContent = t('js.ia.chave_removida');
+    notify(t('js.ia.chave_removida_toast'));
     await loadAiConfig();
     checkAiAvailability();
   } catch (error) {
@@ -1400,10 +1013,14 @@ const scrim = document.querySelector('#scrim');
 const menuToggle = document.querySelector('#menu-toggle');
 const menuOpenMobile = document.querySelector('#menu-open-mobile');
 
+function updateMenuLabel() {
+  menuToggle.setAttribute('aria-label', t(shell.classList.contains('collapsed') ? 'js.menu.expandir' : 'js.menu.recolher'));
+}
+
 function setCollapsed(collapsed) {
   shell.classList.toggle('collapsed', collapsed);
   menuToggle.setAttribute('aria-expanded', String(!collapsed));
-  menuToggle.setAttribute('aria-label', collapsed ? 'Expandir menu' : 'Recolher menu');
+  updateMenuLabel();
   try { localStorage.setItem('g1-sidebar', collapsed ? 'collapsed' : 'open'); } catch {}
 }
 
@@ -1488,16 +1105,19 @@ function formatBytes(bytes) {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let value = bytes, unit = 0;
   while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit += 1; }
-  return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1).replace('.', ',')} ${units[unit]}`;
+  const casas = value >= 10 || unit === 0 ? 0 : 1;
+  if (window.idioma.idioma === 'pt-BR') return `${value.toFixed(casas).replace('.', ',')} ${units[unit]}`;
+  return `${value.toLocaleString(window.idioma.idioma, { minimumFractionDigits: casas, maximumFractionDigits: casas })} ${units[unit]}`;
 }
 // O nome do arquivo guarda a data como AAAAMMDD-HHMM.
 function formatStamp(stamp) {
   const match = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/.exec(stamp || '');
-  return match ? `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}` : '-';
+  if (match && window.idioma.idioma === 'pt-BR') return `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}`;
+  return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5])).toLocaleString(window.idioma.idioma, { dateStyle: 'short', timeStyle: 'short' }) : '-';
 }
 function formatWhen(iso) {
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString(window.idioma.idioma, { dateStyle: 'short', timeStyle: 'short' });
 }
 function backupEl(tag, className, text) {
   const node = document.createElement(tag);
@@ -1523,62 +1143,64 @@ function backupTable(headers, rows) {
   wrap.append(table);
   return wrap;
 }
+let backupData = null;
 function renderBackup(data) {
+  backupData = data;
   backupBox.replaceChildren();
   if (!data.disponivel) {
     const alert = backupEl('div', `backup-alert${data.gravidade === 'erro' ? ' erro' : ''}`);
-    alert.append(backupEl('strong', '', data.gravidade === 'erro' ? 'Backup sem registro' : 'Sem registro de backup aqui'), backupEl('span', '', data.aviso));
+    alert.append(backupEl('strong', '', t(data.gravidade === 'erro' ? 'js.backup.sem_registro' : 'js.backup.sem_registro_aqui')), backupEl('span', '', data.aviso));
     backupBox.append(alert);
     return;
   }
   const alert = backupEl('div', `backup-alert${data.protegido ? '' : ' erro'}`);
-  if (data.protegido) alert.append(backupEl('strong', '', 'Protegido'), backupEl('span', '', 'O banco e as cópias externas rodaram dentro do prazo.'));
+  if (data.protegido) alert.append(backupEl('strong', '', t('js.backup.protegido')), backupEl('span', '', t('js.backup.protegido_texto')));
   else {
     const reasons = [];
-    if (data.semBanco) reasons.push('o backup do banco ainda não registrou nenhuma execução');
-    else if (data.banco.atrasada) reasons.push(data.banco.ok ? `a última cópia do banco tem mais de ${data.banco.horasMax} horas` : `a última cópia do banco falhou: ${data.banco.mensagem || 'sem detalhe'}`);
-    if (data.semPbs) reasons.push('as cópias externas (PBS) ainda não registraram nenhuma execução');
-    else if (data.pbs.atrasada) reasons.push(data.pbs.ok ? `a última cópia externa tem mais de ${data.pbs.horasMax} horas` : `a última cópia externa falhou: ${data.pbs.mensagem || 'sem detalhe'}`);
-    alert.append(backupEl('strong', '', 'Atenção'), backupEl('span', '', `${reasons.join('; ')}.`));
+    if (data.semBanco) reasons.push(t('js.backup.motivo_banco_sem_execucao'));
+    else if (data.banco.atrasada) reasons.push(data.banco.ok ? t('js.backup.motivo_banco_antiga', { horas: data.banco.horasMax }) : t('js.backup.motivo_banco_falhou', { detalhe: data.banco.mensagem || t('js.backup.sem_detalhe') }));
+    if (data.semPbs) reasons.push(t('js.backup.motivo_pbs_sem_execucao'));
+    else if (data.pbs.atrasada) reasons.push(data.pbs.ok ? t('js.backup.motivo_pbs_antiga', { horas: data.pbs.horasMax }) : t('js.backup.motivo_pbs_falhou', { detalhe: data.pbs.mensagem || t('js.backup.sem_detalhe') }));
+    alert.append(backupEl('strong', '', t('js.backup.atencao')), backupEl('span', '', `${reasons.join('; ')}.`));
   }
   backupBox.append(alert);
 
   const grid = backupEl('div', 'backup-grid');
   if (data.banco) {
     const last = data.banco.copias?.[0];
-    grid.append(backupStat('Banco de dados', formatWhen(data.banco.fim), `${data.banco.agenda || ''} · guarda ${data.banco.retencaoDias} dias${last ? ` · ${formatBytes(last.bytes)}` : ''}`, data.banco.atrasada));
-    grid.append(backupStat('Cópias do banco', String(data.banco.copias?.length ?? 0), 'arquivos .sql.gz no servidor', false));
+    grid.append(backupStat(t('js.backup.banco_dados'), formatWhen(data.banco.fim), `${data.banco.agenda || ''} · ${t('js.backup.guarda_dias', { dias: data.banco.retencaoDias })}${last ? ` · ${formatBytes(last.bytes)}` : ''}`, data.banco.atrasada));
+    grid.append(backupStat(t('js.backup.copias_banco'), String(data.banco.copias?.length ?? 0), t('js.backup.arquivos_sql'), false));
   }
   if (data.pbs) {
     const last = data.pbs.snapshots?.[0];
-    grid.append(backupStat('Cópia externa (PBS)', formatWhen(data.pbs.fim), `${data.pbs.agenda || ''} · guarda ${data.pbs.retencaoDias} dias${last ? ` · ${formatBytes(last.bytes)}` : ''}`, data.pbs.atrasada));
-    grid.append(backupStat('Cópias no PBS', String(data.pbs.snapshots?.length ?? 0), 'servidor inteiro, em disco físico separado', false));
+    grid.append(backupStat(t('js.backup.copia_externa'), formatWhen(data.pbs.fim), `${data.pbs.agenda || ''} · ${t('js.backup.guarda_dias', { dias: data.pbs.retencaoDias })}${last ? ` · ${formatBytes(last.bytes)}` : ''}`, data.pbs.atrasada));
+    grid.append(backupStat(t('js.backup.copias_pbs'), String(data.pbs.snapshots?.length ?? 0), t('js.backup.servidor_inteiro'), false));
   }
   backupBox.append(grid);
 
   if (data.banco?.copias?.length) {
     const section = backupEl('div', 'backup-section');
-    section.append(backupEl('h3', '', 'Cópias do banco'), backupTable(['Quando', 'Arquivo', 'Tamanho'], data.banco.copias.map(copy => [formatStamp(copy.data), copy.nome, formatBytes(copy.bytes)])));
+    section.append(backupEl('h3', '', t('js.backup.copias_banco')), backupTable([t('js.backup.quando'), t('js.backup.arquivo'), t('js.backup.tamanho')], data.banco.copias.map(copy => [formatStamp(copy.data), copy.nome, formatBytes(copy.bytes)])));
     backupBox.append(section);
   }
   if (data.pbs?.snapshots?.length) {
     const section = backupEl('div', 'backup-section');
-    section.append(backupEl('h3', '', 'Cópias externas (PBS)'), backupTable(['Quando', 'Tamanho'], data.pbs.snapshots.map(copy => [formatWhen(copy.data), formatBytes(copy.bytes)])));
+    section.append(backupEl('h3', '', t('js.backup.copias_externas')), backupTable([t('js.backup.quando'), t('js.backup.tamanho')], data.pbs.snapshots.map(copy => [formatWhen(copy.data), formatBytes(copy.bytes)])));
     backupBox.append(section);
   }
   if (data.falhasRecentes?.length) {
     const section = backupEl('div', 'backup-section');
-    section.append(backupEl('h3', '', 'Falhas e avisos recentes'), backupEl('pre', 'backup-log', data.falhasRecentes.join('\n')));
+    section.append(backupEl('h3', '', t('js.backup.falhas_recentes')), backupEl('pre', 'backup-log', data.falhasRecentes.join('\n')));
     backupBox.append(section);
   }
   const logSection = backupEl('div', 'backup-section');
-  logSection.append(backupEl('h3', '', 'Log das execuções'), backupEl('pre', 'backup-log', data.log?.length ? data.log.join('\n') : 'Nenhuma execução registrada ainda.'));
+  logSection.append(backupEl('h3', '', t('js.backup.log')), backupEl('pre', 'backup-log', data.log?.length ? data.log.join('\n') : t('js.backup.nenhuma_execucao')));
   backupBox.append(logSection);
-  const note = backupEl('p', 'pane-intro', 'Para restaurar uma cópia ou fazer outra agora, use o servidor. Esta tela não executa nem restaura cópias.');
+  const note = backupEl('p', 'pane-intro', t('js.backup.restaurar'));
   backupBox.append(note);
 }
 async function loadBackup() {
-  backupBox.replaceChildren(backupEl('p', 'field-status', 'Verificando o backup…'));
+  backupBox.replaceChildren(backupEl('p', 'field-status', t('js.backup.verificando')));
   try {
     renderBackup(await smtpRequest('GET', 'api/settings/backup'));
   } catch (error) {
@@ -1631,9 +1253,10 @@ function iniciarDemoInicio() {
     }, 4000);
   }
   function atualizarBotao() {
-    pausa.textContent = pausado ? 'Continuar animação' : 'Pausar animação';
+    pausa.textContent = t(pausado ? 'js.inicio.continuar_animacao' : 'js.inicio.pausar_animacao');
     pausa.setAttribute('aria-pressed', String(pausado));
   }
+  window.idioma.aoMudar(() => atualizarBotao());
 
   demo.classList.add('anim');
   pausa.hidden = false;
@@ -1657,11 +1280,12 @@ document.querySelector('#copiar-exemplo')?.addEventListener('click', async event
       document.body.append(area); area.select(); document.execCommand('copy'); area.remove();
     }
     const rotulo = button.querySelector('.copy-label');
+    const rotuloOriginal = rotulo.textContent;
     button.classList.add('copied');
-    rotulo.textContent = 'Copiado!';
-    notify('Prompt copiado');
-    setTimeout(() => { button.classList.remove('copied'); rotulo.textContent = 'Copiar prompt'; }, 2200);
-  } catch { notify('Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.'); }
+    rotulo.textContent = t('js.msg.copiado');
+    notify(t('js.msg.prompt_copiado'));
+    setTimeout(() => { button.classList.remove('copied'); rotulo.textContent = rotuloOriginal; }, 2200);
+  } catch { notify(t('js.msg.erro_copiar')); }
 });
 
 document.querySelector('#pane').addEventListener('click', event => {
@@ -1697,14 +1321,25 @@ function showAuth(panel = 'login', message = '') {
   authScreen.querySelector(`[data-panel="${panel}"] input`)?.focus();
 }
 
+function updateUserBox() {
+  if (!currentUser) return;
+  document.querySelector('#user-email').textContent = t(currentUser.role === 'admin' ? 'js.perfil.admin' : 'js.perfil.usuario');
+}
+
 function startApp(user) {
   const switched = currentUser && currentUser.id !== user.id;
   currentUser = user;
   if (switched) { location.hash = ''; location.reload(); return; }
+  window.idioma.usarIdiomaDaConta(user.language);
+  // Quem escolheu o idioma antes de entrar (tela de login) leva a escolha para a conta.
+  const idiomaDaPagina = window.idioma.idioma;
+  if (idiomaDaPagina !== (user.language || 'pt-BR')) {
+    postJson('api/auth/language', { language: window.idioma.idioma }).then(result => { if (result.ok && result.data.user) currentUser = result.data.user; });
+  }
   if (!user.termsCurrent) { showAuth('terms'); return; }
   if (user.theme === 'sistema') { themeFollowsSystem = true; setTheme(systemTheme()); } else if (themeNames[user.theme]) { themeFollowsSystem = false; setTheme(user.theme); } else { themeFollowsSystem = false; setTheme('papel', { persist: false }); }
   document.querySelector('#user-name').textContent = user.name;
-  document.querySelector('#user-email').textContent = user.role === 'admin' ? 'Administrador' : 'Usuário';
+  updateUserBox();
   document.querySelectorAll('[data-admin]').forEach(item => { item.hidden = user.role !== 'admin'; });
   authScreen.hidden = true;
   appShell.hidden = false;
@@ -1713,7 +1348,7 @@ function startApp(user) {
   checkAiAvailability();
   if (!user.phone) {
     showView('conta');
-    notify('Informe seu telefone para completar o cadastro');
+    notify(t('js.conta.informe_telefone'));
     return;
   }
   showView(location.hash.slice(1));
@@ -1728,13 +1363,13 @@ document.querySelector('#login-form').addEventListener('submit', async event => 
   event.preventDefault();
   const formEl = event.currentTarget;
   const email = formEl.email.value.trim();
-  if (!email || !formEl.password.value) { setError(formEl, 'Informe e-mail e senha.'); return; }
+  if (!email || !formEl.password.value) { setError(formEl, t('js.auth.informe_email_senha')); return; }
   setError(formEl, '');
   const submit = formEl.querySelector('[type=submit]');
   submit.disabled = true;
   try {
     const result = await postJson('api/auth/login', { email, password: formEl.password.value });
-    if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível entrar.'); return; }
+    if (!result.ok) { setError(formEl, result.data.error || t('js.auth.erro_entrar')); return; }
     formEl.password.value = '';
     if (result.data.user.mustChangePassword) {
       currentUser = result.data.user;
@@ -1771,7 +1406,7 @@ const SUPPORT_MAX_TOTAL = 8 * 1024 * 1024;
 const SUPPORT_EXT = /\.(png|jpe?g|gif|webp|pdf|txt|log|csv)$/i;
 let supportFiles = [];
 
-const supportSize = bytes => (bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`).replace('.', ',');
+const supportSize = bytes => (bytes >= 1048576 ? `${(bytes / 1048576).toLocaleString(window.idioma.idioma, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
 function supportNotice(text, ok = false) { supportStatus.textContent = text; supportStatus.className = `status${text ? (ok ? ' ok' : ' error') : ''}`; }
 
 function fillSupport() {
@@ -1804,7 +1439,7 @@ function supportRender() {
     remove.type = 'button';
     remove.className = 'support-remove';
     remove.textContent = '×';
-    remove.setAttribute('aria-label', `Remover ${file.name}`);
+    remove.setAttribute('aria-label', t('js.suporte.remover', { nome: file.name }));
     remove.addEventListener('click', () => { supportFiles.splice(index, 1); supportRender(); });
     item.append(thumb, label, remove);
     return item;
@@ -1818,10 +1453,10 @@ function supportAdd(files) {
     const name = file.name || `imagem-colada.${(file.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`;
     if (!file.name) file = new File([file], name, { type: file.type });
     const total = supportFiles.reduce((sum, item) => sum + item.size, 0);
-    if (!SUPPORT_EXT.test(name)) problems.push(`${name}: tipo não aceito`);
-    else if (supportFiles.length >= SUPPORT_MAX_FILES) problems.push('no máximo 5 anexos');
-    else if (file.size > SUPPORT_MAX_FILE) problems.push(`${name} passa de 5 MB`);
-    else if (total + file.size > SUPPORT_MAX_TOTAL) problems.push('os anexos passam de 8 MB no total');
+    if (!SUPPORT_EXT.test(name)) problems.push(t('js.suporte.tipo_nao_aceito', { nome: name }));
+    else if (supportFiles.length >= SUPPORT_MAX_FILES) problems.push(t('js.suporte.max_anexos'));
+    else if (file.size > SUPPORT_MAX_FILE) problems.push(t('js.suporte.passa_5mb', { nome: name }));
+    else if (total + file.size > SUPPORT_MAX_TOTAL) problems.push(t('js.suporte.passa_8mb'));
     else supportFiles.push(file);
   });
   supportRender();
@@ -1854,17 +1489,18 @@ supportForm.addEventListener('submit', async event => {
   event.preventDefault();
   const button = document.querySelector('#support-send');
   const body = { tipo: supportForm.tipo.value, mensagem: supportMessage.value.trim(), nome: supportForm.nome.value.trim(), email: supportForm.email.value.trim(), site: supportForm.site.value, origem: supportOrigin };
-  if (body.mensagem.length < 5 && !supportFiles.length) { supportNotice('Escreva a mensagem (mínimo de 5 caracteres) ou anexe um arquivo.'); supportMessage.focus(); return; }
-  if (!/^[^@\s<>",;]+@[^@\s<>",;]+\.[^@\s<>",;]+$/.test(body.email)) { supportNotice('Informe um e-mail válido para podermos responder.'); supportForm.email.focus(); return; }
+  if (body.mensagem.length < 5 && !supportFiles.length) { supportNotice(t('js.suporte.escreva')); supportMessage.focus(); return; }
+  if (!/^[^@\s<>",;]+@[^@\s<>",;]+\.[^@\s<>",;]+$/.test(body.email)) { supportNotice(t('js.suporte.email_valido')); supportForm.email.focus(); return; }
+  const rotuloOriginal = button.textContent;
   button.disabled = true;
-  button.textContent = 'Enviando…';
+  button.textContent = t('js.suporte.enviando');
   supportNotice('');
   try {
     body.anexos = await Promise.all(supportFiles.map(async file => ({ nome: file.name, dados: await supportBase64(file) })));
     const response = await apiFetch('api/support', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || 'Não foi possível enviar agora.');
-    supportNotice(result.enviado ? `Mensagem enviada. O protocolo é ${result.protocolo}, e enviamos uma confirmação para o seu e-mail.` : `Mensagem registrada com o protocolo ${result.protocolo}. O envio por e-mail não está disponível agora, mas ela ficou guardada.`, true);
+    if (!response.ok) throw new Error(result.error || t('js.suporte.erro_enviar'));
+    supportNotice(t(result.enviado ? 'js.suporte.enviada' : 'js.suporte.registrada', { protocolo: result.protocolo }), true);
     supportMessage.value = '';
     supportFiles = [];
     supportRender();
@@ -1873,7 +1509,7 @@ supportForm.addEventListener('submit', async event => {
     supportNotice(error.message);
   } finally {
     button.disabled = false;
-    button.textContent = 'Enviar mensagem';
+    button.textContent = rotuloOriginal;
   }
 });
 
@@ -1936,7 +1572,7 @@ function faqAnswer(text) {
 function faqCor(categoria) { return String(Math.max(0, faqCategorias.indexOf(categoria)) % 8); }
 function faqBadge(categoria, { botao = false, inline = false, total = null } = {}) {
   const badge = faqEl(botao ? 'button' : 'span', inline ? 'faq-badge faq-cat-inline' : 'faq-badge');
-  if (botao) { badge.type = 'button'; badge.dataset.faqCat = categoria; badge.setAttribute('aria-pressed', String(categoria === faqCategoria)); badge.title = `Mostrar só: ${categoria}`; }
+  if (botao) { badge.type = 'button'; badge.dataset.faqCat = categoria; badge.setAttribute('aria-pressed', String(categoria === faqCategoria)); badge.title = t('js.faq.mostrar_so', { categoria }); }
   badge.dataset.cor = categoria === null ? 'todas' : faqCor(categoria);
   badge.append(faqEl('span', 'faq-badge-nome', categoria));
   if (total !== null) badge.append(faqEl('span', 'faq-badge-n', String(total)));
@@ -1946,7 +1582,7 @@ function renderFaqBadges() {
   const todas = faqEl('button', 'faq-badge');
   todas.type = 'button'; todas.dataset.faqCat = ''; todas.dataset.cor = 'todas';
   todas.setAttribute('aria-pressed', String(faqCategoria === ''));
-  todas.append(faqEl('span', 'faq-badge-nome', 'Todas'), faqEl('span', 'faq-badge-n', String(FAQ_ITEMS.length)));
+  todas.append(faqEl('span', 'faq-badge-nome', t('js.faq.todas')), faqEl('span', 'faq-badge-n', String(FAQ_ITEMS.length)));
   const lista = faqCategorias.map(nome => faqBadge(nome, { botao: true, total: FAQ_ITEMS.filter(item => item.categoria === nome).length }));
   faqBadges.replaceChildren(todas, ...lista);
 }
@@ -1958,7 +1594,7 @@ function faqFiltrarPor(categoria) {
 }
 
 function renderFaq() {
-  if (typeof FAQ_ITEMS === 'undefined') { faqList.replaceChildren(); faqCount.textContent = 'Não foi possível carregar a FAQ.'; return; }
+  if (typeof FAQ_ITEMS === 'undefined') { faqList.replaceChildren(); faqCount.textContent = t('js.faq.erro_carregar'); return; }
   if (!faqReady) {
     faqCategorias = [...new Set(FAQ_ITEMS.map(item => item.categoria))];
     faqReady = true;
@@ -1967,15 +1603,15 @@ function renderFaq() {
   const term = faqNormalize(faqSearch.value.trim());
   const category = faqCategoria;
   const shown = FAQ_ITEMS.map((item, index) => ({ item, index })).filter(({ item }) => (!category || item.categoria === category) && (!term || faqNormalize(`${item.pergunta} ${item.resposta} ${item.categoria}`).includes(term)));
-  faqCount.textContent = `${shown.length} de ${FAQ_ITEMS.length} perguntas`;
+  faqCount.textContent = t('js.faq.contagem', { n: shown.length, total: FAQ_ITEMS.length });
   const head = faqEl('thead');
   const headRow = faqEl('tr');
-  ['Categoria', 'Pergunta'].forEach(label => headRow.append(faqEl('th', '', label)));
+  [t('js.faq.categoria'), t('js.faq.pergunta')].forEach(label => headRow.append(faqEl('th', '', label)));
   head.append(headRow);
   const body = faqEl('tbody');
   if (!shown.length) {
     const row = faqEl('tr');
-    const cell = faqEl('td', 'table-empty', 'Nenhuma pergunta encontrada. Tente outras palavras ou escolha "Todas".');
+    const cell = faqEl('td', 'table-empty', t('js.faq.vazio'));
     cell.colSpan = 2;
     row.append(cell);
     body.append(row);
@@ -2026,12 +1662,12 @@ faqList.addEventListener('click', event => {
 const smtpForm = document.querySelector('#smtp-form');
 const smtpCurrent = document.querySelector('#smtp-current');
 const smtpStatus = document.querySelector('#smtp-status');
-const SMTP_SOURCES = { painel: 'salva neste painel', env: 'vinda do arquivo .env', nenhum: 'não configurado' };
+const SMTP_SOURCES = { get painel() { return t('js.smtp.fonte_painel'); }, get env() { return t('js.smtp.fonte_env'); }, get nenhum() { return t('js.smtp.fonte_nenhum'); } };
 
 async function smtpRequest(method, url, body) {
   const response = await apiFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Não foi possível concluir.');
+  if (!response.ok) throw new Error(data.error || t('js.smtp.erro_concluir'));
   return data;
 }
 
@@ -2044,7 +1680,7 @@ function fillSmtp(data) {
   smtpForm.from.value = data.from || '';
   smtpForm.appUrl.value = data.appUrl || '';
   smtpForm.contactEmail.value = data.contactEmail || '';
-  smtpCurrent.textContent = data.enabled ? `Envio de e-mail ativo · configuração ${SMTP_SOURCES[data.source]}${data.hasPass ? ' · senha salva' : ''}` : 'Envio de e-mail desligado: sem ele, "Criar conta" e "Esqueci a senha" ficam escondidos.';
+  smtpCurrent.textContent = data.enabled ? t('js.smtp.ativo', { fonte: SMTP_SOURCES[data.source] }) + (data.hasPass ? t('js.smtp.senha_salva') : '') : t('js.smtp.desligado');
   smtpCurrent.className = `field-status ${data.enabled ? 'available' : 'unavailable'}`;
 }
 
@@ -2060,13 +1696,13 @@ async function loadSmtp() {
 
 smtpForm.addEventListener('submit', async event => {
   event.preventDefault();
-  smtpStatus.textContent = 'Salvando…';
+  smtpStatus.textContent = t('js.msg.salvando');
   try {
     const mode = smtpForm.mode.value;
     const data = await smtpRequest('PUT', 'api/settings/smtp', { host: smtpForm.host.value, port: smtpForm.port.value, secure: mode === 'tls', requireTLS: mode === 'starttls', user: smtpForm.user.value, pass: smtpForm.pass.value, from: smtpForm.from.value, appUrl: smtpForm.appUrl.value, contactEmail: smtpForm.contactEmail.value });
     fillSmtp(data);
-    smtpStatus.textContent = 'Configuração salva e aplicada. Use o teste abaixo para conferir.';
-    notify('Configuração de e-mail salva');
+    smtpStatus.textContent = t('js.smtp.salva_aplicada');
+    notify(t('js.smtp.salva_toast'));
     loadAuthConfig();
   } catch (error) {
     smtpStatus.textContent = error.message;
@@ -2074,10 +1710,10 @@ smtpForm.addEventListener('submit', async event => {
 });
 
 document.querySelector('#smtp-reset').addEventListener('click', async () => {
-  smtpStatus.textContent = 'Voltando ao .env…';
+  smtpStatus.textContent = t('js.smtp.voltando');
   try {
     fillSmtp(await smtpRequest('DELETE', 'api/settings/smtp'));
-    smtpStatus.textContent = 'Configuração do painel removida; vale o que está no .env.';
+    smtpStatus.textContent = t('js.smtp.painel_removido');
     loadAuthConfig();
   } catch (error) {
     smtpStatus.textContent = error.message;
@@ -2088,7 +1724,7 @@ document.querySelector('#smtp-test-form').addEventListener('submit', async event
   event.preventDefault();
   const formEl = event.currentTarget;
   const status = document.querySelector('#smtp-test-status');
-  status.textContent = 'Enviando…';
+  status.textContent = t('js.suporte.enviando');
   try {
     const data = await smtpRequest('POST', 'api/settings/smtp/test', { to: formEl.to.value.trim() });
     status.textContent = data.message;
@@ -2103,20 +1739,20 @@ document.querySelector('#signup-form').addEventListener('submit', async event =>
   const formEl = event.currentTarget;
   const name = formEl.name.value.trim();
   const email = formEl.email.value.trim();
-  if (!name || !email) { setError(formEl, 'Informe o nome e o e-mail.'); return; }
-  if (formEl.password.value.length < 8) { setError(formEl, 'A senha precisa ter ao menos 8 caracteres.'); return; }
-  if (formEl.password.value !== formEl.repeat.value) { setError(formEl, 'As senhas não conferem.'); return; }
-  if (!formEl.terms.checked) { setError(formEl, 'Para criar a conta, aceite os Termos de uso e a Política de privacidade.'); return; }
+  if (!name || !email) { setError(formEl, t('js.auth.informe_nome_email')); return; }
+  if (formEl.password.value.length < 8) { setError(formEl, t('js.auth.senha_min')); return; }
+  if (formEl.password.value !== formEl.repeat.value) { setError(formEl, t('js.auth.senhas_nao_conferem')); return; }
+  if (!formEl.terms.checked) { setError(formEl, t('js.auth.aceite_termos_criar')); return; }
   setError(formEl, '');
   const submit = formEl.querySelector('[type=submit]');
   submit.disabled = true;
   try {
     const result = await postJson('api/auth/signup', { name, email, password: formEl.password.value, acceptTerms: true });
-    if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível enviar o código.'); return; }
+    if (!result.ok) { setError(formEl, result.data.error || t('js.auth.erro_codigo_enviar')); return; }
     signupEmail = email;
     formEl.password.value = '';
     formEl.repeat.value = '';
-    document.querySelector('#signup-confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido. Se o código não chegar e você já tem conta, volte e use "Esqueci a senha" na tela de entrada.`;
+    document.querySelector('#signup-confirm-info').textContent = t('js.auth.cadastro_confirmar_info', { mensagem: result.data.message });
     showAuth('signup-confirm');
   } finally {
     submit.disabled = false;
@@ -2127,7 +1763,7 @@ document.querySelector('#signup-confirm-form').addEventListener('submit', async 
   event.preventDefault();
   const formEl = event.currentTarget;
   const result = await postJson('api/auth/signup/confirm', { email: signupEmail, code: formEl.code.value.trim() });
-  if (!result.ok) { setError(formEl, result.data.error || 'Código inválido ou expirado.'); return; }
+  if (!result.ok) { setError(formEl, result.data.error || t('js.auth.codigo_invalido')); return; }
   formEl.code.value = '';
   startApp(result.data.user);
 });
@@ -2137,13 +1773,13 @@ document.querySelector('#forgot-form').addEventListener('submit', async event =>
   event.preventDefault();
   const formEl = event.currentTarget;
   const email = formEl.email.value.trim();
-  if (!email || formEl.password.value.length < 8) { setError(formEl, 'Informe o e-mail e uma nova senha com ao menos 8 caracteres.'); return; }
+  if (!email || formEl.password.value.length < 8) { setError(formEl, t('js.auth.forgot_info')); return; }
   setError(formEl, '');
   const result = await postJson('api/auth/forgot', { email, password: formEl.password.value });
-  if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível enviar o código.'); return; }
+  if (!result.ok) { setError(formEl, result.data.error || t('js.auth.erro_codigo_enviar')); return; }
   resetEmail = email;
   formEl.password.value = '';
-  document.querySelector('#confirm-info').textContent = `${result.data.message} Digite abaixo o código recebido.`;
+  document.querySelector('#confirm-info').textContent = t('js.auth.confirmar_info', { mensagem: result.data.message });
   showAuth('confirm');
 });
 
@@ -2151,7 +1787,7 @@ document.querySelector('#confirm-form').addEventListener('submit', async event =
   event.preventDefault();
   const formEl = event.currentTarget;
   const result = await postJson('api/auth/confirm', { email: resetEmail, code: formEl.code.value.trim() });
-  if (!result.ok) { setError(formEl, result.data.error || 'Código inválido ou expirado.'); return; }
+  if (!result.ok) { setError(formEl, result.data.error || t('js.auth.codigo_invalido')); return; }
   formEl.code.value = '';
   showAuth('login');
   setError(authScreen.querySelector('#login-form'), result.data.message, true);
@@ -2160,10 +1796,10 @@ document.querySelector('#confirm-form').addEventListener('submit', async event =
 document.querySelector('#first-form').addEventListener('submit', async event => {
   event.preventDefault();
   const formEl = event.currentTarget;
-  if (formEl.password.value.length < 8) { setError(formEl, 'A nova senha precisa ter ao menos 8 caracteres.'); return; }
-  if (formEl.password.value !== formEl.repeat.value) { setError(formEl, 'As senhas não conferem.'); return; }
+  if (formEl.password.value.length < 8) { setError(formEl, t('js.auth.nova_senha_min')); return; }
+  if (formEl.password.value !== formEl.repeat.value) { setError(formEl, t('js.auth.senhas_nao_conferem')); return; }
   const result = await postJson('api/auth/change-password', { current: formEl.current.value, password: formEl.password.value });
-  if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível trocar a senha.'); return; }
+  if (!result.ok) { setError(formEl, result.data.error || t('js.auth.erro_trocar_senha')); return; }
   formEl.reset();
   startApp(result.data.user);
 });
@@ -2181,23 +1817,24 @@ document.querySelector('#terms-logout').addEventListener('click', logout);
 function fillLegalAccount() {
   const info = document.querySelector('#legal-account-info');
   if (!info || !currentUser) return;
-  if (!currentUser.termsAcceptedAt) { info.textContent = 'Os documentos que regem o uso do GeradorOne e o tratamento dos seus dados.'; return; }
+  if (!currentUser.termsAcceptedAt) { info.textContent = t('js.conta.docs_regem'); return; }
   const at = new Date(currentUser.termsAcceptedAt);
-  const day = at.toLocaleDateString('pt-BR');
-  const hour = at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  info.textContent = `Você aceitou a versão de ${currentUser.termsVersion.split('-').reverse().join('/')} em ${day}, às ${hour}.`;
+  const day = at.toLocaleDateString(window.idioma.idioma);
+  const hour = at.toLocaleTimeString(window.idioma.idioma, { hour: '2-digit', minute: '2-digit' });
+  const [ano, mes, dia] = currentUser.termsVersion.split('-').map(Number);
+  info.textContent = t('js.conta.aceitou_versao', { versao: new Date(ano, mes - 1, dia).toLocaleDateString(window.idioma.idioma), dia: day, hora: hour });
 }
 
 document.querySelector('#terms-form').addEventListener('submit', async event => {
   event.preventDefault();
   const formEl = event.currentTarget;
-  if (!formEl.terms.checked) { setError(formEl, 'Marque que leu e aceita os documentos para continuar.'); return; }
+  if (!formEl.terms.checked) { setError(formEl, t('js.auth.marque_termos')); return; }
   setError(formEl, '');
   const submit = formEl.querySelector('[type=submit]');
   submit.disabled = true;
   try {
     const result = await postJson('api/auth/accept-terms', { accept: true });
-    if (!result.ok) { setError(formEl, result.data.error || 'Não foi possível registrar o aceite.'); return; }
+    if (!result.ok) { setError(formEl, result.data.error || t('js.auth.erro_aceite')); return; }
     formEl.terms.checked = false;
     startApp(result.data.user);
   } finally {
@@ -2212,7 +1849,7 @@ function fillAccount() {
   profile.phone.value = formatPhone(currentUser.phone);
   profile.email.value = currentUser.email;
   fillLegalAccount();
-  document.querySelector('#account-summary').textContent = `${currentUser.role === 'admin' ? 'Administrador' : 'Usuário'} · ${currentUser.email}`;
+  document.querySelector('#account-summary').textContent = `${t(currentUser.role === 'admin' ? 'js.perfil.admin' : 'js.perfil.usuario')} · ${currentUser.email}`;
   document.querySelector('#profile-status').textContent = '';
   document.querySelector('#password-status').textContent = '';
 }
@@ -2223,12 +1860,12 @@ document.querySelector('#profile-form').addEventListener('submit', async event =
   const formEl = event.currentTarget;
   const faltavaTelefone = !currentUser.phone;
   const result = await postJson('api/auth/profile', { name: formEl.name.value, phone: formEl.phone.value });
-  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível salvar.'; return; }
+  if (!result.ok) { status.textContent = result.data.error || t('js.msg.erro_salvar'); return; }
   currentUser = result.data.user;
   formEl.phone.value = formatPhone(currentUser.phone);
   document.querySelector('#user-name').textContent = currentUser.name;
-  status.textContent = 'Perfil salvo.';
-  notify('Perfil salvo');
+  status.textContent = t('js.conta.perfil_salvo');
+  notify(t('js.conta.perfil_salvo_toast'));
   // Cadastro novo: o app leva a "Minha conta" para pedir o telefone; ao salvar o telefone, segue para o Início.
   if (faltavaTelefone && currentUser.phone) showView('inicio');
 });
@@ -2237,14 +1874,14 @@ document.querySelector('#password-form').addEventListener('submit', async event 
   event.preventDefault();
   const formEl = event.currentTarget;
   const status = document.querySelector('#password-status');
-  if (formEl.password.value.length < 8) { status.textContent = 'A nova senha precisa ter ao menos 8 caracteres.'; return; }
-  if (formEl.password.value !== formEl.repeat.value) { status.textContent = 'As senhas não conferem.'; return; }
+  if (formEl.password.value.length < 8) { status.textContent = t('js.auth.nova_senha_min'); return; }
+  if (formEl.password.value !== formEl.repeat.value) { status.textContent = t('js.auth.senhas_nao_conferem'); return; }
   const result = await postJson('api/auth/change-password', { current: formEl.current.value, password: formEl.password.value });
-  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível trocar a senha.'; return; }
+  if (!result.ok) { status.textContent = result.data.error || t('js.auth.erro_trocar_senha'); return; }
   formEl.reset();
   currentUser = result.data.user;
-  status.textContent = 'Senha alterada. Suas outras sessões foram encerradas.';
-  notify('Senha alterada');
+  status.textContent = t('js.conta.senha_alterada');
+  notify(t('js.conta.senha_alterada_toast'));
 });
 
 // Exportar meus dados: baixa um JSON com a conta, as preferências de IA e todos os projetos.
@@ -2252,15 +1889,15 @@ document.querySelector('#export-account-button').addEventListener('click', async
   const button = event.currentTarget;
   const status = document.querySelector('#export-account-status');
   button.disabled = true;
-  status.textContent = 'Preparando o arquivo…';
+  status.textContent = t('js.conta.preparando_arquivo');
   try {
     const response = await apiFetch('api/auth/export');
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || 'Não foi possível exportar os dados.');
+    if (!response.ok) throw new Error(data.error || t('js.conta.erro_exportar'));
     download(`geradorone-conta-${data.exportedAt.slice(0, 10)}.json`, JSON.stringify(data, null, 2), 'application/json');
     const total = data.projects.length;
-    status.textContent = `Arquivo baixado, com ${total} ${total === 1 ? 'projeto' : 'projetos'}.`;
-    notify('Dados exportados');
+    status.textContent = t.plural('js.conta.arquivo_baixado', total);
+    notify(t('js.conta.dados_exportados'));
   } catch (error) {
     status.textContent = error.message;
   } finally {
@@ -2276,23 +1913,24 @@ document.querySelector('#delete-account-form').addEventListener('submit', async 
   const formEl = event.currentTarget;
   const button = document.querySelector('#delete-account-button');
   const status = document.querySelector('#delete-account-status');
-  if (!formEl.password.value) { status.textContent = 'Informe a sua senha atual para continuar.'; return; }
+  if (!formEl.password.value) { status.textContent = t('js.conta.informe_senha_atual'); return; }
   if (!button.classList.contains('armed')) {
+    button.dataset.rotulo = button.textContent;
     button.classList.add('armed');
-    button.textContent = 'Confirmar exclusão';
-    status.textContent = 'Clique de novo para excluir de vez. Seus projetos e sua chave de IA serão apagados.';
+    button.textContent = t('js.projetos.confirmar_exclusao');
+    status.textContent = t('js.conta.clique_de_novo');
     clearTimeout(deleteArmTimer);
-    deleteArmTimer = setTimeout(() => { button.classList.remove('armed'); button.textContent = 'Excluir minha conta'; status.textContent = ''; }, 5000);
+    deleteArmTimer = setTimeout(() => { button.classList.remove('armed'); button.textContent = button.dataset.rotulo; status.textContent = ''; }, 5000);
     return;
   }
   clearTimeout(deleteArmTimer);
   button.disabled = true;
-  status.textContent = 'Excluindo…';
+  status.textContent = t('js.conta.excluindo');
   const result = await postJson('api/auth/delete-account', { password: formEl.password.value });
   button.disabled = false;
   button.classList.remove('armed');
-  button.textContent = 'Excluir minha conta';
-  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível excluir a conta.'; return; }
+  button.textContent = button.dataset.rotulo || button.textContent;
+  if (!result.ok) { status.textContent = result.data.error || t('js.conta.erro_excluir'); return; }
   formEl.reset();
   try { sessionStorage.setItem(GONE_KEY, '1'); } catch {}
   location.hash = '';
@@ -2304,10 +1942,10 @@ const tempBox = document.querySelector('#temp-password-box');
 
 function showTempPassword(name, password) {
   tempBox.hidden = false;
-  tempBox.innerHTML = `<p><strong>Senha temporária de ${escapeUi(name)}:</strong></p><code>${escapeUi(password)}</code><p>Copie e entregue com segurança. Ela não será exibida de novo e precisa ser trocada no primeiro acesso.</p><button type="button" class="ghost" id="copy-temp">Copiar senha</button>`;
+  tempBox.innerHTML = `<p><strong>${escapeUi(t('js.usuarios.senha_temporaria_de', { nome: name }))}</strong></p><code>${escapeUi(password)}</code><p>${escapeUi(t('js.usuarios.senha_temporaria_aviso'))}</p><button type="button" class="ghost" id="copy-temp">${escapeUi(t('js.usuarios.copiar_senha'))}</button>`;
   tempBox.querySelector('#copy-temp').addEventListener('click', async event => {
     const button = event.currentTarget;
-    try { await navigator.clipboard.writeText(password); button.textContent = 'Copiada'; } catch { button.textContent = 'Selecione e copie manualmente'; }
+    try { await navigator.clipboard.writeText(password); button.textContent = t('js.usuarios.copiada'); } catch { button.textContent = t('js.usuarios.copiar_manual'); }
   });
 }
 
@@ -2315,36 +1953,36 @@ let usersData = [];
 const usersSearch = document.querySelector('#users-search');
 const usersRoleFilter = document.querySelector('#users-role-filter');
 const usersCount = document.querySelector('#users-count');
-const USER_HEAD = '<thead><tr><th scope="col">Nome</th><th scope="col">Telefone</th><th scope="col">E-mail</th><th scope="col">Perfil</th><th scope="col">Situação</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>';
+const userHead = () => `<thead><tr><th scope="col">${escapeUi(t('js.usuarios.col_nome'))}</th><th scope="col">${escapeUi(t('js.usuarios.col_telefone'))}</th><th scope="col">${escapeUi(t('js.usuarios.col_email'))}</th><th scope="col">${escapeUi(t('js.usuarios.col_perfil'))}</th><th scope="col">${escapeUi(t('js.usuarios.col_situacao'))}</th><th scope="col"><span class="sr-only">${escapeUi(t('js.usuarios.col_acoes'))}</span></th></tr></thead>`;
 
 function userGroupHtml(user) {
   const id = escapeUi(user.id);
   const self = currentUser && user.id === currentUser.id;
-  const notes = [user.hasApiKey ? 'chave de IA cadastrada' : 'sem chave de IA', user.mustChangePassword ? 'troca de senha pendente' : '', self ? 'você' : ''].filter(Boolean).join(' · ');
+  const notes = escapeUi([t(user.hasApiKey ? 'js.usuarios.com_chave' : 'js.usuarios.sem_chave'), user.mustChangePassword ? t('js.usuarios.troca_pendente') : '', self ? t('js.usuarios.voce') : ''].filter(Boolean).join(' · '));
   return `<tbody class="user-group" data-user-id="${id}">
     <tr class="user-row">
       <th scope="row"><span class="user-name">${escapeUi(user.name)}</span><small>${notes}</small></th>
       <td class="num">${escapeUi(formatPhone(user.phone)) || '—'}</td>
       <td class="wrap">${escapeUi(user.email)}</td>
-      <td>${user.role === 'admin' ? 'Administrador' : 'Usuário'}</td>
-      <td>${user.active ? 'Ativo' : 'Inativo'}</td>
+      <td>${t(user.role === 'admin' ? 'js.perfil.admin' : 'js.perfil.usuario')}</td>
+      <td>${t(user.active ? 'js.usuarios.ativo' : 'js.usuarios.inativo')}</td>
       <td class="row-actions">
-        ${actionButton('edit', 'edit', 'Editar usuário', `data-edit-user="${id}"`)}
-        ${actionButton('neutral', 'key', 'Redefinir senha', `data-reset-user="${id}"`)}
-        ${actionButton('del', 'trash', 'Excluir usuário', `data-delete-user="${id}"`)}
+        ${actionButton('edit', 'edit', t('js.usuarios.editar'), `data-edit-user="${id}"`)}
+        ${actionButton('neutral', 'key', t('js.usuarios.redefinir'), `data-reset-user="${id}"`)}
+        ${actionButton('del', 'trash', t('js.usuarios.excluir'), `data-delete-user="${id}"`)}
       </td>
     </tr>
     <tr class="user-edit-row" hidden>
       <td colspan="6">
         <form class="user-card" data-user-id="${id}" novalidate>
           <div class="user-fields">
-            <label>Nome<input name="name" value="${escapeUi(user.name)}" maxlength="120" required></label>
-            <label>Telefone<input name="phone" type="tel" value="${escapeUi(formatPhone(user.phone))}" placeholder="(35) 99999-8888" maxlength="22"></label>
-            <label>E-mail<input name="email" type="email" value="${escapeUi(user.email)}" required></label>
-            <label>Perfil<select name="role"><option value="user"${user.role === 'user' ? ' selected' : ''}>Usuário</option><option value="admin"${user.role === 'admin' ? ' selected' : ''}>Administrador</option></select></label>
-            <label class="user-active"><input name="active" type="checkbox"${user.active ? ' checked' : ''}>Ativo</label>
+            <label>${t('js.usuarios.col_nome')}<input name="name" value="${escapeUi(user.name)}" maxlength="120" required></label>
+            <label>${t('js.usuarios.col_telefone')}<input name="phone" type="tel" value="${escapeUi(formatPhone(user.phone))}" placeholder="(35) 99999-8888" maxlength="22"></label>
+            <label>${t('js.usuarios.col_email')}<input name="email" type="email" value="${escapeUi(user.email)}" required></label>
+            <label>${t('js.usuarios.col_perfil')}<select name="role"><option value="user"${user.role === 'user' ? ' selected' : ''}>${t('js.perfil.usuario')}</option><option value="admin"${user.role === 'admin' ? ' selected' : ''}>${t('js.perfil.admin')}</option></select></label>
+            <label class="user-active"><input name="active" type="checkbox"${user.active ? ' checked' : ''}>${t('js.usuarios.ativo')}</label>
           </div>
-          <div class="project-buttons"><button type="submit">Salvar</button><button type="button" data-cancel-edit>Cancelar</button></div>
+          <div class="project-buttons"><button type="submit">${t('js.usuarios.salvar')}</button><button type="button" data-cancel-edit>${t('js.usuarios.cancelar')}</button></div>
           <p class="status" role="status"></p>
         </form>
       </td>
@@ -2357,19 +1995,19 @@ function renderUsers() {
   const role = usersRoleFilter.value;
   const shown = usersData.filter(user => (!role || user.role === role) && (!term || `${user.name} ${user.email}`.toLowerCase().includes(term)));
   usersList.innerHTML = shown.length
-    ? USER_HEAD + shown.map(userGroupHtml).join('')
-    : `${USER_HEAD}<tbody><tr><td colspan="6" class="table-empty">Nenhum usuário encontrado.</td></tr></tbody>`;
-  usersCount.textContent = `${shown.length} de ${usersData.length}`;
+    ? userHead() + shown.map(userGroupHtml).join('')
+    : `${userHead()}<tbody><tr><td colspan="6" class="table-empty">${escapeUi(t('js.usuarios.nenhum'))}</td></tr></tbody>`;
+  usersCount.textContent = t('js.usuarios.contagem', { n: shown.length, total: usersData.length });
 }
 usersSearch.addEventListener('input', renderUsers);
 usersRoleFilter.addEventListener('change', renderUsers);
 
 async function loadUsers() {
-  usersList.innerHTML = '<tbody><tr><td class="table-empty">Carregando usuários…</td></tr></tbody>';
+  usersList.innerHTML = `<tbody><tr><td class="table-empty">${escapeUi(t('js.usuarios.carregando'))}</td></tr></tbody>`;
   try {
     const response = await apiFetch('api/users');
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Não foi possível carregar os usuários.');
+    if (!response.ok) throw new Error(data.error || t('js.usuarios.erro_carregar'));
     usersData = data.users;
     renderUsers();
   } catch (error) {
@@ -2386,11 +2024,11 @@ document.querySelector('#user-create-form').addEventListener('submit', async eve
   const formEl = event.currentTarget;
   const status = document.querySelector('#user-create-status');
   const body = { name: formEl.name.value, phone: formEl.phone.value, email: formEl.email.value, role: formEl.role.value, password: formEl.password.value };
-  if (!body.name.trim() || !body.phone.trim() || !body.email.trim() || !body.password) { status.textContent = 'Preencha nome, telefone, e-mail e senha.'; return; }
-  if (body.password.length < 8) { status.textContent = 'A senha precisa ter ao menos 8 caracteres.'; return; }
+  if (!body.name.trim() || !body.phone.trim() || !body.email.trim() || !body.password) { status.textContent = t('js.usuarios.preencha'); return; }
+  if (body.password.length < 8) { status.textContent = t('js.auth.senha_min'); return; }
   const result = await postJson('api/users', body);
-  if (!result.ok) { status.textContent = result.data.error || 'Não foi possível criar o usuário.'; return; }
-  status.textContent = `Usuário ${result.data.user.email} criado. Entregue a senha temporária com segurança: ela será trocada no primeiro acesso.`;
+  if (!result.ok) { status.textContent = result.data.error || t('js.usuarios.erro_criar'); return; }
+  status.textContent = t('js.usuarios.criado', { email: result.data.user.email });
   tempBox.hidden = true;
   formEl.reset();
   loadUsers();
@@ -2403,9 +2041,9 @@ usersList.addEventListener('submit', async event => {
   const status = card.querySelector('.status');
   const response = await apiFetch(`api/users/${encodeURIComponent(card.dataset.userId)}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: card.name.value, phone: card.phone.value, email: card.email.value, role: card.role.value, active: card.active.checked }) });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) { status.textContent = data.error || 'Não foi possível salvar.'; return; }
-  status.textContent = 'Salvo.';
-  notify('Usuário atualizado');
+  if (!response.ok) { status.textContent = data.error || t('js.msg.erro_salvar'); return; }
+  status.textContent = t('js.usuarios.salvo');
+  notify(t('js.usuarios.atualizado'));
   loadUsers();
 });
 
@@ -2422,21 +2060,21 @@ usersList.addEventListener('click', async event => {
   }
   if (reset) {
     const result = await postJson(`api/users/${encodeURIComponent(reset.dataset.resetUser)}/reset-password`, {});
-    if (!result.ok) { notify(result.data.error || 'Não foi possível redefinir.'); return; }
+    if (!result.ok) { notify(result.data.error || t('js.usuarios.erro_redefinir')); return; }
     showTempPassword(result.data.user.name, result.data.temporaryPassword);
-    notify('Senha redefinida');
+    notify(t('js.usuarios.senha_redefinida'));
     loadUsers();
     return;
   }
   if (!del) return;
   if (!del.classList.contains('armed')) {
-    armAction(del, 'Confirmar (apaga os projetos)', 'Excluir usuário', 4000);
+    armAction(del, t('js.usuarios.confirmar_apaga'), t('js.usuarios.excluir'), 4000);
     return;
   }
   const response = await apiFetch(`api/users/${encodeURIComponent(del.dataset.deleteUser)}`, { method: 'DELETE' });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) { notify(data.error || 'Não foi possível excluir.'); return; }
-  notify(`Usuário excluído (${data.removedProjects} projeto(s) apagado(s))`);
+  if (!response.ok) { notify(data.error || t('js.usuarios.erro_excluir')); return; }
+  notify(t.plural('js.usuarios.excluido', data.removedProjects));
   loadUsers();
 });
 
@@ -2446,7 +2084,7 @@ const EYE_PATHS = {
   closed: ['<path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c4.64 0 8.62 2.92 9.94 7a10.8 10.8 0 0 1-1.6 3.04"/>', '<path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/>', '<path d="M17.48 17.5A10.75 10.75 0 0 1 12 19c-4.64 0-8.62-2.92-9.94-7a10.8 10.8 0 0 1 3.4-4.84"/>', '<path d="m2 2 20 20"/>']
 };
 const eyeSvg = (kind, hidden) => `<svg class="icon-svg eye-${kind}" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"${hidden ? ' hidden' : ''}>${EYE_PATHS[kind].join('')}</svg>`;
-const secretWord = field => (field.name === 'apiKey' ? 'chave' : 'senha');
+const eyeLabel = (field, show) => t(`js.olho.${show ? 'ocultar' : 'mostrar'}_${field.name === 'apiKey' ? 'chave' : 'senha'}`);
 
 function addEyeToggle(field) {
   if (field.closest('.input-join')) return;
@@ -2456,7 +2094,7 @@ function addEyeToggle(field) {
   const button = document.createElement('button');
   button.className = 'eye-toggle';
   button.type = 'button';
-  button.setAttribute('aria-label', `Mostrar ${secretWord(field)}`);
+  button.setAttribute('aria-label', eyeLabel(field, false));
   button.setAttribute('aria-pressed', 'false');
   button.innerHTML = eyeSvg('open', false) + eyeSvg('closed', true);
   wrap.append(field, button);
@@ -2474,7 +2112,7 @@ document.addEventListener('click', event => {
   button.querySelector('.eye-open').toggleAttribute('hidden', show);
   button.querySelector('.eye-closed').toggleAttribute('hidden', !show);
   button.setAttribute('aria-pressed', String(show));
-  button.setAttribute('aria-label', `${show ? 'Ocultar' : 'Mostrar'} ${secretWord(field)}`);
+  button.setAttribute('aria-label', eyeLabel(field, show));
 });
 
 async function loadAuthConfig() {
@@ -2500,8 +2138,61 @@ async function bootstrapAuth() {
   try {
     if (sessionStorage.getItem(GONE_KEY)) {
       sessionStorage.removeItem(GONE_KEY);
-      setError(authScreen.querySelector('#login-form'), 'Conta excluída. Seus projetos e sua chave de IA foram apagados.', true);
+      setError(authScreen.querySelector('#login-form'), t('js.auth.conta_excluida'), true);
     }
   } catch {}
 }
+// ---------- Idioma: refaz o que o JS desenhou e guarda a escolha na conta ----------
+function updateCopyLabels() {
+  const copy = document.querySelector('#copy');
+  if (copy && !copy.classList.contains('copied')) copy.querySelector('.copy-label').textContent = t('js.msg.copiar');
+  const exemplo = document.querySelector('#copiar-exemplo');
+  if (exemplo && !exemplo.classList.contains('copied')) exemplo.querySelector('.copy-label').textContent = t('js.inicio.copiar_prompt');
+}
+window.idioma.aoMudar(codigo => {
+  renderStyleOptions(document.querySelector('#style-options'), 'style');
+  renderStyleOptions(document.querySelector('#capa-style-options'), 'capa-style');
+  renderResources();
+  renderImproveChips();
+  document.querySelector('#theme-name').textContent = themeLabel(document.documentElement.dataset.theme);
+  renderThemeView();
+  updateGenerationMode();
+  updateCrumbs();
+  syncSaveButtons();
+  updateMenuLabel();
+  updateUserBox();
+  if (currentUser) checkAiAvailability();
+  if (currentFiles.length) renderGeneratedFiles();
+  if (bncc.data && !bnccEls.panel.hidden) {
+    const [faixa, grupo] = [bnccEls.recorte.value, bnccEls.grupo.value];
+    bnccRefreshOptions();
+    bnccEls.recorte.value = faixa;
+    bnccEls.grupo.value = grupo;
+    bnccRender();
+    bnccUpdateCount();
+  } else if (bncc.data) bnccUpdateCount();
+  applyAiConfigDatalists();
+  renderAiConfigCurrent();
+  if (backupData) renderBackup(backupData);
+  if (usersData.length) renderUsers();
+  // A FAQ guarda os nomes das categorias na primeira abertura: zera para os badges e a lista trocarem de idioma.
+  faqReady = false;
+  faqCategoria = '';
+  faqOpen = -1;
+  if (workspace.dataset.view === 'faq') renderFaq();
+  if (workspace.dataset.view === 'projetos') loadProjects();
+  if (workspace.dataset.view === 'conta') fillLegalAccount();
+  updateCopyLabels();
+  if (!outBadge.hidden && badgeTime) outBadge.textContent = `${badgeAi ? t('js.gerar.badge_ia') : RESULT_BADGE[currentKind]} · ${badgeTime.toLocaleTimeString(window.idioma.idioma, { hour: '2-digit', minute: '2-digit' })}`;
+  if (currentUser) document.querySelector('#account-summary').textContent = `${t(currentUser.role === 'admin' ? 'js.perfil.admin' : 'js.perfil.usuario')} · ${currentUser.email}`;
+  bnccCheckTyped();
+  // O seletor também dispara este ouvinte quando a conta define o idioma; só grava se for diferente do que a conta já tem.
+  if (currentUser && codigo !== (currentUser.language || '')) {
+    postJson('api/auth/language', { language: codigo }).then(result => { if (result.ok && result.data.user) currentUser = result.data.user; });
+  }
+});
+updateMenuLabel();
+updateCopyLabels();
+syncSaveButtons();
+bnccUpdateCount();
 bootstrapAuth();
