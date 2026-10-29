@@ -15,6 +15,7 @@
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
   <div class="auth-screen" id="auth-screen" hidden>
     <main class="auth-main">
+      <div class="idioma" data-seletor-idioma></div>
       <div class="auth-brand"><span class="brand-mark logo" aria-hidden="true"></span><span class="auth-name">GeradorOne</span></div>
       <div class="auth-card">
       <form id="login-form" class="auth-panel" data-panel="login" novalidate>
@@ -114,6 +115,7 @@
         <a class="nav-item" href="#config" data-view="config" data-admin title="Configurações" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span class="nav-label">Configurações</span></a>
       </nav>
       <div class="sidebar-foot">
+        <div class="idioma" data-seletor-idioma></div>
         <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label">Tema</span><span class="nav-label theme-current" id="theme-name">Papel</span></a>
         <a class="nav-item" href="#sobre" data-view="sobre" title="Sobre o GeradorOne"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span class="nav-label">Sobre</span></a>
         <button id="logout-button" class="nav-item" type="button" title="Sair"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label">Sair</span></button>
@@ -681,6 +683,13 @@ CRITÉRIOS DE QUALIDADE
     </div>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script src="i18n.js"></script>
+  <script src="i18n/pt-BR.js"></script>
+  <script src="i18n/en.js"></script>
+  <script src="i18n/es.js"></script>
+  <script src="i18n/de.js"></script>
+  <script src="i18n/it.js"></script>
+  <script src="i18n-ui.js"></script>
   <script src="style-art.js"></script>
   <script src="faq-data.js"></script>
   <script src="app.js" defer></script>
