@@ -58,7 +58,7 @@
       else if (foco) botao.focus();
     };
     botao.addEventListener('click', () => abrir(lista.hidden));
-    lista.addEventListener('click', e => { const item = e.target.closest('li'); if (item) definir(item.dataset.codigo); });
+    lista.addEventListener('click', e => { const item = e.target.closest('li'); if (item) escolherNaTela(item.dataset.codigo, host); });
     lista.addEventListener('keydown', e => {
       const itens = [...lista.children];
       const i = itens.indexOf(document.activeElement);
@@ -66,11 +66,24 @@
       else if (e.key === 'ArrowUp') { e.preventDefault(); itens[Math.max(i - 1, 0)].focus(); }
       else if (e.key === 'Home') { e.preventDefault(); itens[0].focus(); }
       else if (e.key === 'End') { e.preventDefault(); itens[itens.length - 1].focus(); }
-      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (document.activeElement.dataset.codigo) definir(document.activeElement.dataset.codigo); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (document.activeElement.dataset.codigo) escolherNaTela(document.activeElement.dataset.codigo, host); }
       else if (e.key === 'Escape' || e.key === 'Tab') abrir(false, e.key === 'Escape');
     });
-    document.addEventListener('click', e => { if (!host.contains(e.target)) abrir(false); });
+    host._fechar = () => abrir(false);
     host.append(botao, lista);
+  }
+
+  // Um único ouvinte fecha qualquer lista aberta ao clicar fora (os seletores são redesenhados a cada troca).
+  document.addEventListener('click', e => {
+    document.querySelectorAll('[data-seletor-idioma]').forEach(host => { if (host._fechar && !host.contains(e.target)) host._fechar(); });
+  });
+
+  let escolhaNaPagina = false;
+  function escolherNaTela(codigo, host) {
+    escolhaNaPagina = true;
+    definir(codigo);
+    const indice = [...document.querySelectorAll('[data-seletor-idioma]')].indexOf(host);
+    document.querySelectorAll('[data-seletor-idioma]')[indice]?.querySelector('.idioma-botao')?.focus();
   }
 
   function definir(codigo, { gravar = true } = {}) {
@@ -94,6 +107,7 @@
     // A conta do usuário vence o cookie só quando não há ?lang= na URL.
     usarIdiomaDaConta(codigo) {
       contaIdioma = normalizar(codigo);
+      if (escolhaNaPagina) return;
       if (contaIdioma && contaIdioma !== atual && !new URLSearchParams(location.search).get('lang')) definir(contaIdioma);
     }
   };

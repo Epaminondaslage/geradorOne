@@ -136,3 +136,20 @@ test('idioma da conta: aceita códigos suportados e vazio, recusa o resto', asyn
   await assert.rejects(store.update(linha.id, { language: null }), { code: 'erro.idioma_invalido' });
   assert.equal(app.db === undefined, false);
 });
+
+test('instruções para a IA em pt-BR seguem idênticas ao original (sem regra extra)', () => {
+  const original = 'Você revisa prompts em português do Brasil. Fim.';
+  assert.equal(app.withLanguageRule(original, 'pt-BR'), original);
+});
+
+test('e-mail de contato nos arquivos de idioma não quebra o JS nem injeta código', () => {
+  const padrao = 'fulano@dominio.com.br';
+  const fonte = `const d = { "faq.1": "Fale com ${padrao} para ajuda" };`;
+  const malicioso = 'x"+alert(1)+"@a.co';
+  const js = srv.trocarContato(fonte, '.js', padrao, malicioso);
+  const d = new Function(`${js}; return d;`)();
+  assert.equal(d['faq.1'], `Fale com ${malicioso} para ajuda`, 'o texto entra como dado, nunca como código');
+  const html = srv.trocarContato('<p>fulano@dominio.com.br</p>', '.html', padrao, 'a<b>@c.co');
+  assert.equal(html, '<p>a&lt;b&gt;@c.co</p>');
+  assert.equal(srv.trocarContato('sem contato', '.js', padrao, 'ok@a.co'), 'sem contato');
+});

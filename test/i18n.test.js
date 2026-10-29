@@ -74,3 +74,10 @@ test('a ressalva jurídica existe nos cinco idiomas e cita BRL', () => {
     assert.match(dicts[l.codigo]['legal.ressalva'], /BRL|R\$/, l.codigo);
   }
 });
+
+test('zero usa o plural nos cinco idiomas, inclusive em português (0 projetos, não 0 projeto)', () => {
+  const d = { 'pt-BR': { 'c.um': '{n} projeto', 'c.outros': '{n} projetos' } };
+  assert.equal(i18n.criar(d, 'pt-BR').plural('c', 0), '0 projetos');
+  assert.equal(i18n.criar(d, 'pt-BR').plural('c', 1), '1 projeto');
+  assert.equal(i18n.criar(d, 'pt-BR').plural('c', 2), '2 projetos');
+});

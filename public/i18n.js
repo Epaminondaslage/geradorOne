@@ -49,13 +49,12 @@
 
   function criar(dicionarios, idioma) {
     const lingua = normalizar(idioma) || PADRAO;
-    const regra = new Intl.PluralRules(lingua);
     const buscar = chave => {
       const achado = dicionarios[lingua]?.[chave] ?? dicionarios[PADRAO]?.[chave];
       return typeof achado === 'string' ? achado : null;
     };
     const t = (chave, params) => preencher(buscar(chave) ?? chave, params);
-    t.plural = (chave, n, params) => t(`${chave}.${regra.select(n) === 'one' ? 'um' : 'outros'}`, { n, ...params });
+    t.plural = (chave, n, params) => t(`${chave}.${Math.abs(n) === 1 ? 'um' : 'outros'}`, { n, ...params });
     t.idioma = lingua;
     return t;
   }

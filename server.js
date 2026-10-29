@@ -23,7 +23,7 @@ const { createSettingsStore } = require('./lib/settings');
 const { createSupportStore, validateSupport, newProtocol } = require('./lib/support');
 const { checkMasterSecret } = require('./lib/secret-check');
 const i18n = require('./public/i18n.js');
-const { criarT, idiomaDaRequisicao, idiomaDoCorpo, tr, erro, codigoDe, corpoErro, injetarRessalva, regraDeIdioma } = require('./lib/i18n-servidor');
+const { trocarContato, criarT, idiomaDaRequisicao, idiomaDoCorpo, tr, erro, codigoDe, corpoErro, injetarRessalva, regraDeIdioma } = require('./lib/i18n-servidor');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -409,8 +409,8 @@ async function requestAiText(config, instructions, input, timeoutMs, timeoutKey)
 
 // Acrescenta às instruções a regra de idioma: toda a saída, inclusive o texto dentro de imagens, no idioma escolhido.
 function withLanguageRule(instructions, idioma) {
-  const base = idioma === i18n.PADRAO ? instructions : instructions.replace(' em português do Brasil', '');
-  return `${base} ${regraDeIdioma(idioma)}`;
+  if (idioma === i18n.PADRAO) return instructions;
+  return `${instructions.replace(' em português do Brasil', '')} ${regraDeIdioma(idioma)}`;
 }
 
 async function requestAiHtml(config, prompt, idioma = i18n.PADRAO) {
@@ -976,7 +976,7 @@ async function handleRequest(req, res) {
     // Termos, Política e FAQ citam o e-mail de contato; mostram o configurado (painel ou CONTACT_EMAIL) em vez do padrão.
     if (CONTACT_PAGES.has(path.basename(filePath))) {
       const contact = mailer.supportAddress();
-      if (contact && contact !== DEFAULT_CONTACT) data = Buffer.from(data.toString('utf8').split(DEFAULT_CONTACT).join(contact));
+      if (contact && contact !== DEFAULT_CONTACT) data = Buffer.from(trocarContato(data.toString('utf8'), path.extname(filePath), DEFAULT_CONTACT, contact));
     }
     // Termos e Política ficam só em português; em outro idioma ganham a ressalva no topo e variam por idioma.
     const legal = LEGAL_PAGES.has(path.basename(filePath));

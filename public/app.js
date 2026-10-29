@@ -1106,11 +1106,13 @@ function formatBytes(bytes) {
   let value = bytes, unit = 0;
   while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit += 1; }
   const casas = value >= 10 || unit === 0 ? 0 : 1;
+  if (window.idioma.idioma === 'pt-BR') return `${value.toFixed(casas).replace('.', ',')} ${units[unit]}`;
   return `${value.toLocaleString(window.idioma.idioma, { minimumFractionDigits: casas, maximumFractionDigits: casas })} ${units[unit]}`;
 }
 // O nome do arquivo guarda a data como AAAAMMDD-HHMM.
 function formatStamp(stamp) {
   const match = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/.exec(stamp || '');
+  if (match && window.idioma.idioma === 'pt-BR') return `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}`;
   return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5])).toLocaleString(window.idioma.idioma, { dateStyle: 'short', timeStyle: 'short' }) : '-';
 }
 function formatWhen(iso) {
@@ -1329,6 +1331,11 @@ function startApp(user) {
   currentUser = user;
   if (switched) { location.hash = ''; location.reload(); return; }
   window.idioma.usarIdiomaDaConta(user.language);
+  // Quem escolheu o idioma antes de entrar (tela de login) leva a escolha para a conta.
+  const idiomaDaPagina = window.idioma.idioma;
+  if (idiomaDaPagina !== (user.language || 'pt-BR')) {
+    postJson('api/auth/language', { language: window.idioma.idioma }).then(result => { if (result.ok && result.data.user) currentUser = result.data.user; });
+  }
   if (!user.termsCurrent) { showAuth('terms'); return; }
   if (user.theme === 'sistema') { themeFollowsSystem = true; setTheme(systemTheme()); } else if (themeNames[user.theme]) { themeFollowsSystem = false; setTheme(user.theme); } else { themeFollowsSystem = false; setTheme('papel', { persist: false }); }
   document.querySelector('#user-name').textContent = user.name;
