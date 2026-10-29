@@ -41,6 +41,10 @@ Quem cadastrar a própria chave de IA (BYOK: OpenAI, Google Gemini ou Anthropic)
 
 ## Funcionalidades
 
+**Idiomas**
+
+- Interface, FAQ, e-mails e prompts em português do Brasil, inglês, espanhol, alemão e italiano, com seletor de bandeiras na tela de entrada e no menu. O idioma escolhido também vale para o texto que o prompt pede dentro das imagens e fica salvo na conta. Termos e Política de privacidade existem só em português do Brasil.
+
 **Apostila**
 
 - 12 tipos de material e a opção Outro, entre eles apostila didática, material de revisão, caderno de atividades, guia de estudos, sequência didática e guia do professor.

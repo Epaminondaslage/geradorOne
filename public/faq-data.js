@@ -84,6 +84,7 @@ const FAQ_ESTRUTURA = [
   ['79', 'aparencia-e-celular'],
   ['80', 'aparencia-e-celular'],
   ['81', 'aparencia-e-celular'],
+  ['95', 'aparencia-e-celular'],
   ['82', 'seguranca-e-privacidade'],
   ['83', 'seguranca-e-privacidade'],
   ['84', 'seguranca-e-privacidade'],

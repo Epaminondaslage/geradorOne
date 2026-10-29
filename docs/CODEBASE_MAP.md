@@ -204,7 +204,15 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 
 O painel de resultado só aparece nas páginas `apostila` e `capa` (regra de CSS por `data-view`).
 
-### Geradores de prompt (`app.js`)
+### Idiomas (pt-BR, en, es, de, it)
+
+- Núcleo: `public/i18n.js` (UMD: navegador e servidor). Dicionários com as mesmas 1.579 chaves em `public/i18n/<código>.js`; `pt-BR.js` é a fonte. `public/i18n-ui.js` traduz o HTML marcado (`data-i18n`, `data-i18n-attr`, `data-fora-pt` para avisos só de outros idiomas) e desenha o seletor com bandeiras (`[data-seletor-idioma]`, na tela de entrada e no rodapé do menu).
+- Escolha do idioma: `?lang=` na URL, cookie `idioma` (1 ano, sem dado pessoal), conta (`users.language`, `POST /api/auth/language`), `Accept-Language`, pt-BR. O servidor usa o mesmo núcleo (`lib/i18n-servidor.js`): erros da API têm `error` traduzido e `code` estável, e-mails seguem o idioma do destinatário, `language` vai no corpo de `api/generate`, `api/improve`, `api/render` e `api/pdf`.
+- Termos de uso e Política de privacidade ficam só em português do Brasil (contrato e pagamento no Brasil): em outro idioma, o servidor injeta a ressalva `legal.ressalva` e o aceite dos Termos mostra o mesmo aviso. `lib/mensagens-pt.js` é a reserva em português das mensagens do servidor.
+- Os textos do prompt moram nos dicionários (`prompt.*`) e são montados por `public/prompts.js`; `test/fixtures/prompts-pt-BR.json` garante que o pt-BR não mude. Prompts dos exemplos do carrossel em outros idiomas: `docs/exemplos-i18n/`.
+- `test/i18n.test.js` falha se algum idioma tiver chave a mais ou a menos, parâmetro `{x}` diferente ou valor vazio. Ao mudar um texto de tela, mude as cinco línguas.
+
+### Geradores de prompt (`public/prompts.js`, chamados por `app.js`)
 
 - `generateImagePrompt` (modo "somente prompt", o padrão): prompt de imagem, uma imagem por página. Usa `typeProfiles` (13 tipos), `typeLayouts` (regras de layout por tipo), `typeElements`, `styleProfiles` (12 estilos), `pagePlan` (plano de páginas quando há mais de uma) e `imagePageFormats`. O número de páginas padrão é 1.
 - `generateCoverPrompt`: capa, com os textos exatos entre aspas e a mesma tabela de estilos.

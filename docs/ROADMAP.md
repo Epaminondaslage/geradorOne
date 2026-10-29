@@ -12,6 +12,7 @@ Avaliação feita em 22/10/2026. Cada item tem uma caixa para marcar quando for 
 - [x] Login por e-mail e senha, perfis admin e usuário, troca de senha obrigatória no primeiro acesso, recuperação por código enviado por e-mail e limite de tentativas.
 - [x] Chaves de IA por usuário (BYOK), cifradas com AES-256-GCM. A chave mestra fica em `APP_SECRET`, fora do banco, e o app recusa iniciar se ela mudar.
 - [x] Contêiner endurecido (usuário sem privilégios, sistema de arquivos somente leitura, sem capabilities) e suíte de testes contra Postgres real.
+- [x] 29/10/2026: app em pt-BR, en, es, de e it (interface, FAQ, e-mails, prompts e texto dentro das imagens), com seletor de bandeiras e idioma na conta. Falta: revisão por falante nativo, landing e carrossel em outros idiomas (repositório comercial) e as 40 imagens dos exemplos.
 
 **Não está pronto para clientes.** Os blocos abaixo explicam o que falta, em ordem.
 

@@ -67,6 +67,9 @@ Início (os três passos do pedido ao material, uma demonstração animada dos 5
 # Celular
 Em Apostila e Capa a tela se divide em duas abas: "Dados" e "Resultado". Ao gerar, o app abre a aba "Resultado".
 
+# Idioma
+O seletor com bandeiras fica na tela de entrada e no rodapé do menu lateral, acima de "Tema". Há cinco idiomas: Português, English, Español, Deutsch e Italiano. A escolha muda a tela inteira, os prompts gerados e o texto que o prompt pede dentro das imagens, e fica salva na conta. Termos de uso e Política de privacidade existem só em português do Brasil; em outro idioma aparece uma ressalva. O que a pessoa digita não é traduzido.
+
 # Tema
 "Tema" oferece seis temas (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste) ou seguir o sistema. A primeira entrada é no Papel. A escolha fica na sua conta.
 
