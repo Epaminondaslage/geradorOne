@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Gerador de prompts completos para apostilas, capas e materiais didáticos.">
-  <title>GeradorOne: Gerador de Prompts</title>
+  <meta name="description" content="Gerador de prompts completos para apostilas, capas e materiais didáticos." data-i18n-attr="content:meta.gerador_de_prompts_completos_para">
+  <title data-i18n="meta.geradorone_gerador_de_prompts">GeradorOne: Gerador de Prompts</title>
   <link rel="icon" type="image/png" href="assets/icons/favicon.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="theme.css">
@@ -12,193 +12,193 @@
   <link rel="stylesheet" href="design.css">
 </head>
 <body>
-  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+  <a class="skip-link" href="#conteudo" data-i18n="meta.ir_para_o_conteudo">Ir para o conteúdo</a>
   <div class="auth-screen" id="auth-screen" hidden>
     <main class="auth-main">
       <div class="idioma" data-seletor-idioma></div>
       <div class="auth-brand"><span class="brand-mark logo" aria-hidden="true"></span><span class="auth-name">GeradorOne</span></div>
       <div class="auth-card">
       <form id="login-form" class="auth-panel" data-panel="login" novalidate>
-        <div class="auth-title"><h1>Entrar</h1><p>Use o e-mail e a senha que o administrador cadastrou para você.</p></div>
-        <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
+        <div class="auth-title"><h1 data-i18n="auth.entrar">Entrar</h1><p data-i18n="auth.use_o_e_mail_e">Use o e-mail e a senha que o administrador cadastrou para você.</p></div>
+        <label><span data-i18n="auth.e_mail">E-mail</span><input name="email" type="email" autocomplete="username" required></label>
         <div class="field-block">
-          <div class="field-row"><label for="login-password">Senha</label><button class="link" type="button" data-auth-go="forgot">Esqueci a senha</button></div>
+          <div class="field-row"><label for="login-password" data-i18n="auth.senha">Senha</label><button class="link" type="button" data-auth-go="forgot" data-i18n="auth.esqueci_a_senha">Esqueci a senha</button></div>
           <div class="input-join"><input id="login-password" name="password" type="password" autocomplete="current-password" required><button class="eye-toggle" type="button" id="toggle-password" aria-label="Mostrar senha" aria-pressed="false"><svg class="icon-svg eye-open" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg><svg class="icon-svg eye-closed" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c4.64 0 8.62 2.92 9.94 7a10.8 10.8 0 0 1-1.6 3.04"/><path d="M14.08 14.16a3 3 0 0 1-4.24-4.24"/><path d="M17.48 17.5A10.75 10.75 0 0 1 12 19c-4.64 0-8.62-2.92-9.94-7a10.8 10.8 0 0 1 3.4-4.84"/><path d="m2 2 20 20"/></svg></button></div>
         </div>
         <p class="auth-error" role="alert"></p>
-        <button class="primary" type="submit">Entrar</button>
-        <p class="help"><span id="signup-off">Sem acesso? Peça ao administrador da sua escola para criar o seu usuário.</span><span id="signup-on" hidden>Ainda não tem conta? <button class="link" type="button" data-auth-go="signup" id="signup-link">Criar conta</button></span></p>
+        <button class="primary" type="submit" data-i18n="auth.entrar">Entrar</button>
+        <p class="help"><span id="signup-off" data-i18n="auth.sem_acesso_peca_ao_administrador">Sem acesso? Peça ao administrador da sua escola para criar o seu usuário.</span><span id="signup-on" hidden><span data-i18n="auth.ainda_nao_tem_conta">Ainda não tem conta?</span> <button class="link" type="button" data-auth-go="signup" id="signup-link" data-i18n="auth.criar_conta">Criar conta</button></span></p>
       </form>
       <form id="signup-form" class="auth-panel" data-panel="signup" hidden novalidate>
-        <h1>Criar conta</h1>
-        <p>Informe seus dados. Enviaremos um código de 6 dígitos para confirmar o seu e-mail.</p>
-        <label>Nome<input name="name" autocomplete="name" maxlength="120" required></label>
-        <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
-        <label>Senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-        <label>Repita a senha<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
-        <label class="terms-check"><input name="terms" type="checkbox" required><span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de uso</a> e a <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a>.</span></label>
+        <h1 data-i18n="auth.criar_conta">Criar conta</h1>
+        <p data-i18n="auth.informe_seus_dados_enviaremos_um">Informe seus dados. Enviaremos um código de 6 dígitos para confirmar o seu e-mail.</p>
+        <label><span data-i18n="auth.nome">Nome</span><input name="name" autocomplete="name" maxlength="120" required></label>
+        <label><span data-i18n="auth.e_mail">E-mail</span><input name="email" type="email" autocomplete="username" required></label>
+        <label><span data-i18n="auth.senha">Senha</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label><span data-i18n="auth.repita_a_senha">Repita a senha</span><input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label class="terms-check"><input name="terms" type="checkbox" required><span><span data-i18n="auth.li_e_aceito_os">Li e aceito os</span> <a href="termos.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.termos_de_uso">Termos de uso</a> <span data-i18n="auth.e_a">e a</span> <a href="privacidade.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.politica_de_privacidade">Política de privacidade</a><span data-i18n="auth.aceite_fim">.</span></span></label>
         <p class="auth-error" role="alert"></p>
-        <button class="primary" type="submit">Enviar código</button>
-        <button class="link" type="button" data-auth-go="login">Voltar para o login</button>
+        <button class="primary" type="submit" data-i18n="auth.enviar_codigo">Enviar código</button>
+        <button class="link" type="button" data-auth-go="login" data-i18n="auth.voltar_para_o_login">Voltar para o login</button>
       </form>
       <form id="signup-confirm-form" class="auth-panel" data-panel="signup-confirm" hidden novalidate>
-        <h1>Confirme o seu e-mail</h1>
+        <h1 data-i18n="auth.confirme_o_seu_e_mail">Confirme o seu e-mail</h1>
         <p id="signup-confirm-info">Enviamos um código de 6 dígitos para o seu e-mail. Ele vale por 10 minutos.</p>
-        <label>Código<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
+        <label><span data-i18n="auth.codigo">Código</span><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
         <p class="auth-error" role="alert"></p>
-        <button class="primary" type="submit">Confirmar e entrar</button>
-        <button class="link" type="button" data-auth-go="signup">Voltar</button>
+        <button class="primary" type="submit" data-i18n="auth.confirmar_e_entrar">Confirmar e entrar</button>
+        <button class="link" type="button" data-auth-go="signup" data-i18n="auth.voltar">Voltar</button>
       </form>
       <form id="terms-form" class="auth-panel" data-panel="terms" hidden novalidate>
-        <h1>Termos de uso e privacidade</h1>
-        <p id="terms-intro">Antes de continuar, leia os documentos abaixo. Eles explicam como o GeradorOne funciona e como os seus dados são tratados.</p>
-        <p class="terms-links"><a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de uso</a> · <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a></p>
-        <label class="terms-check"><input name="terms" type="checkbox" required><span>Li e aceito os Termos de uso e a Política de privacidade.</span></label>
+        <h1 data-i18n="auth.termos_de_uso_e_privacidade">Termos de uso e privacidade</h1>
+        <p id="terms-intro" data-i18n="auth.antes_de_continuar_leia_os">Antes de continuar, leia os documentos abaixo. Eles explicam como o GeradorOne funciona e como os seus dados são tratados.</p>
+        <p class="terms-links"><a href="termos.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.termos_de_uso">Termos de uso</a> · <a href="privacidade.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.politica_de_privacidade">Política de privacidade</a></p>
+        <label class="terms-check"><input name="terms" type="checkbox" required><span data-i18n="auth.li_e_aceito_os_termos">Li e aceito os Termos de uso e a Política de privacidade.</span></label>
         <p class="auth-error" role="alert"></p>
-        <button class="primary" type="submit">Aceitar e continuar</button>
-        <button class="link" type="button" id="terms-logout">Sair</button>
+        <button class="primary" type="submit" data-i18n="auth.aceitar_e_continuar">Aceitar e continuar</button>
+        <button class="link" type="button" id="terms-logout" data-i18n="auth.sair">Sair</button>
       </form>
       <form id="forgot-form" class="auth-panel" data-panel="forgot" hidden novalidate>
-        <h1>Redefinir senha</h1>
-        <p>Informe seu e-mail e a nova senha. Enviaremos um código de 6 dígitos para confirmar a troca.</p>
-        <label>E-mail<input name="email" type="email" autocomplete="username" required></label>
-        <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <h1 data-i18n="auth.redefinir_senha">Redefinir senha</h1>
+        <p data-i18n="auth.informe_seu_e_mail_e">Informe seu e-mail e a nova senha. Enviaremos um código de 6 dígitos para confirmar a troca.</p>
+        <label><span data-i18n="auth.e_mail">E-mail</span><input name="email" type="email" autocomplete="username" required></label>
+        <label><span data-i18n="auth.nova_senha">Nova senha</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
         <p class="auth-error" role="alert"></p>
-        <button class="primary" type="submit">Enviar código</button>
-        <button class="link" type="button" data-auth-go="login">Voltar para o login</button>
+        <button class="primary" type="submit" data-i18n="auth.enviar_codigo">Enviar código</button>
+        <button class="link" type="button" data-auth-go="login" data-i18n="auth.voltar_para_o_login">Voltar para o login</button>
       </form>
       <form id="confirm-form" class="auth-panel" data-panel="confirm" hidden novalidate>
-        <h1>Digite o código</h1>
+        <h1 data-i18n="auth.digite_o_codigo">Digite o código</h1>
         <p id="confirm-info">Enviamos um código de 6 dígitos para o seu e-mail. Ele vale por 10 minutos.</p>
-        <label>Código<input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
+        <label><span data-i18n="auth.codigo">Código</span><input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required></label>
         <p class="auth-error" role="alert"></p>
-        <button class="primary" type="submit">Confirmar nova senha</button>
-        <button class="link" type="button" data-auth-go="login">Voltar para o login</button>
+        <button class="primary" type="submit" data-i18n="auth.confirmar_nova_senha">Confirmar nova senha</button>
+        <button class="link" type="button" data-auth-go="login" data-i18n="auth.voltar_para_o_login">Voltar para o login</button>
       </form>
       <form id="first-form" class="auth-panel" data-panel="first" hidden novalidate>
-        <h1>Defina sua senha</h1>
-        <p>É o seu primeiro acesso, ou a senha foi redefinida por um administrador. Troque a senha temporária para continuar.</p>
-        <label>Senha temporária<input name="current" type="password" autocomplete="current-password" required></label>
-        <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-        <label>Repita a nova senha<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+        <h1 data-i18n="auth.defina_sua_senha">Defina sua senha</h1>
+        <p data-i18n="auth.e_o_seu_primeiro_acesso">É o seu primeiro acesso, ou a senha foi redefinida por um administrador. Troque a senha temporária para continuar.</p>
+        <label><span data-i18n="auth.senha_temporaria">Senha temporária</span><input name="current" type="password" autocomplete="current-password" required></label>
+        <label><span data-i18n="auth.nova_senha">Nova senha</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label><span data-i18n="auth.repita_a_nova_senha">Repita a nova senha</span><input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
         <p class="auth-error" role="alert"></p>
-        <button class="primary" type="submit">Salvar e entrar</button>
-        <button class="link" type="button" id="first-logout">Sair</button>
+        <button class="primary" type="submit" data-i18n="auth.salvar_e_entrar">Salvar e entrar</button>
+        <button class="link" type="button" id="first-logout" data-i18n="auth.sair">Sair</button>
       </form>
       </div>
-      <p class="help">GeradorOne v2 · <a href="https://github.com/Epaminondaslage/geradorOne" target="_blank" rel="noopener noreferrer">Código aberto (AGPL-3.0)</a> · <a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de uso</a> · <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a> · O gerador não valida automaticamente conteúdos ou códigos curriculares.</p>
+      <p class="help">GeradorOne v2 · <a href="https://github.com/Epaminondaslage/geradorOne" target="_blank" rel="noopener noreferrer" data-i18n="auth.codigo_aberto_agpl_3_0">Código aberto (AGPL-3.0)</a> · <a href="termos.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.termos_de_uso">Termos de uso</a> · <a href="privacidade.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.politica_de_privacidade">Política de privacidade</a> · <span data-i18n="auth.o_gerador_nao_valida_automaticamente">O gerador não valida automaticamente conteúdos ou códigos curriculares.</span></p>
     </main>
-    <aside class="auth-art" data-theme-scope="lousa" aria-label="Sobre o GeradorOne">
-      <span class="logo" role="img" aria-label="GeradorOne: cabeça com um mapa mental no lugar do cérebro"></span>
-      <div class="auth-pitch"><p class="pitch-title">Um prompt por página, pronto para o seu gerador de imagens.</p><p>Apostilas, cadernos de atividades e capas. Se quiser, a sua própria chave de IA monta o PDF.</p></div>
+    <aside class="auth-art" data-theme-scope="lousa" aria-label="Sobre o GeradorOne" data-i18n-attr="aria-label:auth.sobre_o_geradorone">
+      <span class="logo" role="img" aria-label="GeradorOne: cabeça com um mapa mental no lugar do cérebro" data-i18n-attr="aria-label:auth.geradorone_cabeca_com_um_mapa"></span>
+      <div class="auth-pitch"><p class="pitch-title" data-i18n="auth.um_prompt_por_pagina_pronto">Um prompt por página, pronto para o seu gerador de imagens.</p><p data-i18n="auth.apostilas_cadernos_de_atividades_e">Apostilas, cadernos de atividades e capas. Se quiser, a sua própria chave de IA monta o PDF.</p></div>
     </aside>
   </div>
   <div class="shell" id="shell" hidden>
     <div class="scrim" id="scrim" hidden></div>
-    <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+    <aside class="sidebar" id="sidebar" aria-label="Menu lateral" data-i18n-attr="aria-label:menu.menu_lateral">
       <div class="sidebar-head">
-        <a class="brand" href="#inicio" data-view-link="inicio" aria-label="GeradorOne, página inicial">
+        <a class="brand" href="#inicio" data-view-link="inicio" aria-label="GeradorOne, página inicial" data-i18n-attr="aria-label:menu.geradorone_pagina_inicial">
           <span class="brand-mark logo" aria-hidden="true"></span>
-          <span class="nav-label"><strong>GeradorOne</strong><small>Prompts didáticos</small></span>
+          <span class="nav-label"><strong>GeradorOne</strong><small data-i18n="menu.prompts_didaticos">Prompts didáticos</small></span>
         </a>
         <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Recolher menu" aria-expanded="true" aria-controls="sidebar"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       </div>
-      <nav class="nav" aria-label="Menu principal">
-        <a class="nav-item" href="#inicio" data-view="inicio" title="Início"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9"/></svg><span class="nav-label">Início</span></a>
-        <a class="nav-item" href="#apostila" data-view="apostila" title="Apostila"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg><span class="nav-label">Apostila</span></a>
-        <a class="nav-item" href="#capa" data-view="capa" title="Capa"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg><span class="nav-label">Capa</span></a>
-        <a class="nav-item" href="#projetos" data-view="projetos" title="Meus projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="nav-label">Meus projetos</span></a>
-        <a class="nav-item" href="#ia" data-view="ia" title="Minha chave de IA"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span class="nav-label">Minha chave de IA</span></a>
-        <a class="nav-item" href="#conta" data-view="conta" title="Minha conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Minha conta</span></a>
+      <nav class="nav" aria-label="Menu principal" data-i18n-attr="aria-label:menu.menu_principal">
+        <a class="nav-item" href="#inicio" data-view="inicio" title="Início" data-i18n-attr="title:menu.inicio"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9"/></svg><span class="nav-label" data-i18n="menu.inicio">Início</span></a>
+        <a class="nav-item" href="#apostila" data-view="apostila" title="Apostila" data-i18n-attr="title:menu.apostila"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg><span class="nav-label" data-i18n="menu.apostila">Apostila</span></a>
+        <a class="nav-item" href="#capa" data-view="capa" title="Capa" data-i18n-attr="title:menu.capa"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg><span class="nav-label" data-i18n="menu.capa">Capa</span></a>
+        <a class="nav-item" href="#projetos" data-view="projetos" title="Meus projetos" data-i18n-attr="title:menu.meus_projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="nav-label" data-i18n="menu.meus_projetos">Meus projetos</span></a>
+        <a class="nav-item" href="#ia" data-view="ia" title="Minha chave de IA" data-i18n-attr="title:menu.minha_chave_de_ia"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg><span class="nav-label" data-i18n="menu.minha_chave_de_ia">Minha chave de IA</span></a>
+        <a class="nav-item" href="#conta" data-view="conta" title="Minha conta" data-i18n-attr="title:menu.minha_conta"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label" data-i18n="menu.minha_conta">Minha conta</span></a>
         <a class="nav-item" href="#faq" data-view="faq" title="FAQ"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M12 17h.01"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/></svg><span class="nav-label">FAQ</span></a>
-        <a class="nav-item" href="#suporte" data-view="suporte" title="Fale com o suporte"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M7 8h10"/><path d="M7 12h6"/></svg><span class="nav-label">Suporte</span></a>
-        <a class="nav-item" href="#config" data-view="config" data-admin title="Configurações" hidden><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span class="nav-label">Configurações</span></a>
+        <a class="nav-item" href="#suporte" data-view="suporte" title="Fale com o suporte" data-i18n-attr="title:ajuda.fale_com_o_suporte"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M7 8h10"/><path d="M7 12h6"/></svg><span class="nav-label" data-i18n="menu.suporte">Suporte</span></a>
+        <a class="nav-item" href="#config" data-view="config" data-admin title="Configurações" hidden data-i18n-attr="title:menu.configuracoes"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span class="nav-label" data-i18n="menu.configuracoes">Configurações</span></a>
       </nav>
       <div class="sidebar-foot">
         <div class="idioma" data-seletor-idioma></div>
-        <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label">Tema</span><span class="nav-label theme-current" id="theme-name">Papel</span></a>
-        <a class="nav-item" href="#sobre" data-view="sobre" title="Sobre o GeradorOne"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span class="nav-label">Sobre</span></a>
-        <button id="logout-button" class="nav-item" type="button" title="Sair"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label">Sair</span></button>
+        <a class="nav-item" href="#tema" data-view="tema" title="Tema de cores" data-i18n-attr="title:menu.tema_de_cores"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 2 2 0 0 0 2-2c0-.6-.3-1-.6-1.4a2 2 0 0 1 1.5-3.3H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11.5" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15.5" cy="8" r="1"/></svg><span class="nav-label" data-i18n="menu.tema">Tema</span><span class="nav-label theme-current" id="theme-name">Papel</span></a>
+        <a class="nav-item" href="#sobre" data-view="sobre" title="Sobre o GeradorOne" data-i18n-attr="title:auth.sobre_o_geradorone"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span class="nav-label" data-i18n="menu.sobre">Sobre</span></a>
+        <button id="logout-button" class="nav-item" type="button" title="Sair" data-i18n-attr="title:auth.sair"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span class="nav-label" data-i18n="auth.sair">Sair</span></button>
         <div class="user-chip nav-label"><strong id="user-name">—</strong><small id="user-email"></small></div>
       </div>
     </aside>
 
     <div class="content">
       <header class="mobile-bar">
-        <button id="menu-open-mobile" class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="sidebar"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <button id="menu-open-mobile" class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" data-i18n-attr="aria-label:topo.abrir_menu"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
         <span class="brand-mark logo" aria-hidden="true"></span>
         <strong>GeradorOne</strong>
-        <button id="mobile-projects" class="menu-toggle" type="button" aria-label="Meus projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></button>
+        <button id="mobile-projects" class="menu-toggle" type="button" aria-label="Meus projetos" data-i18n-attr="aria-label:menu.meus_projetos"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></button>
       </header>
       <div class="crumbs" id="crumbs" hidden>
-            <p class="crumb-path"><button class="crumb-link" type="button" id="crumb-projects">Meus projetos</button><span class="help" aria-hidden="true">/</span><strong id="crumb-name">Novo projeto</strong><span class="help num" id="crumb-state">não salvo</span></p>
+            <p class="crumb-path"><button class="crumb-link" type="button" id="crumb-projects" data-i18n="menu.meus_projetos">Meus projetos</button><span class="help" aria-hidden="true">/</span><strong id="crumb-name">Novo projeto</strong><span class="help num" id="crumb-state">não salvo</span></p>
             <div class="crumb-actions">
-              <label class="crumb-rename" id="crumb-rename-box" hidden><span class="sr-only">Nome do projeto</span><input id="project-name" maxlength="120" placeholder="Ex.: Lei de Ohm, 2º ano"></label>
-              <button class="textbtn small" type="button" id="rename-project">Renomear</button>
+              <label class="crumb-rename" id="crumb-rename-box" hidden><span class="sr-only" data-i18n="topo.nome_do_projeto">Nome do projeto</span><input id="project-name" maxlength="120" placeholder="Ex.: Lei de Ohm, 2º ano" data-i18n-attr="placeholder:topo.ex_lei_de_ohm_2"></label>
+              <button class="textbtn small" type="button" id="rename-project" data-i18n="topo.renomear">Renomear</button>
               <button class="outline" type="button" id="save-project"><span class="save-label">Salvar projeto</span></button>
-              <button class="textbtn small" type="button" id="save-project-new" hidden>Salvar como novo</button>
+              <button class="textbtn small" type="button" id="save-project-new" hidden data-i18n="topo.salvar_como_novo">Salvar como novo</button>
             </div>
           </div>
       <main id="conteudo" class="workspace" data-view="inicio" data-step="dados">
-        <div class="mobile-steps" id="mobile-steps" role="group" aria-label="Etapas" hidden>
-          <button type="button" data-step="dados" aria-pressed="true">Dados</button>
-          <button type="button" data-step="resultado" aria-pressed="false">Resultado</button>
+        <div class="mobile-steps" id="mobile-steps" role="group" aria-label="Etapas" hidden data-i18n-attr="aria-label:geral.etapas">
+          <button type="button" data-step="dados" aria-pressed="true" data-i18n="geral.dados">Dados</button>
+          <button type="button" data-step="resultado" aria-pressed="false" data-i18n="geral.resultado">Resultado</button>
         </div>
         <div class="pane" id="pane">
-          <section class="view inicio" data-view="inicio" aria-label="Início">
+          <section class="view inicio" data-view="inicio" aria-label="Início" data-i18n-attr="aria-label:menu.inicio">
             <header class="inicio-cabecalho">
               <span class="brand-mark logo inicio-logo" role="img" aria-label="GeradorOne"></span>
-              <p class="inicio-guia">Guia dos primeiros passos no GeradorOne</p>
+              <p class="inicio-guia" data-i18n="inicio.guia_dos_primeiros_passos_no">Guia dos primeiros passos no GeradorOne</p>
             </header>
-            <h1 class="inicio-title">Transforme qualquer assunto em uma página de fácil leitura</h1>
-            <p class="inicio-lead">Prompts visuais para apostilas, capas e materiais didáticos.</p>
+            <h1 class="inicio-title" data-i18n="inicio.transforme_qualquer_assunto_em_uma">Transforme qualquer assunto em uma página de fácil leitura</h1>
+            <p class="inicio-lead" data-i18n="inicio.prompts_visuais_para_apostilas_capas">Prompts visuais para apostilas, capas e materiais didáticos.</p>
 
             <section class="inicio-bloco" aria-labelledby="tres-passos">
-              <h2 id="tres-passos">Do pedido ao material em três passos</h2>
+              <h2 id="tres-passos" data-i18n="inicio.do_pedido_ao_material_em">Do pedido ao material em três passos</h2>
               <ol class="inicio-passos">
-                <li><span class="inicio-num" aria-hidden="true">1</span><div><h3>Descreva o material</h3><p>Escolha apostila ou capa, a disciplina, a série, o tema e o número de páginas. O app monta um prompt de imagem para cada página.</p></div></li>
-                <li><span class="inicio-num" aria-hidden="true">2</span><div><h3>Escolha o estilo</h3><p>Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático e Colorido Infantil. Cada um tem uma miniatura para você comparar.</p></div></li>
-                <li><span class="inicio-num" aria-hidden="true">3</span><div><h3>Copie ou gere com IA</h3><p>Copie o prompt, ou baixe em TXT, JSON ou PDF, e cole na sua ferramenta de imagens. Com "Melhorar com IA" você refina o texto. Com a sua chave de IA (BYOK), o material sai pronto em PDF.</p></div></li>
+                <li><span class="inicio-num" aria-hidden="true">1</span><div><h3 data-i18n="inicio.descreva_o_material">Descreva o material</h3><p data-i18n="inicio.escolha_apostila_ou_capa_a">Escolha apostila ou capa, a disciplina, a série, o tema e o número de páginas. O app monta um prompt de imagem para cada página.</p></div></li>
+                <li><span class="inicio-num" aria-hidden="true">2</span><div><h3 data-i18n="inicio.escolha_o_estilo">Escolha o estilo</h3><p data-i18n="inicio.cartoon_hand_drawn_doodle_cartoon">Cartoon, Hand-drawn, Doodle, Cartoon Educacional, Scientific Illustration, Futuristic Digital, Infográfico Moderno, Minimalista, 3D Educacional, Realista, Livro Didático e Colorido Infantil. Cada um tem uma miniatura para você comparar.</p></div></li>
+                <li><span class="inicio-num" aria-hidden="true">3</span><div><h3 data-i18n="inicio.copie_ou_gere_com_ia">Copie ou gere com IA</h3><p data-i18n="inicio.copie_o_prompt_ou_baixe">Copie o prompt, ou baixe em TXT, JSON ou PDF, e cole na sua ferramenta de imagens. Com "Melhorar com IA" você refina o texto. Com a sua chave de IA (BYOK), o material sai pronto em PDF.</p></div></li>
               </ol>
             </section>
 
             <section class="inicio-bloco" aria-labelledby="comece-apostila">
-              <h2 id="comece-apostila">Clique em "Apostila" e comece com 5 itens</h2>
-              <p class="inicio-apoio">Só três campos são obrigatórios. O restante já vem preenchido, então o primeiro prompt sai em poucos cliques.</p>
+              <h2 id="comece-apostila" data-i18n="inicio.clique_em_apostila_e_comece">Clique em "Apostila" e comece com 5 itens</h2>
+              <p class="inicio-apoio" data-i18n="inicio.so_tres_campos_sao_obrigatorios">Só três campos são obrigatórios. O restante já vem preenchido, então o primeiro prompt sai em poucos cliques.</p>
               <div class="inicio-demo" data-passo="1">
                 <div class="inicio-palco">
                   <div class="inicio-quadro" data-quadro="dados">
-                    <img class="inicio-captura" src="assets/inicio/apostila-dados.png" width="552" height="508" alt="Tela Apostila, bloco Dados do material, com Disciplina Ciências, Assunto principal Ciclo da água e Público Ensino Fundamental I preenchidos" loading="lazy">
+                    <img class="inicio-captura" src="assets/inicio/apostila-dados.png" width="552" height="508" alt="Tela Apostila, bloco Dados do material, com Disciplina Ciências, Assunto principal Ciclo da água e Público Ensino Fundamental I preenchidos" loading="lazy" data-i18n-attr="alt:inicio.tela_apostila_bloco_dados_do">
                     <span class="inicio-foco" aria-hidden="true"></span>
                   </div>
                   <div class="inicio-quadro" data-quadro="tipo" hidden>
-                    <img class="inicio-captura" src="assets/inicio/apostila-tipo.png" width="552" height="350" alt="Bloco Tipo de material da Apostila, com Apostila didática marcada" loading="lazy">
+                    <img class="inicio-captura" src="assets/inicio/apostila-tipo.png" width="552" height="350" alt="Bloco Tipo de material da Apostila, com Apostila didática marcada" loading="lazy" data-i18n-attr="alt:inicio.bloco_tipo_de_material_da">
                   </div>
                   <div class="inicio-quadro" data-quadro="gerar" hidden>
-                    <img class="inicio-captura" src="assets/inicio/apostila-gerar.png" width="552" height="144" alt="Botão Gerar prompt completo no fim do formulário da Apostila" loading="lazy">
+                    <img class="inicio-captura" src="assets/inicio/apostila-gerar.png" width="552" height="144" alt="Botão Gerar prompt completo no fim do formulário da Apostila" loading="lazy" data-i18n-attr="alt:inicio.botao_gerar_prompt_completo_no">
                   </div>
                 </div>
                 <div class="inicio-lado">
-                  <ol class="inicio-itens" aria-label="Os 5 itens, um de cada vez">
-                  <li><button class="inicio-item" type="button" data-passo="1" data-foco="0,24.4,48.4,8.6" aria-pressed="true"><span class="inicio-num" aria-hidden="true">1</span><span class="inicio-item-texto"><strong>Disciplina</strong><span>Por exemplo, Ciências. É a matéria do material.</span></span></button></li>
-                  <li><button class="inicio-item" type="button" data-passo="2" data-foco="51.6,24.4,48.4,8.6" aria-pressed="false"><span class="inicio-num" aria-hidden="true">2</span><span class="inicio-item-texto"><strong>Assunto principal</strong><span>Por exemplo, Ciclo da água. O prompt gira em torno dele.</span></span></button></li>
-                  <li><button class="inicio-item" type="button" data-passo="3" data-foco="0,40.6,48.4,8.6" aria-pressed="false"><span class="inicio-num" aria-hidden="true">3</span><span class="inicio-item-texto"><strong>Público / faixa etária</strong><span>Por exemplo, Ensino Fundamental I. Ajusta a linguagem e as ilustrações.</span></span></button></li>
-                  <li><button class="inicio-item" type="button" data-passo="4" aria-pressed="false"><span class="inicio-num" aria-hidden="true">4</span><span class="inicio-item-texto"><strong>Tipo de material e estilo</strong><span>Já vêm marcados (Apostila didática e Livro Didático). Troque se quiser.</span></span></button></li>
-                  <li><button class="inicio-item" type="button" data-passo="5" aria-pressed="false"><span class="inicio-num" aria-hidden="true">5</span><span class="inicio-item-texto"><strong>Gerar prompt completo</strong><span>O prompt aparece na coluna Resultado, pronto para copiar.</span></span></button></li>
+                  <ol class="inicio-itens" aria-label="Os 5 itens, um de cada vez" data-i18n-attr="aria-label:inicio.os_5_itens_um_de">
+                  <li><button class="inicio-item" type="button" data-passo="1" data-foco="0,24.4,48.4,8.6" aria-pressed="true"><span class="inicio-num" aria-hidden="true">1</span><span class="inicio-item-texto"><strong data-i18n="capa.disciplina">Disciplina</strong><span data-i18n="inicio.por_exemplo_ciencias_e_a">Por exemplo, Ciências. É a matéria do material.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="2" data-foco="51.6,24.4,48.4,8.6" aria-pressed="false"><span class="inicio-num" aria-hidden="true">2</span><span class="inicio-item-texto"><strong data-i18n="inicio.assunto_principal">Assunto principal</strong><span data-i18n="inicio.por_exemplo_ciclo_da_agua">Por exemplo, Ciclo da água. O prompt gira em torno dele.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="3" data-foco="0,40.6,48.4,8.6" aria-pressed="false"><span class="inicio-num" aria-hidden="true">3</span><span class="inicio-item-texto"><strong data-i18n="capa.publico_faixa_etaria">Público / faixa etária</strong><span data-i18n="inicio.por_exemplo_ensino_fundamental_i">Por exemplo, Ensino Fundamental I. Ajusta a linguagem e as ilustrações.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="4" aria-pressed="false"><span class="inicio-num" aria-hidden="true">4</span><span class="inicio-item-texto"><strong data-i18n="inicio.tipo_de_material_e_estilo">Tipo de material e estilo</strong><span data-i18n="inicio.ja_vem_marcados_apostila_didatica">Já vêm marcados (Apostila didática e Livro Didático). Troque se quiser.</span></span></button></li>
+                  <li><button class="inicio-item" type="button" data-passo="5" aria-pressed="false"><span class="inicio-num" aria-hidden="true">5</span><span class="inicio-item-texto"><strong data-i18n="inicio.gerar_prompt_completo">Gerar prompt completo</strong><span data-i18n="inicio.o_prompt_aparece_na_coluna">O prompt aparece na coluna Resultado, pronto para copiar.</span></span></button></li>
                   </ol>
                   <button class="textbtn small inicio-pausa" type="button" aria-pressed="false" hidden>Pausar animação</button>
                 </div>
               </div>
-              <p class="inicio-acao"><a class="primary big" href="#apostila" data-go-view="apostila">Iniciar</a></p>
+              <p class="inicio-acao"><a class="primary big" href="#apostila" data-go-view="apostila" data-i18n="inicio.iniciar">Iniciar</a></p>
             </section>
 
             <section class="inicio-bloco" aria-labelledby="prompt-exemplo">
-              <h2 id="prompt-exemplo">O prompt gerado com esses 5 itens</h2>
-              <p class="inicio-apoio">Texto real gerado pelo app com Ciências, Ciclo da água e Ensino Fundamental I. Use a barra de rolagem para ler tudo e o botão para copiar.</p>
+              <h2 id="prompt-exemplo" data-i18n="inicio.o_prompt_gerado_com_esses">O prompt gerado com esses 5 itens</h2>
+              <p class="inicio-apoio" data-i18n="inicio.texto_real_gerado_pelo_app">Texto real gerado pelo app com Ciências, Ciclo da água e Ensino Fundamental I. Use a barra de rolagem para ler tudo e o botão para copiar.</p>
               <div class="inicio-prompt-barra">
                 <button id="copiar-exemplo" class="outline" type="button"><span class="copy-icon" aria-hidden="true"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span><span class="copy-label">Copiar prompt</span></button>
               </div>
-              <pre id="prompt-exemplo-texto" class="inicio-prompt" tabindex="0" aria-label="Prompt de exemplo gerado pelo GeradorOne, com barra de rolagem">ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.
+              <pre id="prompt-exemplo-texto" class="inicio-prompt" tabindex="0" aria-label="Prompt de exemplo gerado pelo GeradorOne, com barra de rolagem" data-i18n-attr="aria-label:inicio.prompt_de_exemplo_gerado_pelo">ATENÇÃO: ESTE É UM PROMPT PARA GERAÇÃO DE IMAGEM.
 A saída esperada é UMA IMAGEM ÚNICA: uma página visual de apostila didática sobre Ciclo da água, em página vertical A4 (210x297 mm), margens amplas, layout editorial de apostila impressa.
 O estilo visual deve ser OBRIGATORIAMENTE: Livro Didático. Não misture com outros estilos.
 O tipo de material deve ser OBRIGATORIAMENTE: Apostila didática.
@@ -268,415 +268,415 @@ CRITÉRIOS DE QUALIDADE
             </section>
           </section>
 
-          <section class="view home" data-view="sobre" aria-label="Sobre" hidden>
-            <span class="home-logo logo" role="img" aria-label="GeradorOne: cabeça com um mapa mental no lugar do cérebro"></span>
+          <section class="view home" data-view="sobre" aria-label="Sobre" hidden data-i18n-attr="aria-label:menu.sobre">
+            <span class="home-logo logo" role="img" aria-label="GeradorOne: cabeça com um mapa mental no lugar do cérebro" data-i18n-attr="aria-label:auth.geradorone_cabeca_com_um_mapa"></span>
             <h1 class="home-title">GeradorOne</h1>
-            <p class="home-tagline">Prompts visuais para apostilas, capas e materiais didáticos.</p>
-            <ul class="home-badges" aria-label="Linguagem, plataforma, banco, sistema e licença">
-              <li><span>linguagem</span><b>JavaScript</b></li>
-              <li><span>plataforma</span><b>Node.js 22</b></li>
-              <li><span>banco</span><b>PostgreSQL 17</b></li>
-              <li><span>contêiner</span><b>Docker</b></li>
-              <li><span>sistema</span><b>Linux</b></li>
-              <li><span>licença</span><b>AGPL-3.0</b></li>
+            <p class="home-tagline" data-i18n="inicio.prompts_visuais_para_apostilas_capas">Prompts visuais para apostilas, capas e materiais didáticos.</p>
+            <ul class="home-badges" aria-label="Linguagem, plataforma, banco, sistema e licença" data-i18n-attr="aria-label:sobre.linguagem_plataforma_banco_sistema_e">
+              <li><span data-i18n="sobre.linguagem">linguagem</span><b>JavaScript</b></li>
+              <li><span data-i18n="sobre.plataforma">plataforma</span><b>Node.js 22</b></li>
+              <li><span data-i18n="sobre.banco">banco</span><b>PostgreSQL 17</b></li>
+              <li><span data-i18n="sobre.conteiner">contêiner</span><b>Docker</b></li>
+              <li><span data-i18n="sobre.sistema">sistema</span><b>Linux</b></li>
+              <li><span data-i18n="sobre.licenca">licença</span><b>AGPL-3.0</b></li>
             </ul>
             <div class="home-text">
-              <p>Plataforma web para planejar materiais didáticos visualmente ricos e gerar prompts completos para ferramentas de inteligência artificial. O GeradorOne organiza intenção pedagógica, referências, identidade visual e recursos gráficos em um briefing estruturado, acessível e exportável.</p>
-              <p>Você pode escolher entre gerar apenas o prompt ou pedir que a IA produza diretamente o material final em HTML ou PDF.</p>
-              <p><strong>Código aberto.</strong> O GeradorOne é software livre, licenciado sob a AGPL-3.0. O código-fonte está em <a href="https://github.com/Epaminondaslage/geradorOne" target="_blank" rel="noopener noreferrer">github.com/Epaminondaslage/geradorOne</a>.</p>
+              <p data-i18n="sobre.plataforma_web_para_planejar_materiais">Plataforma web para planejar materiais didáticos visualmente ricos e gerar prompts completos para ferramentas de inteligência artificial. O GeradorOne organiza intenção pedagógica, referências, identidade visual e recursos gráficos em um briefing estruturado, acessível e exportável.</p>
+              <p data-i18n="sobre.voce_pode_escolher_entre_gerar">Você pode escolher entre gerar apenas o prompt ou pedir que a IA produza diretamente o material final em HTML ou PDF.</p>
+              <p><strong data-i18n="sobre.codigo_aberto">Código aberto.</strong> <span data-i18n="sobre.o_geradorone_e_software_livre">O GeradorOne é software livre, licenciado sob a AGPL-3.0. O código-fonte está em</span> <a href="https://github.com/Epaminondaslage/geradorOne" target="_blank" rel="noopener noreferrer" data-i18n="sobre.github_com_epaminondaslage_geradorone">github.com/Epaminondaslage/geradorOne</a><span data-i18n="sobre.ponto_final">.</span></p>
             </div>
           </section>
 
-          <section class="view" data-view="apostila" aria-label="Apostila" hidden>
-            <div class="view-head"><h1>Apostila</h1><p>Defina o material. Cada página vira uma imagem pronta para o seu gerador.</p></div>
+          <section class="view" data-view="apostila" aria-label="Apostila" hidden data-i18n-attr="aria-label:menu.apostila">
+            <div class="view-head"><h1 data-i18n="menu.apostila">Apostila</h1><p data-i18n="apostila.defina_o_material_cada_pagina">Defina o material. Cada página vira uma imagem pronta para o seu gerador.</p></div>
             <form id="formulario" novalidate>
               <section class="sec" aria-labelledby="dados-title">
-                <div class="sec-head"><h2 id="dados-title">Dados do material</h2><p class="help">O que será ensinado e para quem. Campos com * são obrigatórios.</p></div>
+                <div class="sec-head"><h2 id="dados-title" data-i18n="apostila.dados_do_material">Dados do material</h2><p class="help" data-i18n="apostila.o_que_sera_ensinado_e">O que será ensinado e para quem. Campos com * são obrigatórios.</p></div>
                 <div class="grid two">
-                  <label>Disciplina *<input name="disciplina" required placeholder="Ex.: Matemática, Inglês, História"></label>
-                  <label>Assunto principal *<input name="assunto" required placeholder="Ex.: Habilidades de inglês do 6º ano"></label>
-                  <label>Público / faixa etária *<select name="publico" required><option value="">Selecione</option><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
-                  <label>Profundidade<select name="profundidade"><option>Introdutório</option><option>Básico</option><option selected>Intermediário</option><option>Avançado</option><option>Completo</option></select></label>
+                  <label><span data-i18n="apostila.disciplina">Disciplina *</span><input name="disciplina" required placeholder="Ex.: Matemática, Inglês, História" data-i18n-attr="placeholder:apostila.ex_matematica_ingles_historia"></label>
+                  <label><span data-i18n="apostila.assunto_principal">Assunto principal *</span><input name="assunto" required placeholder="Ex.: Habilidades de inglês do 6º ano" data-i18n-attr="placeholder:apostila.ex_habilidades_de_ingles_do"></label>
+                  <label><span data-i18n="apostila.publico_faixa_etaria">Público / faixa etária *</span><select name="publico" required><option value="" data-i18n="apostila.selecione">Selecione</option><option value="Educação Infantil" data-i18n="apostila.educacao_infantil">Educação Infantil</option><option value="Ensino Fundamental I" data-i18n="apostila.ensino_fundamental_i">Ensino Fundamental I</option><option value="Ensino Fundamental II" data-i18n="apostila.ensino_fundamental_ii">Ensino Fundamental II</option><option value="Ensino Médio" data-i18n="apostila.ensino_medio">Ensino Médio</option><option value="EJA" data-i18n="apostila.eja">EJA</option><option value="Ensino Técnico" data-i18n="apostila.ensino_tecnico">Ensino Técnico</option><option value="Ensino Superior" data-i18n="apostila.ensino_superior">Ensino Superior</option><option value="Adulto" data-i18n="apostila.adulto">Adulto</option><option value="Outro" data-i18n="apostila.outro">Outro</option></select></label>
+                  <label><span data-i18n="apostila.profundidade">Profundidade</span><select name="profundidade"><option value="Introdutório" data-i18n="apostila.introdutorio">Introdutório</option><option value="Básico" data-i18n="apostila.basico">Básico</option><option selected value="Intermediário" data-i18n="apostila.intermediario">Intermediário</option><option value="Avançado" data-i18n="apostila.avancado">Avançado</option><option value="Completo" data-i18n="apostila.completo">Completo</option></select></label>
                 </div>
-                <label>Objetivo de aprendizagem<textarea name="objetivo" rows="2" placeholder="Ex.: Capacitar professores para ministrar o conteúdo de inglês do 6º ano."></textarea></label>
+                <label><span data-i18n="apostila.objetivo_de_aprendizagem">Objetivo de aprendizagem</span><textarea name="objetivo" rows="2" placeholder="Ex.: Capacitar professores para ministrar o conteúdo de inglês do 6º ano." data-i18n-attr="placeholder:apostila.ex_capacitar_professores_para_ministra"></textarea></label>
                 <div class="grid two">
-                  <label>Estilo de escrita<select name="escrita"><option>Didático</option><option>Acadêmico</option><option>Conversacional</option><option>Objetivo</option><option>Lúdico</option><option>Técnico</option></select></label>
-                  <label>Número de páginas<select name="paginas"><option value="1" selected>1 página</option><option value="2">2 páginas</option><option value="3">3 páginas</option><option value="4">4 páginas</option><option value="5">5 páginas</option><option value="6">6 páginas</option><option value="8">8 páginas</option><option value="10">10 páginas</option><option value="12">12 páginas</option></select><small class="help">Cada página vira uma imagem. Com mais de uma, o prompt traz o plano e pede uma página por vez.</small></label>
+                  <label><span data-i18n="apostila.estilo_de_escrita">Estilo de escrita</span><select name="escrita"><option value="Didático" data-i18n="apostila.didatico">Didático</option><option value="Acadêmico" data-i18n="apostila.academico">Acadêmico</option><option value="Conversacional" data-i18n="apostila.conversacional">Conversacional</option><option value="Objetivo" data-i18n="apostila.objetivo">Objetivo</option><option value="Lúdico" data-i18n="apostila.ludico">Lúdico</option><option value="Técnico" data-i18n="apostila.tecnico">Técnico</option></select></label>
+                  <label><span data-i18n="apostila.numero_de_paginas">Número de páginas</span><select name="paginas"><option value="1" selected data-i18n="apostila.1_pagina">1 página</option><option value="2" data-i18n="apostila.2_paginas">2 páginas</option><option value="3" data-i18n="apostila.3_paginas">3 páginas</option><option value="4" data-i18n="apostila.4_paginas">4 páginas</option><option value="5" data-i18n="apostila.5_paginas">5 páginas</option><option value="6" data-i18n="apostila.6_paginas">6 páginas</option><option value="8" data-i18n="apostila.8_paginas">8 páginas</option><option value="10" data-i18n="apostila.10_paginas">10 páginas</option><option value="12" data-i18n="apostila.12_paginas">12 páginas</option></select><small class="help" data-i18n="apostila.cada_pagina_vira_uma_imagem">Cada página vira uma imagem. Com mais de uma, o prompt traz o plano e pede uma página por vez.</small></label>
                 </div>
               </section>
 
               <fieldset class="sec">
-                <legend><span class="sec-title">Tipo de material</span><span class="help">13 tipos. O tipo muda a estrutura da página, não o assunto.</span></legend>
+                <legend><span class="sec-title" data-i18n="apostila.tipo_de_material">Tipo de material</span><span class="help" data-i18n="apostila.13_tipos_o_tipo_muda">13 tipos. O tipo muda a estrutura da página, não o assunto.</span></legend>
                 <div class="opt-grid">
-            <label class="opt"><input type="radio" name="tipo" value="Apostila didática" checked>Apostila didática</label>
-            <label class="opt"><input type="radio" name="tipo" value="Material de revisão">Material de revisão</label>
-            <label class="opt"><input type="radio" name="tipo" value="Material preparatório">Material preparatório</label>
-            <label class="opt"><input type="radio" name="tipo" value="Material complementar">Material complementar</label>
-            <label class="opt"><input type="radio" name="tipo" value="Caderno de atividades">Caderno de atividades</label>
-            <label class="opt"><input type="radio" name="tipo" value="Guia de estudos">Guia de estudos</label>
-            <label class="opt"><input type="radio" name="tipo" value="Resumo visual">Resumo visual</label>
-            <label class="opt"><input type="radio" name="tipo" value="Mapa mental">Mapa mental</label>
-            <label class="opt"><input type="radio" name="tipo" value="Material para concurso">Material para concurso</label>
-            <label class="opt"><input type="radio" name="tipo" value="Material profissional">Material profissional</label>
-            <label class="opt"><input type="radio" name="tipo" value="Guia do professor">Guia do professor</label>
-            <label class="opt"><input type="radio" name="tipo" value="Sequência didática">Sequência didática</label>
-            <label class="opt"><input type="radio" name="tipo" value="Outro">Outro</label>
+            <label class="opt"><input type="radio" name="tipo" value="Apostila didática" checked><span data-i18n="apostila.apostila_didatica">Apostila didática</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Material de revisão"><span data-i18n="apostila.material_de_revisao">Material de revisão</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Material preparatório"><span data-i18n="apostila.material_preparatorio">Material preparatório</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Material complementar"><span data-i18n="apostila.material_complementar">Material complementar</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Caderno de atividades"><span data-i18n="apostila.caderno_de_atividades">Caderno de atividades</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Guia de estudos"><span data-i18n="apostila.guia_de_estudos">Guia de estudos</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Resumo visual"><span data-i18n="apostila.resumo_visual">Resumo visual</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Mapa mental"><span data-i18n="apostila.mapa_mental">Mapa mental</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Material para concurso"><span data-i18n="apostila.material_para_concurso">Material para concurso</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Material profissional"><span data-i18n="apostila.material_profissional">Material profissional</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Guia do professor"><span data-i18n="apostila.guia_do_professor">Guia do professor</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Sequência didática"><span data-i18n="apostila.sequencia_didatica">Sequência didática</span></label>
+            <label class="opt"><input type="radio" name="tipo" value="Outro"><span data-i18n="apostila.outro">Outro</span></label>
                 </div>
               </fieldset>
 
               <fieldset class="sec">
-                <legend><span class="sec-title">Estilo das ilustrações</span><span class="help">O traço e o acabamento. As cores ficam em Paleta, logo abaixo.</span></legend>
+                <legend><span class="sec-title" data-i18n="apostila.estilo_das_ilustracoes">Estilo das ilustrações</span><span class="help" data-i18n="apostila.o_traco_e_o_acabamento">O traço e o acabamento. As cores ficam em Paleta, logo abaixo.</span></legend>
                 <div id="style-options" class="style-grid"></div>
                 <div class="grid two">
-                  <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
-                  <label>Formato prioritário<select name="formato"><option selected>Impressão A4</option><option>Tela e impressão</option><option>Somente tela</option><option>Apresentação 16:9</option></select></label>
+                  <label><span data-i18n="apostila.paleta">Paleta</span><select name="paleta"><option value="Automática" data-i18n="apostila.automatica">Automática</option><option value="Azul e turquesa" data-i18n="apostila.azul_e_turquesa">Azul e turquesa</option><option value="Terrosa e acolhedora" data-i18n="apostila.terrosa_e_acolhedora">Terrosa e acolhedora</option><option value="Vibrante infantil" data-i18n="apostila.vibrante_infantil">Vibrante infantil</option><option value="Monocromática" data-i18n="apostila.monocromatica">Monocromática</option><option value="Alto contraste" data-i18n="apostila.alto_contraste">Alto contraste</option></select></label>
+                  <label><span data-i18n="apostila.formato_prioritario">Formato prioritário</span><select name="formato"><option selected value="Impressão A4" data-i18n="apostila.impressao_a4">Impressão A4</option><option value="Tela e impressão" data-i18n="apostila.tela_e_impressao">Tela e impressão</option><option value="Somente tela" data-i18n="apostila.somente_tela">Somente tela</option><option value="Apresentação 16:9" data-i18n="apostila.apresentacao_16_9">Apresentação 16:9</option></select></label>
                 </div>
               </fieldset>
 
               <section class="sec" aria-labelledby="pedagogia-title">
-                <div class="sec-head"><h2 id="pedagogia-title">Configuração pedagógica</h2><p class="help">Referências e limites contra informações inventadas.</p></div>
+                <div class="sec-head"><h2 id="pedagogia-title" data-i18n="apostila.configuracao_pedagogica">Configuração pedagógica</h2><p class="help" data-i18n="apostila.referencias_e_limites_contra_informaco">Referências e limites contra informações inventadas.</p></div>
                 <div class="grid two">
-                  <label>Códigos da BNCC (opcional)<input name="bncc" placeholder="Digite os códigos ou use o botão abaixo" autocomplete="off"></label>
-                  <label class="opt opt-top"><input name="sugerirBncc" type="checkbox" checked><span><strong>Sugerir habilidades da BNCC</strong><small class="help">Somente quando houver correspondência verificável.</small></span></label>
+                  <label><span data-i18n="apostila.codigos_da_bncc_opcional">Códigos da BNCC (opcional)</span><input name="bncc" placeholder="Digite os códigos ou use o botão abaixo" autocomplete="off" data-i18n-attr="placeholder:apostila.digite_os_codigos_ou_use"></label>
+                  <label class="opt opt-top"><input name="sugerirBncc" type="checkbox" checked><span><strong data-i18n="apostila.sugerir_habilidades_da_bncc">Sugerir habilidades da BNCC</strong><small class="help" data-i18n="apostila.somente_quando_houver_correspondencia">Somente quando houver correspondência verificável.</small></span></label>
                 </div>
                 <div class="bncc-actions">
-                  <button class="outline" type="button" id="bncc-open" aria-expanded="false" aria-controls="bncc-picker">Escolher habilidades da BNCC</button>
+                  <button class="outline" type="button" id="bncc-open" aria-expanded="false" aria-controls="bncc-picker" data-i18n="apostila.escolher_habilidades_da_bncc">Escolher habilidades da BNCC</button>
                   <span id="bncc-hint" class="field-status" role="status"></span>
                 </div>
-                <section id="bncc-picker" class="bncc-picker" hidden aria-label="Escolher habilidades da BNCC">
+                <section id="bncc-picker" class="bncc-picker" hidden aria-label="Escolher habilidades da BNCC" data-i18n-attr="aria-label:apostila.escolher_habilidades_da_bncc">
                   <div class="bncc-filters">
-                    <label>Etapa<select id="bncc-etapa"><option value="">Todas</option><option value="EI">Educação Infantil</option><option value="EF">Ensino Fundamental</option><option value="EM">Ensino Médio</option></select></label>
-                    <label><span id="bncc-recorte-label">Ano ou faixa etária</span><select id="bncc-recorte" disabled><option value="">Todos</option></select></label>
-                    <label><span id="bncc-grupo-label">Componente, área ou campo</span><select id="bncc-grupo"><option value="">Todos</option></select></label>
-                    <label>Buscar<input id="bncc-busca" type="search" placeholder="Palavra do texto ou código" autocomplete="off"></label>
+                    <label><span data-i18n="apostila.etapa">Etapa</span><select id="bncc-etapa"><option value="" data-i18n="apostila.todas">Todas</option><option value="EI" data-i18n="apostila.educacao_infantil">Educação Infantil</option><option value="EF" data-i18n="apostila.ensino_fundamental">Ensino Fundamental</option><option value="EM" data-i18n="apostila.ensino_medio">Ensino Médio</option></select></label>
+                    <label><span id="bncc-recorte-label">Ano ou faixa etária</span><select id="bncc-recorte" disabled><option value="" data-i18n="apostila.todos">Todos</option></select></label>
+                    <label><span id="bncc-grupo-label">Componente, área ou campo</span><select id="bncc-grupo"><option value="" data-i18n="apostila.todos">Todos</option></select></label>
+                    <label><span data-i18n="apostila.buscar">Buscar</span><input id="bncc-busca" type="search" placeholder="Palavra do texto ou código" autocomplete="off" data-i18n-attr="placeholder:apostila.palavra_do_texto_ou_codigo"></label>
                   </div>
                   <p id="bncc-status" class="field-status" role="status">Carregando as habilidades…</p>
-                  <ul id="bncc-list" class="bncc-list" aria-label="Habilidades encontradas"></ul>
+                  <ul id="bncc-list" class="bncc-list" aria-label="Habilidades encontradas" data-i18n-attr="aria-label:apostila.habilidades_encontradas"></ul>
                   <div class="bncc-foot">
                     <span id="bncc-selecionadas" class="field-status" role="status">Nenhuma selecionada</span>
-                    <button class="ghost" type="button" id="bncc-limpar">Limpar seleção</button>
-                    <button class="primary" type="button" id="bncc-usar">Usar as selecionadas</button>
+                    <button class="ghost" type="button" id="bncc-limpar" data-i18n="apostila.limpar_selecao">Limpar seleção</button>
+                    <button class="primary" type="button" id="bncc-usar" data-i18n="apostila.usar_as_selecionadas">Usar as selecionadas</button>
                   </div>
-                  <p class="help bncc-credit">Textos da BNCC (MEC/CNE), compilados por <a href="https://github.com/bncc-dev/bncc-dados" target="_blank" rel="noopener noreferrer">bncc.dev (Profy)</a>, licença CC BY 4.0, versão <span id="bncc-versao">…</span>. Confira sempre no documento oficial.</p>
+                  <p class="help bncc-credit"><span data-i18n="apostila.textos_da_bncc_mec_cne">Textos da BNCC (MEC/CNE), compilados por</span> <a href="https://github.com/bncc-dev/bncc-dados" target="_blank" rel="noopener noreferrer" data-i18n="apostila.bncc_dev_profy">bncc.dev (Profy)</a><span data-i18n="apostila.licenca_cc_by_4_0">, licença CC BY 4.0, versão</span> <span id="bncc-versao">…</span><span data-i18n="apostila.confira_sempre_no_documento_oficial">. Confira sempre no documento oficial.</span></p>
                 </section>
-                <label>Texto ou material de referência<textarea name="referencias" rows="3" placeholder="Cole definições, trechos, fontes ou observações obrigatórias. Não inclua dados pessoais sensíveis."></textarea></label>
+                <label><span data-i18n="apostila.texto_ou_material_de_referencia">Texto ou material de referência</span><textarea name="referencias" rows="3" placeholder="Cole definições, trechos, fontes ou observações obrigatórias. Não inclua dados pessoais sensíveis." data-i18n-attr="placeholder:apostila.cole_definicoes_trechos_fontes_ou"></textarea></label>
               </section>
 
               <section class="sec" aria-labelledby="recursos-title">
-                <div class="sec-head resource-head"><div><h2 id="recursos-title">Recursos visuais</h2><p class="help">As opções começam desmarcadas. Escolha somente os recursos que deseja usar.</p></div>
-                  <div class="resource-tools"><button id="select-all-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.3 14l1.4 1.4 2.8-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Selecionar todos</button><button id="clear-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12.5l4.5 4.5M16.5 12.5 12 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Limpar seleção</button></div>
+                <div class="sec-head resource-head"><div><h2 id="recursos-title" data-i18n="apostila.recursos_visuais">Recursos visuais</h2><p class="help" data-i18n="apostila.as_opcoes_comecam_desmarcadas_escolha">As opções começam desmarcadas. Escolha somente os recursos que deseja usar.</p></div>
+                  <div class="resource-tools"><button id="select-all-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12.3 14l1.4 1.4 2.8-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="apostila.selecionar_todos">Selecionar todos</span></button><button id="clear-resources" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 20 20" width="15" height="15"><rect x="3" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12.5l4.5 4.5M16.5 12.5 12 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span data-i18n="apostila.limpar_selecao">Limpar seleção</span></button></div>
                 </div>
                 <div id="resource-options" class="resource-grid"></div>
         <div class="grid three controls">
-          <label>Frequência visual<select name="frequencia"><option>Essencial (1 por seção)</option><option selected>Equilibrada (2 a 3 por seção)</option><option>Intensa (4 ou mais por seção)</option></select></label>
-          <label>Profundidade visual<select name="profundidadeVisual"><option>Simples</option><option selected>Detalhada</option><option>Avançada</option></select></label>
-          <label>Densidade do texto<select name="densidade"><option>Enxuta</option><option selected>Equilibrada</option><option>Completa</option></select></label>
+          <label><span data-i18n="apostila.frequencia_visual">Frequência visual</span><select name="frequencia"><option value="Essencial (1 por seção)" data-i18n="apostila.essencial_1_por_secao">Essencial (1 por seção)</option><option selected value="Equilibrada (2 a 3 por seção)" data-i18n="apostila.equilibrada_2_a_3_por">Equilibrada (2 a 3 por seção)</option><option value="Intensa (4 ou mais por seção)" data-i18n="apostila.intensa_4_ou_mais_por">Intensa (4 ou mais por seção)</option></select></label>
+          <label><span data-i18n="apostila.profundidade_visual">Profundidade visual</span><select name="profundidadeVisual"><option value="Simples" data-i18n="apostila.simples">Simples</option><option selected value="Detalhada" data-i18n="apostila.detalhada">Detalhada</option><option value="Avançada" data-i18n="apostila.avancada">Avançada</option></select></label>
+          <label><span data-i18n="apostila.densidade_do_texto">Densidade do texto</span><select name="densidade"><option value="Enxuta" data-i18n="apostila.enxuta">Enxuta</option><option selected value="Equilibrada" data-i18n="apostila.equilibrada">Equilibrada</option><option value="Completa" data-i18n="apostila.completa">Completa</option></select></label>
         </div>
         <div class="grid two integration-row">
-          <label>Formato dos diagramas<select name="formatoDiagrama"><option selected>Mermaid + descrição textual</option><option>SVG editável + descrição textual</option><option>Somente especificação visual</option></select></label>
-          <label>Imagens por IA<select name="modoImagem"><option value="gerar" selected>Gerar imagens reais e incorporar</option><option value="nao-usar">Não usar imagens geradas por IA</option></select><small class="field-status">No modo IA, as imagens são criadas e inseridas no HTML ou PDF. Nenhum espaço reservado.</small></label>
+          <label><span data-i18n="apostila.formato_dos_diagramas">Formato dos diagramas</span><select name="formatoDiagrama"><option selected value="Mermaid + descrição textual" data-i18n="apostila.mermaid_descricao_textual">Mermaid + descrição textual</option><option value="SVG editável + descrição textual" data-i18n="apostila.svg_editavel_descricao_textual">SVG editável + descrição textual</option><option value="Somente especificação visual" data-i18n="apostila.somente_especificacao_visual">Somente especificação visual</option></select></label>
+          <label><span data-i18n="apostila.imagens_por_ia">Imagens por IA</span><select name="modoImagem"><option value="gerar" selected data-i18n="apostila.gerar_imagens_reais_e_incorporar">Gerar imagens reais e incorporar</option><option value="nao-usar" data-i18n="apostila.nao_usar_imagens_geradas_por">Não usar imagens geradas por IA</option></select><small class="field-status" data-i18n="apostila.no_modo_ia_as_imagens">No modo IA, as imagens são criadas e inseridas no HTML ou PDF. Nenhum espaço reservado.</small></label>
         </div>
-        <label class="full">Orientações visuais adicionais<textarea name="orientacoes" rows="3" placeholder="Ex.: usar mapas mentais radiais, gráficos apenas com dados fornecidos e ilustrações inclusivas."></textarea></label>
+        <label class="full"><span data-i18n="apostila.orientacoes_visuais_adicionais">Orientações visuais adicionais</span><textarea name="orientacoes" rows="3" placeholder="Ex.: usar mapas mentais radiais, gráficos apenas com dados fornecidos e ilustrações inclusivas." data-i18n-attr="placeholder:apostila.ex_usar_mapas_mentais_radiais"></textarea></label>
       
               </section>
 
               <div class="form-foot">
                 <button id="generate-button" class="primary big" type="submit"><span class="generate-label">Gerar prompt completo</span></button>
-                <button class="textbtn" type="reset" id="reset-apostila">Limpar formulário</button>
-                <p class="help mobile-note">O resultado abre na aba Resultado.</p>
-                <p class="help form-note"><span id="completion-ring" hidden></span><strong id="completion">0%</strong> preenchido · O gerador não valida automaticamente conteúdos ou códigos curriculares.</p>
+                <button class="textbtn" type="reset" id="reset-apostila" data-i18n="apostila.limpar_formulario">Limpar formulário</button>
+                <p class="help mobile-note" data-i18n="apostila.o_resultado_abre_na_aba">O resultado abre na aba Resultado.</p>
+                <p class="help form-note"><span id="completion-ring" hidden></span><strong id="completion">0%</strong> <span data-i18n="apostila.preenchido">preenchido</span> · <span data-i18n="auth.o_gerador_nao_valida_automaticamente">O gerador não valida automaticamente conteúdos ou códigos curriculares.</span></p>
               </div>
             </form>
           </section>
 
-          <section class="view" data-view="capa" aria-label="Capa" hidden>
-            <div class="view-head"><h1>Capa</h1><p>Gere o prompt da arte frontal de uma capa de apostila, com os textos exatos que devem aparecer.</p></div>
+          <section class="view" data-view="capa" aria-label="Capa" hidden data-i18n-attr="aria-label:menu.capa">
+            <div class="view-head"><h1 data-i18n="menu.capa">Capa</h1><p data-i18n="capa.gere_o_prompt_da_arte">Gere o prompt da arte frontal de uma capa de apostila, com os textos exatos que devem aparecer.</p></div>
             <form id="form-capa" novalidate>
               <section class="sec" aria-labelledby="capa-dados-title">
-                <div class="sec-head"><h2 id="capa-dados-title">Textos da capa</h2><p class="help">Escreva exatamente como devem aparecer na imagem.</p></div>
+                <div class="sec-head"><h2 id="capa-dados-title" data-i18n="capa.textos_da_capa">Textos da capa</h2><p class="help" data-i18n="capa.escreva_exatamente_como_devem_aparecer">Escreva exatamente como devem aparecer na imagem.</p></div>
                 <div class="grid two">
-                  <label>Disciplina<input name="disciplina" placeholder="Ex.: Eletricidade"></label>
-                  <label>Título principal *<input name="titulo" required placeholder="Ex.: Lei de Ohm"></label>
-                  <label>Texto superior<input name="textoSuperior" value="Material de Estudos" placeholder="Ex.: Material de Estudos"></label>
-                  <label>Subtítulo<input name="subtitulo" placeholder="Ex.: Tensão, corrente e resistência"></label>
-                  <label class="full">Frase inferior (opcional)<input name="fraseInferior" placeholder="Ex.: Entenda como a eletricidade se comporta nos circuitos"></label>
-                  <label>Série ou turma (opcional)<input name="serie" placeholder="Ex.: 2º ano"></label>
-                  <label>Professor(a) (opcional)<input name="professor" placeholder="Ex.: Prof.ª Ana"></label>
-                  <label>Instituição (opcional)<input name="instituicao" placeholder="Ex.: Escola Técnica Central"></label>
-                  <label>Público / faixa etária<select name="publico"><option>Educação Infantil</option><option>Ensino Fundamental I</option><option>Ensino Fundamental II</option><option selected>Ensino Médio</option><option>EJA</option><option>Ensino Técnico</option><option>Ensino Superior</option><option>Adulto</option><option>Outro</option></select></label>
+                  <label><span data-i18n="capa.disciplina">Disciplina</span><input name="disciplina" placeholder="Ex.: Eletricidade" data-i18n-attr="placeholder:capa.ex_eletricidade"></label>
+                  <label><span data-i18n="capa.titulo_principal">Título principal *</span><input name="titulo" required placeholder="Ex.: Lei de Ohm" data-i18n-attr="placeholder:capa.ex_lei_de_ohm"></label>
+                  <label><span data-i18n="capa.texto_superior">Texto superior</span><input name="textoSuperior" value="Material de Estudos" placeholder="Ex.: Material de Estudos" data-i18n-attr="placeholder:capa.ex_material_de_estudos"></label>
+                  <label><span data-i18n="capa.subtitulo">Subtítulo</span><input name="subtitulo" placeholder="Ex.: Tensão, corrente e resistência" data-i18n-attr="placeholder:capa.ex_tensao_corrente_e_resistencia"></label>
+                  <label class="full"><span data-i18n="capa.frase_inferior_opcional">Frase inferior (opcional)</span><input name="fraseInferior" placeholder="Ex.: Entenda como a eletricidade se comporta nos circuitos" data-i18n-attr="placeholder:capa.ex_entenda_como_a_eletricidade"></label>
+                  <label><span data-i18n="capa.serie_ou_turma_opcional">Série ou turma (opcional)</span><input name="serie" placeholder="Ex.: 2º ano" data-i18n-attr="placeholder:capa.ex_2_ano"></label>
+                  <label><span data-i18n="capa.professor_a_opcional">Professor(a) (opcional)</span><input name="professor" placeholder="Ex.: Prof.ª Ana" data-i18n-attr="placeholder:capa.ex_prof_ana"></label>
+                  <label><span data-i18n="capa.instituicao_opcional">Instituição (opcional)</span><input name="instituicao" placeholder="Ex.: Escola Técnica Central" data-i18n-attr="placeholder:capa.ex_escola_tecnica_central"></label>
+                  <label><span data-i18n="capa.publico_faixa_etaria">Público / faixa etária</span><select name="publico"><option value="Educação Infantil" data-i18n="apostila.educacao_infantil">Educação Infantil</option><option value="Ensino Fundamental I" data-i18n="apostila.ensino_fundamental_i">Ensino Fundamental I</option><option value="Ensino Fundamental II" data-i18n="apostila.ensino_fundamental_ii">Ensino Fundamental II</option><option selected value="Ensino Médio" data-i18n="apostila.ensino_medio">Ensino Médio</option><option value="EJA" data-i18n="apostila.eja">EJA</option><option value="Ensino Técnico" data-i18n="apostila.ensino_tecnico">Ensino Técnico</option><option value="Ensino Superior" data-i18n="apostila.ensino_superior">Ensino Superior</option><option value="Adulto" data-i18n="apostila.adulto">Adulto</option><option value="Outro" data-i18n="apostila.outro">Outro</option></select></label>
                 </div>
               </section>
               <fieldset class="sec">
-                <legend><span class="sec-title">Estilo da capa</span><span class="help">O traço e o acabamento da ilustração.</span></legend>
+                <legend><span class="sec-title" data-i18n="capa.estilo_da_capa">Estilo da capa</span><span class="help" data-i18n="capa.o_traco_e_o_acabamento">O traço e o acabamento da ilustração.</span></legend>
                 <div id="capa-style-options" class="style-grid"></div>
                 <div class="grid two">
-                  <label>Paleta<select name="paleta"><option>Automática</option><option>Azul e turquesa</option><option>Terrosa e acolhedora</option><option>Vibrante infantil</option><option>Monocromática</option><option>Alto contraste</option></select></label>
-                  <label>Formato da capa<select name="formato"><option selected>Impressão A4</option><option>Somente tela</option><option>Apresentação 16:9</option></select></label>
+                  <label><span data-i18n="apostila.paleta">Paleta</span><select name="paleta"><option value="Automática" data-i18n="apostila.automatica">Automática</option><option value="Azul e turquesa" data-i18n="apostila.azul_e_turquesa">Azul e turquesa</option><option value="Terrosa e acolhedora" data-i18n="apostila.terrosa_e_acolhedora">Terrosa e acolhedora</option><option value="Vibrante infantil" data-i18n="apostila.vibrante_infantil">Vibrante infantil</option><option value="Monocromática" data-i18n="apostila.monocromatica">Monocromática</option><option value="Alto contraste" data-i18n="apostila.alto_contraste">Alto contraste</option></select></label>
+                  <label><span data-i18n="capa.formato_da_capa">Formato da capa</span><select name="formato"><option selected value="Impressão A4" data-i18n="apostila.impressao_a4">Impressão A4</option><option value="Somente tela" data-i18n="apostila.somente_tela">Somente tela</option><option value="Apresentação 16:9" data-i18n="apostila.apresentacao_16_9">Apresentação 16:9</option></select></label>
                 </div>
-                <label>Elementos desejados na ilustração (opcional)<textarea name="elementos" rows="3" placeholder="Ex.: circuito elétrico, lâmpada, resistores e um multímetro."></textarea></label>
+                <label><span data-i18n="capa.elementos_desejados_na_ilustracao_opci">Elementos desejados na ilustração (opcional)</span><textarea name="elementos" rows="3" placeholder="Ex.: circuito elétrico, lâmpada, resistores e um multímetro." data-i18n-attr="placeholder:capa.ex_circuito_eletrico_lampada_resistore"></textarea></label>
               </fieldset>
               <div class="form-foot">
-                <button id="generate-capa" class="primary big" type="submit"><span>Gerar prompt da capa</span></button>
-                <button class="textbtn" type="reset" id="reset-capa">Limpar formulário</button>
-                <p class="help mobile-note">O resultado abre na aba Resultado.</p>
-                <p class="help form-note">Capa em página única, sem mockup.</p>
+                <button id="generate-capa" class="primary big" type="submit"><span data-i18n="capa.gerar_prompt_da_capa">Gerar prompt da capa</span></button>
+                <button class="textbtn" type="reset" id="reset-capa" data-i18n="apostila.limpar_formulario">Limpar formulário</button>
+                <p class="help mobile-note" data-i18n="apostila.o_resultado_abre_na_aba">O resultado abre na aba Resultado.</p>
+                <p class="help form-note" data-i18n="capa.capa_em_pagina_unica_sem">Capa em página única, sem mockup.</p>
               </div>
             </form>
           </section>
 
-          <section class="view" data-view="projetos" aria-label="Meus projetos" hidden>
-            <div class="view-head"><h1>Meus projetos</h1><p>Apostilas e capas salvas no servidor. Abra um projeto para continuar de onde parou.</p></div>
+          <section class="view" data-view="projetos" aria-label="Meus projetos" hidden data-i18n-attr="aria-label:menu.meus_projetos">
+            <div class="view-head"><h1 data-i18n="menu.meus_projetos">Meus projetos</h1><p data-i18n="projetos.apostilas_e_capas_salvas_no">Apostilas e capas salvas no servidor. Abra um projeto para continuar de onde parou.</p></div>
             <div class="projects-tools">
-              <button id="import-project" class="ghost" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>Importar arquivo JSON</button>
+              <button id="import-project" class="ghost" type="button"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg><span data-i18n="projetos.importar_arquivo_json">Importar arquivo JSON</span></button>
               <input id="project-file" type="file" accept="application/json,.json" hidden>
             </div>
             <div id="projects-list" class="projects-list" aria-live="polite"></div>
           </section>
 
-          <section class="view" data-view="ia" aria-label="Minha chave de IA" hidden>
-            <div class="view-head"><h1>Minha chave de IA</h1><p>Provedor, chave e modelos usados nas suas gerações e em "Melhorar com IA". Aplicado na hora, sem reiniciar.</p></div>
+          <section class="view" data-view="ia" aria-label="Minha chave de IA" hidden data-i18n-attr="aria-label:menu.minha_chave_de_ia">
+            <div class="view-head"><h1 data-i18n="menu.minha_chave_de_ia">Minha chave de IA</h1><p data-i18n="ia.provedor_chave_e_modelos_usados">Provedor, chave e modelos usados nas suas gerações e em "Melhorar com IA". Aplicado na hora, sem reiniciar.</p></div>
             <form id="ai-config-form" class="card ai-config-form">
               <p id="ai-config-current" class="field-status">Verificando configuração…</p>
-              <aside class="byok-note" aria-label="Sobre BYOK">
-                <h2>O que é BYOK?</h2>
-                <p><strong>BYOK</strong> significa <em>Bring Your Own Key</em>: traga a sua própria chave. Em vez de o GeradorOne ter uma chave única paga por todos, cada pessoa usa a chave da própria conta no provedor de IA.</p>
+              <aside class="byok-note" aria-label="Sobre BYOK" data-i18n-attr="aria-label:ia.sobre_byok">
+                <h2 data-i18n="ia.o_que_e_byok">O que é BYOK?</h2>
+                <p><strong>BYOK</strong> <span data-i18n="ia.significa">significa</span> <em>Bring Your Own Key</em><span data-i18n="ia.traga_a_sua_propria_chave">: traga a sua própria chave. Em vez de o GeradorOne ter uma chave única paga por todos, cada pessoa usa a chave da própria conta no provedor de IA.</span></p>
                 <ol>
-                  <li><strong>Crie a chave</strong> no provedor (OpenAI, Google AI Studio ou Anthropic) e cole no campo abaixo.</li>
-                  <li><strong>Ela é guardada cifrada</strong> (AES-256-GCM) no servidor e ligada só à sua conta. Depois de salva, nunca mais aparece inteira: você vê apenas os 4 últimos caracteres.</li>
-                  <li><strong>Só você a usa.</strong> Outros usuários, inclusive administradores, veem apenas se você tem uma chave cadastrada, nunca o valor.</li>
-                  <li><strong>O custo é seu.</strong> Cada geração com IA e cada "Melhorar com IA" é cobrada pelo provedor na sua conta. Defina um limite de gasto lá.</li>
-                  <li><strong>Seus textos vão ao provedor escolhido</strong> para serem processados, conforme os termos dele.</li>
+                  <li><strong data-i18n="ia.crie_a_chave">Crie a chave</strong> <span data-i18n="ia.no_provedor_openai_google_ai">no provedor (OpenAI, Google AI Studio ou Anthropic) e cole no campo abaixo.</span></li>
+                  <li><strong data-i18n="ia.ela_e_guardada_cifrada">Ela é guardada cifrada</strong> <span data-i18n="ia.aes_256_gcm_no_servidor">(AES-256-GCM) no servidor e ligada só à sua conta. Depois de salva, nunca mais aparece inteira: você vê apenas os 4 últimos caracteres.</span></li>
+                  <li><strong data-i18n="ia.so_voce_a_usa">Só você a usa.</strong> <span data-i18n="ia.outros_usuarios_inclusive_administrado">Outros usuários, inclusive administradores, veem apenas se você tem uma chave cadastrada, nunca o valor.</span></li>
+                  <li><strong data-i18n="ia.o_custo_e_seu">O custo é seu.</strong> <span data-i18n="ia.cada_geracao_com_ia_e">Cada geração com IA e cada "Melhorar com IA" é cobrada pelo provedor na sua conta. Defina um limite de gasto lá.</span></li>
+                  <li><strong data-i18n="ia.seus_textos_vao_ao_provedor">Seus textos vão ao provedor escolhido</strong> <span data-i18n="ia.para_serem_processados_conforme_os">para serem processados, conforme os termos dele.</span></li>
                 </ol>
-                <p>Sem chave, gerar o prompt continua funcionando; só os recursos de IA ficam desligados. Você pode remover a chave quando quiser.</p>
+                <p data-i18n="ia.sem_chave_gerar_o_prompt">Sem chave, gerar o prompt continua funcionando; só os recursos de IA ficam desligados. Você pode remover a chave quando quiser.</p>
               </aside>
-              <label>Provedor<select id="ai-config-provider" name="provider"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option><option value="anthropic">Anthropic (Claude)</option></select></label>
-              <label>Chave da API<input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual"></label>
-              <label>Modelo de texto<input id="ai-config-model" name="model" type="text" list="ai-text-models" placeholder="gpt-6-astra" autocomplete="off"></label>
-              <datalist id="ai-text-models-openai"><option value="gpt-6-astra">Mais capaz (recomendado)</option><option value="gpt-6.1-sol">Programação e trabalho profissional, custo menor</option><option value="gpt-6-sol"></option><option value="gpt-6-luna">Menor custo da família GPT-6</option><option value="gpt-5.6-sol"></option><option value="gpt-5.6-terra">Equilíbrio inteligência/custo</option><option value="gpt-5.6-luna">Alto volume e eficiência</option></datalist>
-              <datalist id="ai-text-models-anthropic"><option value="claude-sonnet-5-5">Velocidade e inteligência (recomendado)</option><option value="claude-opus-5-5">Trabalho longo e de conhecimento</option><option value="claude-haiku-5-5">Alto volume e menor custo</option><option value="claude-fable-5-1">Raciocínio mais exigente</option></datalist>
-              <datalist id="ai-text-models-gemini"><option value="gemini-3.8-flash">Recomendado</option><option value="gemini-2.5-pro">Mais capaz, mais lento</option><option value="gemini-2.5-flash">Rápido e barato</option></datalist>
-              <label>Modelo de imagem<input id="ai-config-image-model" name="imageModel" type="text" list="ai-image-models" placeholder="gpt-image-2.5-flare" autocomplete="off"></label>
-              <datalist id="ai-image-models-openai"><option value="gpt-image-2.5-flare">Geração rápida no dia a dia (recomendado)</option><option value="gpt-image-2.5-sunburst">Edições com mais precisão</option><option value="gpt-image-2"></option><option value="gpt-image-1.5"></option><option value="gpt-image-1"></option><option value="gpt-image-1-mini">Versão mais econômica</option></datalist>
-              <datalist id="ai-image-models-gemini"><option value="gemini-3-pro-image-preview">Nano Banana Pro: mais preciso (recomendado)</option><option value="gemini-3.1-flash-image">Nano Banana: rápido</option><option value="gemini-2.5-flash-image"></option></datalist>
+              <label><span data-i18n="ia.provedor">Provedor</span><select id="ai-config-provider" name="provider"><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option><option value="anthropic">Anthropic (Claude)</option></select></label>
+              <label><span data-i18n="ia.chave_da_api">Chave da API</span><input id="ai-config-key" name="apiKey" type="password" autocomplete="off" placeholder="Deixe em branco para manter a chave atual" data-i18n-attr="placeholder:ia.deixe_em_branco_para_manter"></label>
+              <label><span data-i18n="ia.modelo_de_texto">Modelo de texto</span><input id="ai-config-model" name="model" type="text" list="ai-text-models" placeholder="gpt-6-astra" autocomplete="off"></label>
+              <datalist id="ai-text-models-openai"><option value="gpt-6-astra" data-i18n="ia.mais_capaz_recomendado">Mais capaz (recomendado)</option><option value="gpt-6.1-sol" data-i18n="ia.programacao_e_trabalho_profissional_cu">Programação e trabalho profissional, custo menor</option><option value="gpt-6-sol"></option><option value="gpt-6-luna" data-i18n="ia.menor_custo_da_familia_gpt">Menor custo da família GPT-6</option><option value="gpt-5.6-sol"></option><option value="gpt-5.6-terra" data-i18n="ia.equilibrio_inteligencia_custo">Equilíbrio inteligência/custo</option><option value="gpt-5.6-luna" data-i18n="ia.alto_volume_e_eficiencia">Alto volume e eficiência</option></datalist>
+              <datalist id="ai-text-models-anthropic"><option value="claude-sonnet-5-5" data-i18n="ia.velocidade_e_inteligencia_recomendado">Velocidade e inteligência (recomendado)</option><option value="claude-opus-5-5" data-i18n="ia.trabalho_longo_e_de_conhecimento">Trabalho longo e de conhecimento</option><option value="claude-haiku-5-5" data-i18n="ia.alto_volume_e_menor_custo">Alto volume e menor custo</option><option value="claude-fable-5-1" data-i18n="ia.raciocinio_mais_exigente">Raciocínio mais exigente</option></datalist>
+              <datalist id="ai-text-models-gemini"><option value="gemini-3.8-flash" data-i18n="ia.recomendado">Recomendado</option><option value="gemini-2.5-pro" data-i18n="ia.mais_capaz_mais_lento">Mais capaz, mais lento</option><option value="gemini-2.5-flash" data-i18n="ia.rapido_e_barato">Rápido e barato</option></datalist>
+              <label><span data-i18n="ia.modelo_de_imagem">Modelo de imagem</span><input id="ai-config-image-model" name="imageModel" type="text" list="ai-image-models" placeholder="gpt-image-2.5-flare" autocomplete="off"></label>
+              <datalist id="ai-image-models-openai"><option value="gpt-image-2.5-flare" data-i18n="ia.geracao_rapida_no_dia_a">Geração rápida no dia a dia (recomendado)</option><option value="gpt-image-2.5-sunburst" data-i18n="ia.edicoes_com_mais_precisao">Edições com mais precisão</option><option value="gpt-image-2"></option><option value="gpt-image-1.5"></option><option value="gpt-image-1"></option><option value="gpt-image-1-mini" data-i18n="ia.versao_mais_economica">Versão mais econômica</option></datalist>
+              <datalist id="ai-image-models-gemini"><option value="gemini-3-pro-image-preview" data-i18n="ia.nano_banana_pro_mais_preciso">Nano Banana Pro: mais preciso (recomendado)</option><option value="gemini-3.1-flash-image" data-i18n="ia.nano_banana_rapido">Nano Banana: rápido</option><option value="gemini-2.5-flash-image"></option></datalist>
               <div class="ai-config-actions">
-                <button id="ai-config-clear" type="button">Remover chave</button>
-                <button id="ai-config-save" class="primary" type="submit">Salvar configuração</button>
+                <button id="ai-config-clear" type="button" data-i18n="ia.remover_chave">Remover chave</button>
+                <button id="ai-config-save" class="primary" type="submit" data-i18n="ia.salvar_configuracao">Salvar configuração</button>
               </div>
               <p id="ai-config-status" class="status" role="status"></p>
             </form>
           </section>
 
-          <section class="view" data-view="conta" aria-label="Minha conta" hidden>
-            <div class="view-head"><h1>Minha conta</h1><p id="account-summary">Dados de acesso e senha.</p></div>
+          <section class="view" data-view="conta" aria-label="Minha conta" hidden data-i18n-attr="aria-label:menu.minha_conta">
+            <div class="view-head"><h1 data-i18n="menu.minha_conta">Minha conta</h1><p id="account-summary">Dados de acesso e senha.</p></div>
             <form id="profile-form" class="card account-form" novalidate>
-              <h2>Perfil</h2>
-              <label>Nome completo<input name="name" maxlength="120" autocomplete="name" required></label>
-              <label>Telefone<input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(35) 99999-8888" maxlength="22" required></label>
-              <label>E-mail<input name="email" type="email" disabled></label>
+              <h2 data-i18n="admin.perfil">Perfil</h2>
+              <label><span data-i18n="conta.nome_completo">Nome completo</span><input name="name" maxlength="120" autocomplete="name" required></label>
+              <label><span data-i18n="conta.telefone">Telefone</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(35) 99999-8888" maxlength="22" required></label>
+              <label><span data-i18n="auth.e_mail">E-mail</span><input name="email" type="email" disabled></label>
               <p id="profile-status" class="status" role="status"></p>
-              <div class="ai-config-actions"><button class="primary" type="submit">Salvar perfil</button></div>
+              <div class="ai-config-actions"><button class="primary" type="submit" data-i18n="conta.salvar_perfil">Salvar perfil</button></div>
             </form>
             <form id="password-form" class="card account-form" novalidate>
-              <h2>Trocar senha</h2>
-              <label>Senha atual<input name="current" type="password" autocomplete="current-password" required></label>
-              <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-              <label>Repita a nova senha<input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
+              <h2 data-i18n="conta.trocar_senha">Trocar senha</h2>
+              <label><span data-i18n="conta.senha_atual">Senha atual</span><input name="current" type="password" autocomplete="current-password" required></label>
+              <label><span data-i18n="auth.nova_senha">Nova senha</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+              <label><span data-i18n="auth.repita_a_nova_senha">Repita a nova senha</span><input name="repeat" type="password" autocomplete="new-password" minlength="8" required></label>
               <p id="password-status" class="status" role="status"></p>
-              <div class="ai-config-actions"><button class="primary" type="submit">Trocar senha</button></div>
+              <div class="ai-config-actions"><button class="primary" type="submit" data-i18n="conta.trocar_senha">Trocar senha</button></div>
             </form>
             <section id="export-account" class="card account-form" aria-labelledby="export-account-title">
-              <h2 id="export-account-title">Exportar meus dados</h2>
-              <p class="field-help">Baixa um arquivo JSON com os dados da sua conta (nome, e-mail, telefone, perfil e tema), as suas preferências de IA e todos os seus projetos, com configurações e prompts. A senha e o valor da chave de IA não entram no arquivo.</p>
+              <h2 id="export-account-title" data-i18n="conta.exportar_meus_dados">Exportar meus dados</h2>
+              <p class="field-help" data-i18n="conta.baixa_um_arquivo_json_com">Baixa um arquivo JSON com os dados da sua conta (nome, e-mail, telefone, perfil e tema), as suas preferências de IA e todos os seus projetos, com configurações e prompts. A senha e o valor da chave de IA não entram no arquivo.</p>
               <p id="export-account-status" class="status" role="status"></p>
-              <div class="ai-config-actions"><button class="outline" type="button" id="export-account-button">Baixar meus dados (JSON)</button></div>
+              <div class="ai-config-actions"><button class="outline" type="button" id="export-account-button" data-i18n="conta.baixar_meus_dados_json">Baixar meus dados (JSON)</button></div>
             </section>
             <section id="legal-account" class="card account-form" aria-labelledby="legal-account-title">
-              <h2 id="legal-account-title">Termos e privacidade</h2>
+              <h2 id="legal-account-title" data-i18n="conta.termos_e_privacidade">Termos e privacidade</h2>
               <p class="field-help" id="legal-account-info">Os documentos que regem o uso do GeradorOne e o tratamento dos seus dados.</p>
-              <p class="field-help"><a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de uso</a> · <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a></p>
+              <p class="field-help"><a href="termos.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.termos_de_uso">Termos de uso</a> · <a href="privacidade.html" target="_blank" rel="noopener noreferrer" data-i18n="auth.politica_de_privacidade">Política de privacidade</a></p>
             </section>
             <form id="delete-account-form" class="card account-form danger-zone" novalidate>
-              <h2>Excluir minha conta</h2>
-              <p class="field-help">Apaga a sua conta, todos os seus projetos e a sua chave de IA salva. Não dá para desfazer. Os dados saem do banco na hora; as cópias de segurança são apagadas em 14 dias. Antes, baixe os seus dados no bloco "Exportar meus dados", logo acima.</p>
-              <label>Senha atual<input name="password" type="password" autocomplete="current-password" required></label>
+              <h2 data-i18n="conta.excluir_minha_conta">Excluir minha conta</h2>
+              <p class="field-help" data-i18n="conta.apaga_a_sua_conta_todos">Apaga a sua conta, todos os seus projetos e a sua chave de IA salva. Não dá para desfazer. Os dados saem do banco na hora; as cópias de segurança são apagadas em 14 dias. Antes, baixe os seus dados no bloco "Exportar meus dados", logo acima.</p>
+              <label><span data-i18n="conta.senha_atual">Senha atual</span><input name="password" type="password" autocomplete="current-password" required></label>
               <p id="delete-account-status" class="status" role="status"></p>
-              <div class="ai-config-actions"><button class="danger" type="submit" id="delete-account-button">Excluir minha conta</button></div>
+              <div class="ai-config-actions"><button class="danger" type="submit" id="delete-account-button" data-i18n="conta.excluir_minha_conta">Excluir minha conta</button></div>
             </form>
           </section>
 
-          <section class="view" data-view="tema" aria-label="Tema" hidden>
-            <div class="view-head"><h1>Tema</h1><p>Seis temas com os mesmos nomes de cor. A troca vale na hora para todas as telas e fica guardada na sua conta.</p></div>
+          <section class="view" data-view="tema" aria-label="Tema" hidden data-i18n-attr="aria-label:menu.tema">
+            <div class="view-head"><h1 data-i18n="menu.tema">Tema</h1><p data-i18n="tema.seis_temas_com_os_mesmos">Seis temas com os mesmos nomes de cor. A troca vale na hora para todas as telas e fica guardada na sua conta.</p></div>
             <div class="theme-layout">
               <div class="theme-pick">
                 <div class="theme-pick-head">
-                  <h2>Escolha o tema</h2>
-                  <label class="theme-follow"><input type="checkbox" id="theme-follow">Seguir o sistema: Papel de dia, Grafite à noite</label>
+                  <h2 data-i18n="tema.escolha_o_tema">Escolha o tema</h2>
+                  <label class="theme-follow"><input type="checkbox" id="theme-follow"><span data-i18n="tema.seguir_o_sistema_papel_de">Seguir o sistema: Papel de dia, Grafite à noite</span></label>
                 </div>
-                <div id="theme-gallery" class="theme-gallery" role="radiogroup" aria-label="Temas"></div>
+                <div id="theme-gallery" class="theme-gallery" role="radiogroup" aria-label="Temas" data-i18n-attr="aria-label:tema.temas"></div>
               </div>
             </div>
           </section>
 
           <section class="view" data-view="faq" aria-label="FAQ" hidden>
-            <div class="view-head"><h1>FAQ: perguntas frequentes</h1><p>Respostas sobre cada recurso do GeradorOne, de criar a conta a gerar a chave de IA. Digite para filtrar a lista. Não achou? <a href="#suporte">Fale com o suporte</a>.</p></div>
+            <div class="view-head"><h1 data-i18n="ajuda.faq_perguntas_frequentes">FAQ: perguntas frequentes</h1><p><span data-i18n="ajuda.respostas_sobre_cada_recurso_do">Respostas sobre cada recurso do GeradorOne, de criar a conta a gerar a chave de IA. Digite para filtrar a lista. Não achou?</span> <a href="#suporte" data-i18n="ajuda.fale_com_o_suporte">Fale com o suporte</a><span data-i18n="ajuda.ponto_final">.</span></p></div>
             <details class="faq-intro">
-              <summary>O que é a FAQ?</summary>
-              <p>A FAQ reúne as dúvidas mais comuns sobre o GeradorOne, organizadas por tema. Em vez de procurar o administrador, você acha a resposta em segundos.</p>
+              <summary data-i18n="ajuda.o_que_e_a_faq">O que é a FAQ?</summary>
+              <p data-i18n="ajuda.a_faq_reune_as_duvidas">A FAQ reúne as dúvidas mais comuns sobre o GeradorOne, organizadas por tema. Em vez de procurar o administrador, você acha a resposta em segundos.</p>
               <ul>
-                <li><strong>Busca:</strong> a lista filtra enquanto você digita, nas perguntas e nas respostas.</li>
-                <li><strong>Categorias:</strong> use o filtro ao lado da busca para ver só um tema, como Apostila, Capa ou IA e chave.</li>
-                <li><strong>Respostas:</strong> clique em uma pergunta para abrir a resposta e clique de novo para fechar.</li>
+                <li><strong data-i18n="ajuda.busca">Busca:</strong> <span data-i18n="ajuda.a_lista_filtra_enquanto_voce">a lista filtra enquanto você digita, nas perguntas e nas respostas.</span></li>
+                <li><strong data-i18n="ajuda.categorias">Categorias:</strong> <span data-i18n="ajuda.use_o_filtro_ao_lado">use o filtro ao lado da busca para ver só um tema, como Apostila, Capa ou IA e chave.</span></li>
+                <li><strong data-i18n="ajuda.respostas">Respostas:</strong> <span data-i18n="ajuda.clique_em_uma_pergunta_para">clique em uma pergunta para abrir a resposta e clique de novo para fechar.</span></li>
               </ul>
             </details>
             <div class="table-tools">
-              <label class="sr-only" for="faq-search">Buscar pergunta</label>
-              <input id="faq-search" type="search" placeholder="Buscar uma pergunta" autocomplete="off">
+              <label class="sr-only" for="faq-search" data-i18n="ajuda.buscar_pergunta">Buscar pergunta</label>
+              <input id="faq-search" type="search" placeholder="Buscar uma pergunta" autocomplete="off" data-i18n-attr="placeholder:ajuda.buscar_uma_pergunta">
               <span id="faq-count" class="field-status" role="status"></span>
             </div>
-            <div id="faq-badges" class="faq-badges" role="group" aria-label="Filtrar por categoria"></div>
+            <div id="faq-badges" class="faq-badges" role="group" aria-label="Filtrar por categoria" data-i18n-attr="aria-label:ajuda.filtrar_por_categoria"></div>
             <div class="table-wrap"><table id="faq-list" class="data-table faq-table" aria-live="polite"></table></div>
           </section>
 
-          <section class="view" data-view="suporte" aria-label="Fale com o suporte" hidden>
-            <div class="view-head"><h1>Fale com o suporte</h1><p>Envie dúvidas, problemas, sugestões, críticas ou elogios sobre o GeradorOne, com texto e imagens. Antes, veja se a <a href="#faq">FAQ</a> já tem a resposta.</p></div>
+          <section class="view" data-view="suporte" aria-label="Fale com o suporte" hidden data-i18n-attr="aria-label:ajuda.fale_com_o_suporte">
+            <div class="view-head"><h1 data-i18n="ajuda.fale_com_o_suporte">Fale com o suporte</h1><p><span data-i18n="suporte.envie_duvidas_problemas_sugestoes_crit">Envie dúvidas, problemas, sugestões, críticas ou elogios sobre o GeradorOne, com texto e imagens. Antes, veja se a</span> <a href="#faq">FAQ</a> <span data-i18n="suporte.ja_tem_a_resposta">já tem a resposta.</span></p></div>
             <form id="support-form" class="card account-form" novalidate>
-              <p class="field-help">A mensagem chega a quem cuida do GeradorOne, e você recebe uma confirmação por e-mail, com o número do protocolo. <strong>Não envie senhas nem chaves de API.</strong></p>
+              <p class="field-help"><span data-i18n="suporte.a_mensagem_chega_a_quem">A mensagem chega a quem cuida do GeradorOne, e você recebe uma confirmação por e-mail, com o número do protocolo.</span> <strong data-i18n="suporte.nao_envie_senhas_nem_chaves">Não envie senhas nem chaves de API.</strong></p>
               <fieldset class="support-types">
-                <legend>Tipo da mensagem</legend>
-                <label><input type="radio" name="tipo" value="critica" checked><span>Crítica</span></label>
-                <label><input type="radio" name="tipo" value="sugestao"><span>Sugestão</span></label>
-                <label><input type="radio" name="tipo" value="problema"><span>Problema</span></label>
-                <label><input type="radio" name="tipo" value="duvida"><span>Dúvida</span></label>
-                <label><input type="radio" name="tipo" value="elogio"><span>Elogio</span></label>
+                <legend data-i18n="suporte.tipo_da_mensagem">Tipo da mensagem</legend>
+                <label><input type="radio" name="tipo" value="critica" checked><span data-i18n="suporte.critica">Crítica</span></label>
+                <label><input type="radio" name="tipo" value="sugestao"><span data-i18n="suporte.sugestao">Sugestão</span></label>
+                <label><input type="radio" name="tipo" value="problema"><span data-i18n="suporte.problema">Problema</span></label>
+                <label><input type="radio" name="tipo" value="duvida"><span data-i18n="suporte.duvida">Dúvida</span></label>
+                <label><input type="radio" name="tipo" value="elogio"><span data-i18n="suporte.elogio">Elogio</span></label>
               </fieldset>
-              <label>Mensagem<textarea id="support-message" name="mensagem" rows="7" maxlength="2000" required placeholder="Conte o que aconteceu ou o que você sugere. Se for um problema, diga em qual tela estava e o que esperava ver."></textarea></label>
+              <label><span data-i18n="suporte.mensagem">Mensagem</span><textarea id="support-message" name="mensagem" rows="7" maxlength="2000" required placeholder="Conte o que aconteceu ou o que você sugere. Se for um problema, diga em qual tela estava e o que esperava ver." data-i18n-attr="placeholder:suporte.conte_o_que_aconteceu_ou"></textarea></label>
               <div class="support-attach" id="support-zone">
                 <input type="file" id="support-file" multiple accept="image/png,image/jpeg,image/gif,image/webp,application/pdf,.txt,.log,.csv" hidden>
-                <button class="outline" type="button" id="support-attach">Anexar arquivo</button>
-                <small class="field-status" id="support-attach-hint">Imagens (PNG, JPG, GIF, WEBP), PDF, TXT, LOG ou CSV, até 5 arquivos, 5 MB cada e 8 MB no total. Você também pode arrastar arquivos para cá ou colar uma imagem no texto (Ctrl+V).</small>
+                <button class="outline" type="button" id="support-attach" data-i18n="suporte.anexar_arquivo">Anexar arquivo</button>
+                <small class="field-status" id="support-attach-hint" data-i18n="suporte.imagens_png_jpg_gif_webp">Imagens (PNG, JPG, GIF, WEBP), PDF, TXT, LOG ou CSV, até 5 arquivos, 5 MB cada e 8 MB no total. Você também pode arrastar arquivos para cá ou colar uma imagem no texto (Ctrl+V).</small>
                 <ul id="support-files" class="support-files"></ul>
               </div>
               <div class="grid two">
-                <label>Seu nome (opcional)<input name="nome" maxlength="120" autocomplete="name"></label>
-                <label>Seu e-mail (para a resposta)<input name="email" type="email" maxlength="200" autocomplete="email" required></label>
+                <label><span data-i18n="suporte.seu_nome_opcional">Seu nome (opcional)</span><input name="nome" maxlength="120" autocomplete="name"></label>
+                <label><span data-i18n="suporte.seu_e_mail_para_a">Seu e-mail (para a resposta)</span><input name="email" type="email" maxlength="200" autocomplete="email" required></label>
               </div>
-              <div class="support-hp" aria-hidden="true"><label>Não preencha este campo<input name="site" tabindex="-1" autocomplete="off"></label></div>
+              <div class="support-hp" aria-hidden="true"><label><span data-i18n="suporte.nao_preencha_este_campo">Não preencha este campo</span><input name="site" tabindex="-1" autocomplete="off"></label></div>
               <p id="support-status" class="status" role="status"></p>
-              <div class="ai-config-actions"><span id="support-count" class="field-status">0 / 2000</span><button class="primary" type="submit" id="support-send">Enviar mensagem</button></div>
+              <div class="ai-config-actions"><span id="support-count" class="field-status">0 / 2000</span><button class="primary" type="submit" id="support-send" data-i18n="suporte.enviar_mensagem">Enviar mensagem</button></div>
             </form>
           </section>
 
-          <section class="view" data-view="config" aria-label="Configurações" hidden>
-            <div class="view-head"><h1>Configurações</h1><p>Usuários, e-mail e backup do GeradorOne, cada assunto na sua aba. Só administradores veem esta tela.</p></div>
-            <div class="config-tabs" role="tablist" aria-label="Assuntos da configuração">
-              <button id="config-tab-usuarios" class="config-tab" type="button" role="tab" data-tab="usuarios" aria-controls="config-pane-usuarios" aria-selected="true">Usuários</button>
-              <button id="config-tab-smtp" class="config-tab" type="button" role="tab" data-tab="smtp" aria-controls="config-pane-smtp" aria-selected="false">E-mail (SMTP)</button>
-              <button id="config-tab-backup" class="config-tab" type="button" role="tab" data-tab="backup" aria-controls="config-pane-backup" aria-selected="false">Backup</button>
+          <section class="view" data-view="config" aria-label="Configurações" hidden data-i18n-attr="aria-label:menu.configuracoes">
+            <div class="view-head"><h1 data-i18n="menu.configuracoes">Configurações</h1><p data-i18n="admin.usuarios_e_mail_e_backup">Usuários, e-mail e backup do GeradorOne, cada assunto na sua aba. Só administradores veem esta tela.</p></div>
+            <div class="config-tabs" role="tablist" aria-label="Assuntos da configuração" data-i18n-attr="aria-label:admin.assuntos_da_configuracao">
+              <button id="config-tab-usuarios" class="config-tab" type="button" role="tab" data-tab="usuarios" aria-controls="config-pane-usuarios" aria-selected="true" data-i18n="admin.usuarios">Usuários</button>
+              <button id="config-tab-smtp" class="config-tab" type="button" role="tab" data-tab="smtp" aria-controls="config-pane-smtp" aria-selected="false" data-i18n="admin.e_mail_smtp">E-mail (SMTP)</button>
+              <button id="config-tab-backup" class="config-tab" type="button" role="tab" data-tab="backup" aria-controls="config-pane-backup" aria-selected="false" data-i18n="admin.backup">Backup</button>
             </div>
             <div class="config-pane" id="config-pane-usuarios" data-pane="usuarios" role="tabpanel" aria-labelledby="config-tab-usuarios">
-              <p class="pane-intro">Crie e gerencie quem acessa o GeradorOne. Cada usuário tem os próprios projetos e a própria chave de IA.</p>
+              <p class="pane-intro" data-i18n="admin.crie_e_gerencie_quem_acessa">Crie e gerencie quem acessa o GeradorOne. Cada usuário tem os próprios projetos e a própria chave de IA.</p>
               <form id="user-create-form" class="card account-form" novalidate>
-                <h2>Novo usuário</h2>
+                <h2 data-i18n="admin.novo_usuario">Novo usuário</h2>
                 <div class="grid two">
-                  <label>Nome completo<input name="name" maxlength="120" autocomplete="off" required></label>
-                  <label>Telefone<input name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="(35) 99999-8888" maxlength="22" required></label>
-                  <label>E-mail<input name="email" type="email" autocomplete="off" required></label>
-                  <label>Perfil<select name="role"><option value="user">Usuário</option><option value="admin">Administrador</option></select></label>
-                  <label class="full">Senha temporária
-                    <span class="input-action"><input name="password" type="text" autocomplete="off" minlength="8" maxlength="200" placeholder="Mínimo de 8 caracteres" required><button type="button" id="generate-password" class="ghost">Gerar senha</button></span>
-                    <small class="field-status">O usuário será obrigado a trocar a senha no primeiro acesso.</small>
+                  <label><span data-i18n="conta.nome_completo">Nome completo</span><input name="name" maxlength="120" autocomplete="off" required></label>
+                  <label><span data-i18n="conta.telefone">Telefone</span><input name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="(35) 99999-8888" maxlength="22" required></label>
+                  <label><span data-i18n="auth.e_mail">E-mail</span><input name="email" type="email" autocomplete="off" required></label>
+                  <label><span data-i18n="admin.perfil">Perfil</span><select name="role"><option value="user" data-i18n="admin.usuario">Usuário</option><option value="admin" data-i18n="admin.administrador">Administrador</option></select></label>
+                  <label class="full"><span data-i18n="auth.senha_temporaria">Senha temporária</span>
+                    <span class="input-action"><input name="password" type="text" autocomplete="off" minlength="8" maxlength="200" placeholder="Mínimo de 8 caracteres" required data-i18n-attr="placeholder:admin.minimo_de_8_caracteres"><button type="button" id="generate-password" class="ghost" data-i18n="admin.gerar_senha">Gerar senha</button></span>
+                    <small class="field-status" data-i18n="admin.o_usuario_sera_obrigado_a">O usuário será obrigado a trocar a senha no primeiro acesso.</small>
                   </label>
                 </div>
                 <p id="user-create-status" class="status" role="status"></p>
-                <div class="ai-config-actions"><button class="primary" type="submit">Criar usuário</button></div>
+                <div class="ai-config-actions"><button class="primary" type="submit" data-i18n="admin.criar_usuario">Criar usuário</button></div>
               </form>
               <div id="temp-password-box" class="temp-box" hidden role="status"></div>
               <div class="table-tools">
-                <label class="sr-only" for="users-search">Buscar usuário</label>
-                <input id="users-search" type="search" placeholder="Buscar por nome ou e-mail" autocomplete="off">
-                <label class="sr-only" for="users-role-filter">Filtrar por perfil</label>
-                <select id="users-role-filter"><option value="">Todos os perfis</option><option value="admin">Administradores</option><option value="user">Usuários</option></select>
+                <label class="sr-only" for="users-search" data-i18n="admin.buscar_usuario">Buscar usuário</label>
+                <input id="users-search" type="search" placeholder="Buscar por nome ou e-mail" autocomplete="off" data-i18n-attr="placeholder:admin.buscar_por_nome_ou_e">
+                <label class="sr-only" for="users-role-filter" data-i18n="admin.filtrar_por_perfil">Filtrar por perfil</label>
+                <select id="users-role-filter"><option value="" data-i18n="admin.todos_os_perfis">Todos os perfis</option><option value="admin" data-i18n="admin.administradores">Administradores</option><option value="user" data-i18n="admin.usuarios">Usuários</option></select>
                 <span id="users-count" class="field-status" role="status"></span>
               </div>
               <div class="table-wrap"><table id="users-list" class="data-table" aria-live="polite"></table></div>
             </div>
             <div class="config-pane" id="config-pane-smtp" data-pane="smtp" role="tabpanel" aria-labelledby="config-tab-smtp" hidden>
-              <p class="pane-intro">Conta que envia os códigos de cadastro e de recuperação de senha. A troca vale na hora, sem reiniciar.</p>
+              <p class="pane-intro" data-i18n="admin.conta_que_envia_os_codigos">Conta que envia os códigos de cadastro e de recuperação de senha. A troca vale na hora, sem reiniciar.</p>
               <form id="smtp-form" class="card account-form" novalidate>
                 <p id="smtp-current" class="field-status">Verificando configuração…</p>
                 <div class="grid two">
-                  <label>Servidor SMTP<input name="host" maxlength="200" autocomplete="off" placeholder="smtp.exemplo.com" required></label>
-                  <label>Porta<input name="port" type="number" min="1" max="65535" inputmode="numeric" autocomplete="off" placeholder="587" required></label>
-                  <label>Conexão<select name="mode"><option value="starttls">STARTTLS (porta 587)</option><option value="tls">TLS direto (porta 465)</option><option value="none">Sem criptografia</option></select></label>
-                  <label>Usuário<input name="user" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
-                  <label>Senha<input name="pass" type="password" maxlength="200" autocomplete="new-password" placeholder="Em branco mantém a atual"></label>
-                  <label>Remetente<input name="from" maxlength="200" autocomplete="off" placeholder="Nome &lt;e-mail&gt;" required></label>
-                  <label>Endereço do app nos e-mails<input name="appUrl" type="url" maxlength="200" autocomplete="off" placeholder="https://app.exemplo.com.br"></label>
-                  <label>E-mail de contato no rodapé<input name="contactEmail" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
+                  <label><span data-i18n="admin.servidor_smtp">Servidor SMTP</span><input name="host" maxlength="200" autocomplete="off" placeholder="smtp.exemplo.com" required></label>
+                  <label><span data-i18n="admin.porta">Porta</span><input name="port" type="number" min="1" max="65535" inputmode="numeric" autocomplete="off" placeholder="587" required></label>
+                  <label><span data-i18n="admin.conexao">Conexão</span><select name="mode"><option value="starttls" data-i18n="admin.starttls_porta_587">STARTTLS (porta 587)</option><option value="tls" data-i18n="admin.tls_direto_porta_465">TLS direto (porta 465)</option><option value="none" data-i18n="admin.sem_criptografia">Sem criptografia</option></select></label>
+                  <label><span data-i18n="admin.usuario">Usuário</span><input name="user" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
+                  <label><span data-i18n="auth.senha">Senha</span><input name="pass" type="password" maxlength="200" autocomplete="new-password" placeholder="Em branco mantém a atual" data-i18n-attr="placeholder:admin.em_branco_mantem_a_atual"></label>
+                  <label><span data-i18n="admin.remetente">Remetente</span><input name="from" maxlength="200" autocomplete="off" placeholder="Nome &lt;e-mail&gt;" required data-i18n-attr="placeholder:admin.nome_e_mail"></label>
+                  <label><span data-i18n="admin.endereco_do_app_nos_e">Endereço do app nos e-mails</span><input name="appUrl" type="url" maxlength="200" autocomplete="off" placeholder="https://app.exemplo.com.br"></label>
+                  <label><span data-i18n="admin.e_mail_de_contato_no">E-mail de contato no rodapé</span><input name="contactEmail" type="email" maxlength="200" autocomplete="off" placeholder="contato@exemplo.com"></label>
                 </div>
                 <p id="smtp-status" class="status" role="status"></p>
                 <div class="ai-config-actions">
-                  <button id="smtp-reset" type="button">Voltar ao .env</button>
-                  <button class="primary" type="submit">Salvar</button>
+                  <button id="smtp-reset" type="button" data-i18n="admin.voltar_ao_env">Voltar ao .env</button>
+                  <button class="primary" type="submit" data-i18n="admin.salvar">Salvar</button>
                 </div>
               </form>
               <form id="smtp-test-form" class="card account-form" novalidate>
-                <h2>Enviar e-mail de teste</h2>
-                <label>Destino<input name="to" type="email" autocomplete="off" placeholder="Em branco = o seu e-mail"></label>
+                <h2 data-i18n="admin.enviar_e_mail_de_teste">Enviar e-mail de teste</h2>
+                <label><span data-i18n="admin.destino">Destino</span><input name="to" type="email" autocomplete="off" placeholder="Em branco = o seu e-mail" data-i18n-attr="placeholder:admin.em_branco_o_seu_e"></label>
                 <p id="smtp-test-status" class="status" role="status"></p>
-                <div class="ai-config-actions"><button class="primary" type="submit">Enviar teste</button></div>
+                <div class="ai-config-actions"><button class="primary" type="submit" data-i18n="admin.enviar_teste">Enviar teste</button></div>
               </form>
             </div>
             <div class="config-pane" id="config-pane-backup" data-pane="backup" role="tabpanel" aria-labelledby="config-tab-backup" hidden>
-              <p class="pane-intro">Situação das cópias de segurança. Esta tela só mostra o que aconteceu; as cópias são feitas pelo servidor.</p>
-              <div id="backup-box" aria-live="polite"><p class="field-status">Verificando o backup…</p></div>
+              <p class="pane-intro" data-i18n="admin.situacao_das_copias_de_seguranca">Situação das cópias de segurança. Esta tela só mostra o que aconteceu; as cópias são feitas pelo servidor.</p>
+              <div id="backup-box" aria-live="polite"><p class="field-status" data-i18n="admin.verificando_o_backup">Verificando o backup…</p></div>
             </div>
           </section>
-          <p class="legal">O gerador não valida automaticamente conteúdos ou códigos curriculares. GeradorOne v2</p>
+          <p class="legal"><span data-i18n="auth.o_gerador_nao_valida_automaticamente">O gerador não valida automaticamente conteúdos ou códigos curriculares.</span> GeradorOne v2</p>
         </div>
 
         <aside class="out-panel" id="out-panel" aria-labelledby="out-title">
-          <div class="out-head"><h2 id="out-title">Resultado</h2><span id="out-badge" class="out-meta" hidden></span></div>
-          <div id="out-empty" class="out-empty"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/></svg><strong>Nada gerado ainda</strong><span>Escolha as opções, preencha os dados e clique em Gerar: o resultado aparece aqui.</span></div>
+          <div class="out-head"><h2 id="out-title" data-i18n="geral.resultado">Resultado</h2><span id="out-badge" class="out-meta" hidden></span></div>
+          <div id="out-empty" class="out-empty"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6"/></svg><strong data-i18n="resultado.nada_gerado_ainda">Nada gerado ainda</strong><span data-i18n="resultado.escolha_as_opcoes_preencha_os">Escolha as opções, preencha os dados e clique em Gerar: o resultado aparece aqui.</span></div>
           <div id="out-body" hidden>
-            <div id="result-actions" class="result-bar" aria-label="Ações do resultado">
-              <div class="out-tabs" role="group" aria-label="Visualização">
-                <button id="show-prompt" class="active" type="button">Prompt</button>
-                <button id="preview" type="button">Prévia</button>
+            <div id="result-actions" class="result-bar" aria-label="Ações do resultado" data-i18n-attr="aria-label:resultado.acoes_do_resultado">
+              <div class="out-tabs" role="group" aria-label="Visualização" data-i18n-attr="aria-label:resultado.visualizacao">
+                <button id="show-prompt" class="active" type="button" data-i18n="resultado.prompt">Prompt</button>
+                <button id="preview" type="button" data-i18n="resultado.previa">Prévia</button>
               </div>
               <div class="out-tools">
-                <div class="seg" role="group" aria-label="Exportar">
+                <div class="seg" role="group" aria-label="Exportar" data-i18n-attr="aria-label:resultado.exportar">
                   <button id="copy" type="button"><span class="copy-icon" aria-hidden="true"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span><span class="copy-label">Copiar</span></button>
                   <button id="export-txt" type="button">TXT</button>
                   <button id="export-json" type="button">JSON</button>
                   <button id="export-pdf" type="button">PDF</button>
                 </div>
-                <button id="improve-open" class="outline" type="button" aria-expanded="false" aria-controls="improve-box"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>Melhorar com IA</button>
+                <button id="improve-open" class="outline" type="button" aria-expanded="false" aria-controls="improve-box"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg><span data-i18n="resultado.melhorar_com_ia">Melhorar com IA</span></button>
               </div>
             </div>
-            <section id="improve-box" class="improve-box" hidden aria-label="Melhorar com IA">
+            <section id="improve-box" class="improve-box" hidden aria-label="Melhorar com IA" data-i18n-attr="aria-label:resultado.melhorar_com_ia">
               <p id="improve-mode" class="field-status"></p>
-              <fieldset class="improve-chips"><legend>Ajustes rápidos</legend><div id="improve-options"></div></fieldset>
-              <label>Instrução personalizada (opcional)<textarea id="improve-instruction" rows="2" maxlength="1000" placeholder="Ex.: incluir um esquema de quadro de distribuição com disjuntores rotulados."></textarea></label>
-              <div class="improve-actions"><button id="improve-cancel" class="ghost" type="button">Cancelar</button><button id="improve-apply" class="primary" type="button">Aplicar</button></div>
+              <fieldset class="improve-chips"><legend data-i18n="resultado.ajustes_rapidos">Ajustes rápidos</legend><div id="improve-options"></div></fieldset>
+              <label><span data-i18n="resultado.instrucao_personalizada_opcional">Instrução personalizada (opcional)</span><textarea id="improve-instruction" rows="2" maxlength="1000" placeholder="Ex.: incluir um esquema de quadro de distribuição com disjuntores rotulados." data-i18n-attr="placeholder:resultado.ex_incluir_um_esquema_de"></textarea></label>
+              <div class="improve-actions"><button id="improve-cancel" class="ghost" type="button" data-i18n="resultado.cancelar">Cancelar</button><button id="improve-apply" class="primary" type="button" data-i18n="resultado.aplicar">Aplicar</button></div>
               <p id="improve-status" class="status" role="status"></p>
             </section>
             <div class="modal-content">
               <pre id="prompt-output" tabindex="0"></pre>
-              <iframe id="preview-frame" title="Prévia HTML do prompt" sandbox hidden></iframe>
-              <section id="generated-files" class="generated-files" aria-label="Arquivos gerados" hidden></section>
+              <iframe id="preview-frame" title="Prévia HTML do prompt" sandbox hidden data-i18n-attr="title:resultado.previa_html_do_prompt"></iframe>
+              <section id="generated-files" class="generated-files" aria-label="Arquivos gerados" hidden data-i18n-attr="aria-label:resultado.arquivos_gerados"></section>
             </div>
             <p id="status" class="status" role="status"></p>
           </div>
           <section id="ai-block" class="ai-block" aria-labelledby="ai-block-title" hidden>
-            <div class="ai-block-head"><h3 id="ai-block-title">Gerar o material com IA</h3><button class="link" type="button" id="ai-change-key">Alterar chave</button></div>
+            <div class="ai-block-head"><h3 id="ai-block-title" data-i18n="ia.gerar_o_material_com_ia">Gerar o material com IA</h3><button class="link" type="button" id="ai-change-key" data-i18n="ia.alterar_chave">Alterar chave</button></div>
             <p id="ai-availability" class="field-status">Verificando a IA…</p>
             <div class="ai-block-row">
-              <label>Formato de entrega<select name="formatoEntrega" form="formulario"><option value="pdf" selected>Arquivo PDF final</option><option value="html">Arquivo HTML autônomo</option></select></label>
+              <label><span data-i18n="ia.formato_de_entrega">Formato de entrega</span><select name="formatoEntrega" form="formulario"><option value="pdf" selected data-i18n="ia.arquivo_pdf_final">Arquivo PDF final</option><option value="html" data-i18n="ia.arquivo_html_autonomo">Arquivo HTML autônomo</option></select></label>
               <input type="hidden" id="generation-mode" name="modoGeracao" form="formulario" value="prompt">
-              <button id="generate-ai" class="outline" type="button">Gerar material com IA</button>
+              <button id="generate-ai" class="outline" type="button" data-i18n="ia.gerar_material_com_ia">Gerar material com IA</button>
             </div>
-            <p class="help">Cada geração é cobrada pelo provedor, na sua conta.</p>
+            <p class="help" data-i18n="ia.cada_geracao_e_cobrada_pelo">Cada geração é cobrada pelo provedor, na sua conta.</p>
           </section>
         </aside>
       </main>
@@ -692,6 +692,7 @@ CRITÉRIOS DE QUALIDADE
   <script src="i18n-ui.js"></script>
   <script src="style-art.js"></script>
   <script src="faq-data.js"></script>
+  <script src="prompts.js"></script>
   <script src="app.js" defer></script>
 </body>
 </html>

@@ -335,8 +335,8 @@ test('configuração de SMTP: só administrador, senha cifrada e aplicada na hor
   assert.equal(saved.data.appUrl, 'https://app.exemplo.com.br');
   assert.equal(saved.data.contactEmail, 'contato@exemplo.com');
   assert.deepEqual(app.mailer.brand, { appUrl: 'https://app.exemplo.com.br', contactEmail: 'contato@exemplo.com' });
-  // Termos, Política e FAQ passam a mostrar o e-mail de contato configurado, em vez do padrão.
-  for (const page of ['termos.html', 'privacidade.html', 'faq-data.js']) {
+  // Termos, Política e FAQ (que vive nos dicionários de idioma) passam a mostrar o e-mail de contato configurado, em vez do padrão.
+  for (const page of ['termos.html', 'privacidade.html', 'i18n/pt-BR.js', 'i18n/en.js', 'i18n/es.js', 'i18n/de.js', 'i18n/it.js']) {
     const text = await (await fetch(`http://127.0.0.1:${app.server.address().port}/${page}`)).text();
     assert.ok(text.includes('contato@exemplo.com'), page);
     assert.ok(!text.includes('fulano@dominio.com.br'), page);

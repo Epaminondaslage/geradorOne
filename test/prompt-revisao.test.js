@@ -6,13 +6,16 @@ const { FAQ_ITEMS } = require('../public/faq-data.js');
 
 const ler = arquivo => fs.readFileSync(path.join(__dirname, '..', arquivo), 'utf8');
 
-test('revisão técnica: os dois geradores de prompt trazem o bloco antes da missão ou dos textos da capa', () => {
-  const app = ler('public/app.js');
-  const titulos = app.match(/'REVISÃO TÉCNICA \(FAÇA ANTES DE GERAR A IMAGEM\)'/g) || [];
-  assert.equal(titulos.length, 2, 'um bloco no prompt de material e outro no da capa');
-  assert.ok(app.indexOf("'REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)'") < app.indexOf("'MISSÃO'"));
-  assert.match(app, /não inclua dado, fonte ou citação que você não possa confirmar/);
-  assert.match(app, /sem escrever essa revisão na resposta/);
+test('revisão técnica: os geradores de imagem e de capa trazem o bloco, uma vez, antes da missão ou dos textos da capa', () => {
+  const casos = JSON.parse(ler('test/fixtures/prompts-pt-BR.json')).casos.filter(caso => caso.kind === 'imagem' || caso.kind === 'capa');
+  assert.ok(casos.some(caso => caso.kind === 'imagem') && casos.some(caso => caso.kind === 'capa'), 'um caso de material e outro de capa');
+  for (const caso of casos) {
+    const titulo = 'REVISÃO TÉCNICA (FAÇA ANTES DE GERAR A IMAGEM)';
+    assert.equal(caso.saida.split(titulo).length - 1, 1, caso.nome);
+    assert.match(caso.saida, /não inclua dado, fonte ou citação que você não possa confirmar/, caso.nome);
+    assert.match(caso.saida, /sem escrever essa revisão na resposta/, caso.nome);
+    if (caso.kind === 'imagem') assert.ok(caso.saida.indexOf(titulo) < caso.saida.indexOf('MISSÃO'), caso.nome);
+  }
 });
 
 test('revisão técnica: a geração de PDF/HTML e a melhoria do prompt também a preservam', () => {

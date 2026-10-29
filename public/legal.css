@@ -17,3 +17,6 @@ body.legal-page { margin: 0; background: var(--bg); color: var(--ink); font-fami
 .legal-note { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--paper); font-size: 15px; }
 .legal-foot { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
 @media (max-width: 600px) { .legal-doc h1 { font-size: 26px; } .legal-wrap { padding: 20px 16px 48px; } }
+
+/* Ressalva mostrada quando o app está em outro idioma: o texto legal só existe em português. */
+.ressalva-legal { margin: 0 0 24px; padding: 12px 14px; background: var(--paper); border: 1px solid var(--line); border-inline-start: 4px solid var(--accent); border-radius: 2px; color: var(--ink); }

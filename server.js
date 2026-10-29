@@ -18,10 +18,12 @@ const { createMailer } = require('./lib/mailer');
 const backup = require('./lib/backup');
 const { renderVisuals } = require('./lib/visuals');
 const { DEFAULT_CONTACT } = require('./lib/email-template');
-const CONTACT_PAGES = new Set(['termos.html', 'privacidade.html', 'faq-data.js']);
+const CONTACT_PAGES = new Set(['termos.html', 'privacidade.html', 'faq-data.js', 'pt-BR.js', 'en.js', 'es.js', 'de.js', 'it.js']);
 const { createSettingsStore } = require('./lib/settings');
 const { createSupportStore, validateSupport, newProtocol } = require('./lib/support');
 const { checkMasterSecret } = require('./lib/secret-check');
+const i18n = require('./public/i18n.js');
+const { criarT, idiomaDaRequisicao, idiomaDoCorpo, tr, erro, codigoDe, corpoErro, injetarRessalva, regraDeIdioma } = require('./lib/i18n-servidor');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -38,7 +40,7 @@ const DEFAULT_MODEL = { openai: 'gpt-6-astra', gemini: 'gemini-3.8-flash', anthr
 // A Anthropic só devolve texto; sem modelo de imagem padrão.
 const DEFAULT_IMAGE_MODEL = { openai: 'gpt-image-2.5-flare', gemini: 'gemini-3-pro-image-preview', anthropic: '' };
 const PROVIDERS_WITH_IMAGES = ['openai', 'gemini'];
-const NO_IMAGES_MESSAGE = 'A Anthropic gera só texto. Em "Imagens por IA", escolha "Não usar imagens geradas por IA", ou use uma chave da OpenAI ou do Gemini.';
+const LEGAL_PAGES = new Set(['termos.html', 'privacidade.html']);
 const ANTHROPIC_VERSION = '2026-10-21';
 const ANTHROPIC_MAX_TOKENS = 16_000;
 
@@ -152,13 +154,19 @@ function sameOrigin(req) {
   try { return new URL(origin).host === (req.headers['x-forwarded-host'] || req.headers.host); } catch { return false; }
 }
 
-function fail(message, status = 400) {
-  return Object.assign(new Error(message), { status });
+// Erro com chave `srv.*`: o texto sai no idioma da requisição quando a API responde.
+function fail(chave, params, status = 400) {
+  return erro(chave, params, status);
+}
+
+// Resposta de falha `{ error, code }` no idioma da requisição (e da conta, quando há).
+function jsonError(req, res, status, chave, params, user, extra = {}) {
+  return json(res, status, { error: tr(req, user, chave, params), code: codigoDe(chave), ...extra });
 }
 
 function checkPassword(password) {
-  if (typeof password !== 'string' || password.length < MIN_PASSWORD) throw fail(`A senha precisa ter ao menos ${MIN_PASSWORD} caracteres.`);
-  if (password.length > MAX_PASSWORD) throw fail('Senha muito longa.');
+  if (typeof password !== 'string' || password.length < MIN_PASSWORD) throw fail('srv.erro.senha_curta', { min: MIN_PASSWORD });
+  if (password.length > MAX_PASSWORD) throw fail('srv.erro.senha_longa');
   return password;
 }
 
@@ -168,7 +176,7 @@ async function readJson(req) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new SyntaxError('corpo');
     return value;
   } catch (error) {
-    throw error.status ? error : fail('JSON inválido.');
+    throw error.status ? error : fail('srv.erro.json_invalido');
   }
 }
 
@@ -246,7 +254,7 @@ function readBody(req, limit = MAX_BODY) {
       if (size > limit) {
         tooBig = true;
         chunks.length = 0;
-        reject(Object.assign(new Error('Corpo muito grande'), { status: 413 }));
+        reject(erro('srv.erro.corpo_grande', undefined, 413));
         return;
       }
       chunks.push(chunk);
@@ -260,10 +268,12 @@ function escapeHtml(value = '') {
   return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// `payload.language` (de api/render e api/pdf) define o idioma dos textos fixos e o `lang` da prévia; sem ele, pt-BR.
 function renderDocument(payload) {
-  const title = escapeHtml(payload.title || 'Material didático');
+  const t = criarT(i18n.normalizar(payload.language) || i18n.PADRAO);
+  const title = escapeHtml(payload.title || t('srv.doc.titulo_padrao'));
   const prompt = escapeHtml(payload.prompt || '').replace(/\n/g, '<br>');
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:900px;margin:auto;padding:48px;color:#17212b}h1{color:#087f78}.box{background:#f1faf9;border:1px solid #c5e7e3;border-radius:16px;padding:24px}@media print{body{padding:0}.box{border:0}}</style></head><body><h1>${title}</h1><p>Roteiro estruturado para geração do material.</p><div class="box">${prompt}</div></body></html>`;
+  return `<!doctype html><html lang="${t.idioma}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:900px;margin:auto;padding:48px;color:#17212b}h1{color:#087f78}.box{background:#f1faf9;border:1px solid #c5e7e3;border-radius:16px;padding:24px}@media print{body{padding:0}.box{border:0}}</style></head><body><h1>${title}</h1><p>${escapeHtml(t('srv.doc.subtitulo'))}</p><div class="box">${prompt}</div></body></html>`;
 }
 
 const PDF_FONT_DIR = process.env.PDF_FONT_DIR || '/usr/share/fonts/dejavu';
@@ -272,16 +282,17 @@ const pdfFonts = fs.existsSync(path.join(PDF_FONT_DIR, 'DejaVuSans.ttf'))
   : { regular: 'Helvetica', bold: 'Helvetica-Bold' };
 
 function renderPdf(payload) {
+  const t = criarT(i18n.normalizar(payload.language) || i18n.PADRAO);
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', margins: { top: 54, bottom: 54, left: 54, right: 54 }, info: { Title: String(payload.title || 'Prompt GeradorOne'), Author: 'GeradorOne' } });
+    const doc = new PDFDocument({ size: 'A4', margins: { top: 54, bottom: 54, left: 54, right: 54 }, info: { Title: String(payload.title || t('srv.pdf.titulo_padrao')), Author: 'GeradorOne' } });
     const chunks = [];
     doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
     doc.registerFont('Body', pdfFonts.regular);
     doc.registerFont('Body-Bold', pdfFonts.bold);
-    doc.font('Body-Bold').fontSize(20).fillColor('#08766f').text(String(payload.title || 'Prompt GeradorOne'));
-    doc.moveDown(.5).font('Body').fontSize(10).fillColor('#62717f').text('Prompt estruturado pelo GeradorOne');
+    doc.font('Body-Bold').fontSize(20).fillColor('#08766f').text(String(payload.title || t('srv.pdf.titulo_padrao')));
+    doc.moveDown(.5).font('Body').fontSize(10).fillColor('#62717f').text(t('srv.pdf.subtitulo'));
     doc.moveDown(1.2).font('Body').fontSize(9.5).fillColor('#17212b').text(String(payload.prompt || ''), { lineGap: 3, align: 'left' });
     doc.end();
   });
@@ -301,7 +312,7 @@ function cleanGeneratedHtml(value) {
   let html = String(value || '').trim().replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '');
   const first = html.search(/<!doctype html|<html/i);
   if (first > 0) html = html.slice(first);
-  if (!/<html[\s>]/i.test(html)) throw Object.assign(new Error('A IA não devolveu um documento HTML válido.'), { status: 502 });
+  if (!/<html[\s>]/i.test(html)) throw fail('srv.erro.ia_html_invalido', undefined, 502);
   return stripUnsafeMarkup(html);
 }
 
@@ -340,7 +351,7 @@ async function requestOpenAiText(config, instructions, input, signal) {
     body: JSON.stringify({ model: config.model, instructions, input })
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'O provedor de IA recusou a solicitação.'), { status: response.status >= 500 ? 502 : 400 });
+  if (!response.ok) throw providerError(body, 'srv.erro.ia_recusou', response.status);
   return { text: extractOutputText(body), model: body.model || config.model };
 }
 
@@ -352,7 +363,7 @@ async function requestGeminiText(config, instructions, input, signal) {
     body: JSON.stringify({ contents: [{ parts: [{ text: `${instructions}\n\n${input}` }] }] })
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'O provedor de IA recusou a solicitação.'), { status: response.status >= 500 ? 502 : 400 });
+  if (!response.ok) throw providerError(body, 'srv.erro.ia_recusou', response.status);
   return { text: extractGeminiText(body), model: config.model };
 }
 
@@ -364,109 +375,124 @@ async function requestAnthropicText(config, instructions, input, signal) {
     body: JSON.stringify({ model: config.model, max_tokens: ANTHROPIC_MAX_TOKENS, system: instructions, messages: [{ role: 'user', content: input }] })
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'O provedor de IA recusou a solicitação.'), { status: response.status >= 500 ? 502 : 400 });
-  if (body.stop_reason === 'refusal') throw Object.assign(new Error('A Anthropic recusou gerar esta resposta. Ajuste o pedido e tente de novo.'), { status: 400 });
-  if (body.stop_reason === 'max_tokens') throw Object.assign(new Error('A resposta passou do limite de tamanho e foi cortada. Peça um material menor (menos páginas) e tente de novo.'), { status: 502 });
+  if (!response.ok) throw providerError(body, 'srv.erro.ia_recusou', response.status);
+  if (body.stop_reason === 'refusal') throw fail('srv.erro.ia_anthropic_recusou', undefined, 400);
+  if (body.stop_reason === 'max_tokens') throw fail('srv.erro.ia_anthropic_cortada', undefined, 502);
   // A resposta vem em blocos; só os de tipo "text" interessam (o raciocínio interno vem em blocos à parte).
   const text = (body.content || []).filter(block => block?.type === 'text' && typeof block.text === 'string').map(block => block.text).join('\n');
-  if (!text.trim()) throw Object.assign(new Error('A Anthropic não devolveu texto. Tente de novo.'), { status: 502 });
+  if (!text.trim()) throw fail('srv.erro.ia_anthropic_sem_texto', undefined, 502);
   return { text, model: body.model || config.model };
+}
+
+// Mensagem do provedor de IA vai como veio (não é nossa); sem ela, usa a chave.
+function providerError(body, chave, status) {
+  const code = status >= 500 ? 502 : 400;
+  const message = body?.error?.message;
+  return message ? Object.assign(new Error(message), { status: code }) : fail(chave, undefined, code);
 }
 
 const TEXT_REQUESTERS = { openai: requestOpenAiText, gemini: requestGeminiText, anthropic: requestAnthropicText };
 
-async function requestAiText(config, instructions, input, timeoutMs, timeoutMessage) {
-  if (!config.apiKey) throw Object.assign(new Error('Configure sua chave de API em "Modelo de IA" para usar este recurso.'), { status: 503 });
+async function requestAiText(config, instructions, input, timeoutMs, timeoutKey) {
+  if (!config.apiKey) throw fail('srv.erro.configure_chave', undefined, 503);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     return await TEXT_REQUESTERS[config.provider](config, instructions, input, controller.signal);
   } catch (error) {
-    if (error.name === 'AbortError') throw Object.assign(new Error(timeoutMessage), { status: 504 });
+    if (error.name === 'AbortError') throw fail(timeoutKey, undefined, 504);
     throw error;
   } finally {
     clearTimeout(timer);
   }
 }
 
-async function requestAiHtml(config, prompt) {
-  const result = await requestAiText(config, HTML_INSTRUCTIONS, prompt, 180_000, 'A geração excedeu o tempo máximo de três minutos.');
-  return { html: await renderVisuals(cleanGeneratedHtml(result.text), { sanitizeSvg: cleanDiagramSvg }), model: result.model };
+// Acrescenta às instruções a regra de idioma: toda a saída, inclusive o texto dentro de imagens, no idioma escolhido.
+function withLanguageRule(instructions, idioma) {
+  const base = idioma === i18n.PADRAO ? instructions : instructions.replace(' em português do Brasil', '');
+  return `${base} ${regraDeIdioma(idioma)}`;
+}
+
+async function requestAiHtml(config, prompt, idioma = i18n.PADRAO) {
+  const result = await requestAiText(config, withLanguageRule(HTML_INSTRUCTIONS, idioma), prompt, 180_000, 'srv.erro.ia_timeout_geracao');
+  return { html: await renderVisuals(cleanGeneratedHtml(result.text), { sanitizeSvg: cleanDiagramSvg, idioma }), model: result.model };
 }
 
 function cleanImprovedPrompt(value) {
   const text = String(value || '').trim().replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim();
-  if (!text) throw Object.assign(new Error('A IA não devolveu um prompt.'), { status: 502 });
+  if (!text) throw fail('srv.erro.ia_sem_prompt', undefined, 502);
   return text;
 }
 
-async function improvePrompt(config, prompt, adjustments, instruction) {
+async function improvePrompt(config, prompt, adjustments, instruction, idioma = i18n.PADRAO) {
+  const t = criarT(idioma);
   const asks = [...adjustments, instruction].filter(Boolean).map(item => `- ${item}`).join('\n');
-  const result = await requestAiText(config, IMPROVE_INSTRUCTIONS, `PROMPT ATUAL:\n${prompt}\n\nAJUSTES PEDIDOS:\n${asks}`, 90_000, 'A melhoria excedeu o tempo máximo de 90 segundos.');
+  const result = await requestAiText(config, withLanguageRule(IMPROVE_INSTRUCTIONS, idioma), `${t('srv.ia.prompt_atual')}\n${prompt}\n\n${t('srv.ia.ajustes_pedidos')}\n${asks}`, 90_000, 'srv.erro.ia_timeout_melhoria');
   return { prompt: cleanImprovedPrompt(result.text), model: result.model };
 }
 
-function imageBriefing(prompt, position, total) {
-  return `Crie a ilustração educacional ${position} de ${total} para o material descrito a seguir. A imagem deve ensinar um conceito central diferente das demais, respeitar o público, a paleta e o estilo solicitados, ter composição clara e não conter textos, letras, marcas ou logotipos. Não invente dados factuais.\n\n${prompt.slice(0, 24000)}`;
+function imageBriefing(prompt, position, total, idioma = i18n.PADRAO) {
+  return `${criarT(idioma)('srv.ia.briefing_imagem', { n: position, total })}\n\n${prompt.slice(0, 24000)}`;
 }
 
-async function requestOpenAiImage(config, prompt, position, total, signal) {
+async function requestOpenAiImage(config, prompt, position, total, signal, idioma) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     signal,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}` },
     body: JSON.stringify({
       model: config.model,
-      input: imageBriefing(prompt, position, total),
+      input: imageBriefing(prompt, position, total, idioma),
       tools: [{ type: 'image_generation', model: config.imageModel }],
       tool_choice: { type: 'image_generation' }
     })
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'A geração de imagem foi recusada.'), { status: response.status >= 500 ? 502 : 400 });
+  if (!response.ok) throw providerError(body, 'srv.erro.ia_imagem_recusada', response.status);
   const image = (body.output || []).find(item => item.type === 'image_generation_call' && item.result);
-  if (!image) throw Object.assign(new Error('A IA não devolveu a imagem obrigatória.'), { status: 502 });
-  return { data: image.result, prompt: image.revised_prompt || `Ilustração educacional ${position}` };
+  if (!image) throw fail('srv.erro.ia_sem_imagem', undefined, 502);
+  return { data: image.result, prompt: image.revised_prompt || criarT(idioma)('srv.imagens.legenda_curta', { n: position }) };
 }
 
-async function requestGeminiImage(config, prompt, position, total, signal) {
+async function requestGeminiImage(config, prompt, position, total, signal, idioma) {
   const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
     method: 'POST',
     signal,
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
     body: JSON.stringify({
       model: config.imageModel,
-      input: [{ type: 'text', text: imageBriefing(prompt, position, total) }],
+      input: [{ type: 'text', text: imageBriefing(prompt, position, total, idioma) }],
       response_format: { type: 'image', mime_type: 'image/png', aspect_ratio: '4:3' }
     })
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw Object.assign(new Error(body?.error?.message || 'A geração de imagem foi recusada.'), { status: response.status >= 500 ? 502 : 400 });
+  if (!response.ok) throw providerError(body, 'srv.erro.ia_imagem_recusada', response.status);
   const block = (body.steps || []).flatMap(step => step?.content || []).find(item => item.type === 'image' && item.data);
-  if (!block) throw Object.assign(new Error('A IA não devolveu a imagem obrigatória.'), { status: 502 });
-  return { data: block.data, prompt: `Ilustração educacional ${position}` };
+  if (!block) throw fail('srv.erro.ia_sem_imagem', undefined, 502);
+  return { data: block.data, prompt: criarT(idioma)('srv.imagens.legenda_curta', { n: position }) };
 }
 
-async function requestAiImage(config, prompt, position, total) {
-  if (!config.apiKey) throw Object.assign(new Error('Configure sua chave de API em "Modelo de IA" para usar este recurso.'), { status: 503 });
-  if (!PROVIDERS_WITH_IMAGES.includes(config.provider)) throw Object.assign(new Error(NO_IMAGES_MESSAGE), { status: 400 });
+async function requestAiImage(config, prompt, position, total, idioma = i18n.PADRAO) {
+  if (!config.apiKey) throw fail('srv.erro.configure_chave', undefined, 503);
+  if (!PROVIDERS_WITH_IMAGES.includes(config.provider)) throw fail('srv.erro.sem_imagens');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180_000);
   try {
     return await (config.provider === 'gemini'
-      ? requestGeminiImage(config, prompt, position, total, controller.signal)
-      : requestOpenAiImage(config, prompt, position, total, controller.signal));
+      ? requestGeminiImage(config, prompt, position, total, controller.signal, idioma)
+      : requestOpenAiImage(config, prompt, position, total, controller.signal, idioma));
   } catch (error) {
-    if (error.name === 'AbortError') throw Object.assign(new Error('A geração de imagem excedeu o tempo máximo.'), { status: 504 });
+    if (error.name === 'AbortError') throw fail('srv.erro.ia_timeout_imagem', undefined, 504);
     throw error;
   } finally {
     clearTimeout(timer);
   }
 }
 
-function embedImages(html, images) {
+function embedImages(html, images, idioma = i18n.PADRAO) {
   if (!images.length) return html;
-  const gallery = `<style>.geradorone-ai-images{break-inside:avoid;margin:2rem 0}.geradorone-ai-images figure{margin:1.5rem 0;break-inside:avoid}.geradorone-ai-images img{display:block;width:100%;max-height:720px;object-fit:contain;border-radius:18px}.geradorone-ai-images figcaption{margin-top:.6rem;font:500 .9rem/1.5 system-ui,sans-serif;color:#52605f}</style><section class="geradorone-ai-images" aria-label="Ilustrações educacionais geradas por inteligência artificial"><h2>Ilustrações do conteúdo</h2>${images.map((image, index) => `<figure><img src="data:image/png;base64,${image.data}" alt="Ilustração educacional gerada por IA para apoiar o conceito ${index + 1}"><figcaption>Ilustração educacional ${index + 1}, criada para este material.</figcaption></figure>`).join('')}</section>`;
+  const t = criarT(idioma);
+  const gallery = `<style>.geradorone-ai-images{break-inside:avoid;margin:2rem 0}.geradorone-ai-images figure{margin:1.5rem 0;break-inside:avoid}.geradorone-ai-images img{display:block;width:100%;max-height:720px;object-fit:contain;border-radius:18px}.geradorone-ai-images figcaption{margin-top:.6rem;font:500 .9rem/1.5 system-ui,sans-serif;color:#52605f}</style><section class="geradorone-ai-images" aria-label="${escapeHtml(t('srv.imagens.rotulo'))}"><h2>${escapeHtml(t('srv.imagens.titulo'))}</h2>${images.map((image, index) => `<figure><img src="data:image/png;base64,${image.data}" alt="${escapeHtml(t('srv.imagens.alt', { n: index + 1 }))}"><figcaption>${escapeHtml(t('srv.imagens.legenda', { n: index + 1 }))}</figcaption></figure>`).join('')}</section>`;
   return /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${gallery}</body>`) : `${html}${gallery}`;
 }
 
@@ -496,12 +522,12 @@ async function handleAuthApi(req, res, pathname, user) {
     const email = normalizeEmail(body.email);
     const password = typeof body.password === 'string' ? body.password.slice(0, MAX_PASSWORD) : '';
     const keys = [`email:${email}`, `ip:${clientIp(req)}:${email}`];
-    if (keys.some(key => loginLimiter.blocked(key))) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
+    if (keys.some(key => loginLimiter.blocked(key))) return jsonError(req, res, 429, 'srv.erro.muitas_tentativas', undefined, user);
     const found = email ? await userStore.getByEmail(email) : null;
     const valid = found ? await appCrypto.verifyPassword(password, found.passwordHash) : (await appCrypto.verifyDummy(password), false);
     if (!valid || !found.active) {
       keys.forEach(key => loginLimiter.hit(key));
-      return json(res, 401, { error: 'Credenciais inválidas.' });
+      return jsonError(req, res, 401, 'srv.erro.credenciais_invalidas', undefined, user);
     }
     keys.forEach(key => loginLimiter.reset(key));
     return json(res, 200, { user: userView(found) }, issueSession(req, found));
@@ -516,8 +542,8 @@ async function handleAuthApi(req, res, pathname, user) {
     const body = await readJson(req);
     const email = normalizeEmail(body.email);
     const keys = [`email:${email}`, `ip:${clientIp(req)}`];
-    if (keys.some(key => resetLimiter.blocked(key))) return json(res, 429, { error: 'Muitas solicitações. Aguarde 15 minutos e tente de novo.' });
-    if (!mailer.enabled) return json(res, 503, { error: 'A recuperação por e-mail não está disponível. Peça ao administrador para redefinir sua senha.' });
+    if (keys.some(key => resetLimiter.blocked(key))) return jsonError(req, res, 429, 'srv.erro.muitas_solicitacoes', undefined, user);
+    if (!mailer.enabled) return jsonError(req, res, 503, 'srv.erro.recuperacao_indisponivel', undefined, user);
     checkPassword(body.password);
     keys.forEach(key => resetLimiter.hit(key));
     const found = email ? await userStore.getByEmail(email) : null;
@@ -525,17 +551,17 @@ async function handleAuthApi(req, res, pathname, user) {
       const code = appCrypto.randomCode();
       if (resets.size >= MAX_PENDING_RESETS && !resets.has(email)) resets.delete(resets.keys().next().value);
       resets.set(email, { codeHash: appCrypto.hmacHex(code, resetKey), passwordHash: await appCrypto.hashPassword(body.password), expiresAt: Date.now() + RESET_MINUTES * 60_000, attempts: 0 });
-      try { await mailer.sendResetCode(found.email, code, RESET_MINUTES); } catch (error) { console.error('Falha ao enviar e-mail de redefinição:', error.message); }
+      try { await mailer.sendResetCode(found.email, code, RESET_MINUTES, idiomaDaRequisicao(req, found)); } catch (error) { console.error('Falha ao enviar e-mail de redefinição:', error.message); }
     }
-    return json(res, 200, { ok: true, message: 'Se o e-mail estiver cadastrado, enviamos um código de 6 dígitos válido por 10 minutos.' });
+    return json(res, 200, { ok: true, message: tr(req, user, 'srv.msg.codigo_enviado_reset', { minutos: RESET_MINUTES }) });
   }
   if (method === 'POST' && pathname === '/api/auth/confirm') {
     const body = await readJson(req);
     const email = normalizeEmail(body.email);
     const keys = [`email:${email}`, `ip:${clientIp(req)}`];
-    if (keys.some(key => resetLimiter.blocked(key))) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
+    if (keys.some(key => resetLimiter.blocked(key))) return jsonError(req, res, 429, 'srv.erro.muitas_tentativas', undefined, user);
     const entry = resets.get(email);
-    const invalid = () => { keys.forEach(key => resetLimiter.hit(key)); return json(res, 400, { error: 'Código inválido ou expirado.' }); };
+    const invalid = () => { keys.forEach(key => resetLimiter.hit(key)); return jsonError(req, res, 400, 'srv.erro.codigo_invalido', undefined, user); };
     if (!entry || entry.expiresAt < Date.now()) { resets.delete(email); return invalid(); }
     entry.attempts += 1;
     if (entry.attempts > 5) { resets.delete(email); return invalid(); }
@@ -544,39 +570,39 @@ async function handleAuthApi(req, res, pathname, user) {
     const target = await userStore.getByEmail(email);
     if (!target || !target.active) return invalid();
     await userStore.update(target.id, { passwordHash: entry.passwordHash, mustChangePassword: false });
-    return json(res, 200, { ok: true, message: 'Senha redefinida. Entre com a nova senha.' });
+    return json(res, 200, { ok: true, message: tr(req, user, 'srv.msg.senha_redefinida') });
   }
   if (method === 'POST' && pathname === '/api/auth/signup') {
     const body = await readJson(req);
-    if (!mailer.enabled) return json(res, 503, { error: 'O cadastro por conta própria não está disponível. Peça ao administrador para criar o seu usuário.' });
+    if (!mailer.enabled) return jsonError(req, res, 503, 'srv.erro.cadastro_indisponivel', undefined, user);
     const email = normalizeEmail(body.email);
     const name = String(body.name || '').trim().slice(0, 120);
     const phone = normalizePhone(body.phone);
     const emailKey = `email:${email}`;
     const ipKey = `ip:${clientIp(req)}`;
-    if (signupEmailLimiter.blocked(emailKey) || signupIpLimiter.blocked(ipKey)) return json(res, 429, { error: 'Muitas solicitações. Aguarde 15 minutos e tente de novo.' });
-    if (!name) throw fail('Informe o nome.');
-    if (!EMAIL_RE.test(email) || email.length > 200) throw fail('E-mail inválido.');
-    if (phone && !isValidPhone(phone)) throw fail('Telefone inválido. Use DDD + número, por exemplo (35) 99999-8888.');
+    if (signupEmailLimiter.blocked(emailKey) || signupIpLimiter.blocked(ipKey)) return jsonError(req, res, 429, 'srv.erro.muitas_solicitacoes', undefined, user);
+    if (!name) throw fail('srv.erro.informe_nome');
+    if (!EMAIL_RE.test(email) || email.length > 200) throw fail('srv.erro.email_invalido');
+    if (phone && !isValidPhone(phone)) throw fail('srv.erro.telefone_invalido');
     checkPassword(body.password);
-    if (body.acceptTerms !== true) throw fail('Para criar a conta, aceite os Termos de uso e a Política de privacidade.');
+    if (body.acceptTerms !== true) throw fail('srv.erro.aceite_cadastro');
     signupEmailLimiter.hit(emailKey);
     signupIpLimiter.hit(ipKey);
     if (!await userStore.getByEmail(email)) {
       const code = appCrypto.randomCode();
       if (signups.size >= MAX_PENDING_RESETS && !signups.has(email)) signups.delete(signups.keys().next().value);
       signups.set(email, { name, phone, termsVersion: LEGAL_VERSION, codeHash: appCrypto.hmacHex(code, resetKey), passwordHash: await appCrypto.hashPassword(body.password), expiresAt: Date.now() + RESET_MINUTES * 60_000, attempts: 0 });
-      try { await mailer.sendSignupCode(email, name, code, RESET_MINUTES); } catch (error) { console.error('Falha ao enviar e-mail de cadastro:', error.message); }
+      try { await mailer.sendSignupCode(email, name, code, RESET_MINUTES, idiomaDaRequisicao(req)); } catch (error) { console.error('Falha ao enviar e-mail de cadastro:', error.message); }
     }
-    return json(res, 200, { ok: true, message: `Se o e-mail puder ser cadastrado, enviamos um código de 6 dígitos válido por ${RESET_MINUTES} minutos.` });
+    return json(res, 200, { ok: true, message: tr(req, user, 'srv.msg.codigo_enviado_cadastro', { minutos: RESET_MINUTES }) });
   }
   if (method === 'POST' && pathname === '/api/auth/signup/confirm') {
     const body = await readJson(req);
     const email = normalizeEmail(body.email);
     const emailKey = `email:${email}`;
     const ipKey = `ip:${clientIp(req)}`;
-    if (signupEmailLimiter.blocked(emailKey) || signupIpLimiter.blocked(ipKey)) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
-    const invalid = () => { signupEmailLimiter.hit(emailKey); signupIpLimiter.hit(ipKey); return json(res, 400, { error: 'Código inválido ou expirado.' }); };
+    if (signupEmailLimiter.blocked(emailKey) || signupIpLimiter.blocked(ipKey)) return jsonError(req, res, 429, 'srv.erro.muitas_tentativas', undefined, user);
+    const invalid = () => { signupEmailLimiter.hit(emailKey); signupIpLimiter.hit(ipKey); return jsonError(req, res, 400, 'srv.erro.codigo_invalido', undefined, user); };
     const entry = signups.get(email);
     if (!entry || entry.expiresAt < Date.now()) { signups.delete(email); return invalid(); }
     entry.attempts += 1;
@@ -591,6 +617,8 @@ async function handleAuthApi(req, res, pathname, user) {
       throw error;
     }
     signupEmailLimiter.reset(emailKey);
+    const lingua = idiomaDaRequisicao(req);
+    if (lingua !== i18n.PADRAO) created = await userStore.update(created.id, { language: lingua, keepSessions: true });
     return json(res, 200, { user: userView(created) }, issueSession(req, created));
   }
   if (method === 'GET' && pathname === '/api/auth/me') {
@@ -598,15 +626,15 @@ async function handleAuthApi(req, res, pathname, user) {
   }
   if (method === 'POST' && pathname === '/api/auth/change-password') {
     const body = await readJson(req);
-    if (!(await appCrypto.verifyPassword(String(body.current || ''), user.passwordHash))) return json(res, 400, { error: 'A senha atual está incorreta.' });
+    if (!(await appCrypto.verifyPassword(String(body.current || ''), user.passwordHash))) return jsonError(req, res, 400, 'srv.erro.senha_atual_incorreta', undefined, user);
     checkPassword(body.password);
-    if (body.password === body.current) return json(res, 400, { error: 'A nova senha precisa ser diferente da atual.' });
+    if (body.password === body.current) return jsonError(req, res, 400, 'srv.erro.senha_igual', undefined, user);
     const updated = await userStore.update(user.id, { passwordHash: await appCrypto.hashPassword(body.password), mustChangePassword: false });
     return json(res, 200, { user: userView(updated) }, issueSession(req, updated));
   }
   if (method === 'POST' && pathname === '/api/auth/accept-terms') {
     const body = await readJson(req);
-    if (body.accept !== true) throw fail('Marque que leu e aceita os Termos de uso e a Política de privacidade.');
+    if (body.accept !== true) throw fail('srv.erro.aceite_termos');
     const updated = await userStore.acceptTerms(user.id, LEGAL_VERSION);
     return json(res, 200, { user: userView(updated) });
   }
@@ -617,69 +645,72 @@ async function handleAuthApi(req, res, pathname, user) {
       format: 'geradorone-account',
       version: 1,
       exportedAt,
-      account: { id: user.id, name: user.name, email: user.email, phone: user.phone || '', role: user.role, active: user.active, theme: user.theme || '', createdAt: user.createdAt, updatedAt: user.updatedAt, termsVersion: user.termsVersion || '', termsAcceptedAt: user.termsAcceptedAt || '' },
+      account: { id: user.id, name: user.name, email: user.email, phone: user.phone || '', role: user.role, active: user.active, theme: user.theme || '', language: user.language || '', createdAt: user.createdAt, updatedAt: user.updatedAt, termsVersion: user.termsVersion || '', termsAcceptedAt: user.termsAcceptedAt || '' },
       ai: { provider: ai.provider, hasApiKey: Boolean(ai.apiKey), model: ai.model, imageModel: ai.imageModel },
       projects: await projectStore.listAll(user.id),
       supportMessages: await supportStore.listFor(user.id),
-      notes: [
-        'A senha (guardada só como hash) e o valor da chave de IA (guardada cifrada) não entram neste arquivo.',
-        'Cada item de "projects" traz as configurações e o prompt do projeto. A importação de projetos do app aceita um projeto por arquivo, exportado pelo botão "JSON" do painel de resultado.'
-      ]
+      notes: [tr(req, user, 'srv.export.nota_segredos'), tr(req, user, 'srv.export.nota_projetos')]
     };
     return json(res, 200, body, { 'Content-Disposition': `attachment; filename="geradorone-conta-${exportedAt.slice(0, 10)}.json"` });
   }
   if (method === 'POST' && pathname === '/api/auth/delete-account') {
     const body = await readJson(req);
     const keys = [`email:${user.email}`, `ip:${clientIp(req)}:${user.email}`];
-    if (keys.some(key => loginLimiter.blocked(key))) return json(res, 429, { error: 'Muitas tentativas. Aguarde 15 minutos e tente de novo.' });
+    if (keys.some(key => loginLimiter.blocked(key))) return jsonError(req, res, 429, 'srv.erro.muitas_tentativas', undefined, user);
     const password = typeof body.password === 'string' ? body.password.slice(0, MAX_PASSWORD) : '';
     if (!(await appCrypto.verifyPassword(password, user.passwordHash))) {
       keys.forEach(key => loginLimiter.hit(key));
-      return json(res, 400, { error: 'A senha está incorreta.' });
+      return jsonError(req, res, 400, 'srv.erro.senha_incorreta', undefined, user);
     }
     keys.forEach(key => loginLimiter.reset(key));
-    if (user.role === 'admin' && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'Você é o único administrador ativo. Torne outro usuário administrador antes de excluir a sua conta.' });
+    if (user.role === 'admin' && (await activeAdminCount()) <= 1) return jsonError(req, res, 409, 'srv.erro.unico_admin_excluir', undefined, user);
     const removedProjects = await projectStore.countFor(user.id);
     await userStore.remove(user.id);
     return json(res, 200, { ok: true, removedProjects }, { 'Set-Cookie': sessionCookie(req, '', 0) });
   }
   if (method === 'POST' && pathname === '/api/auth/profile') {
     const body = await readJson(req);
-    if (!normalizePhone(body.phone)) throw fail('Informe o telefone.');
+    if (!normalizePhone(body.phone)) throw fail('srv.erro.informe_telefone');
     const updated = await userStore.update(user.id, { name: body.name, phone: body.phone, keepSessions: true });
     return json(res, 200, { user: userView(updated) });
   }
   if (method === 'POST' && pathname === '/api/auth/theme') {
     const body = await readJson(req);
     // '' = seguir a preferência do sistema
-    if (body.theme !== '' && body.theme !== 'sistema' && !THEMES.includes(body.theme)) throw fail('Tema inválido.');
+    if (body.theme !== '' && body.theme !== 'sistema' && !THEMES.includes(body.theme)) throw fail('srv.erro.tema_invalido');
     const updated = await userStore.update(user.id, { theme: body.theme, keepSessions: true });
     return json(res, 200, { user: userView(updated) });
+  }
+  if (method === 'POST' && pathname === '/api/auth/language') {
+    const body = await readJson(req);
+    // '' = sem escolha na conta; o resto passa por i18n.normalizar dentro de userStore.update (idioma_invalido).
+    const updated = await userStore.update(user.id, { language: typeof body.language === 'string' ? body.language : null, keepSessions: true });
+    return json(res, 200, { ok: true, user: userView(updated) });
   }
   return false;
 }
 
 async function handleUsersApi(req, res, pathname, user) {
-  if (user.role !== 'admin') return json(res, 403, { error: 'Apenas administradores podem gerenciar usuários.' });
+  if (user.role !== 'admin') return jsonError(req, res, 403, 'srv.erro.somente_admin_usuarios', undefined, user);
   const method = req.method;
   const [, , , id, action] = pathname.split('/');
   if (method === 'GET' && !id) return json(res, 200, { users: (await userStore.list()).map(userView) });
   if (method === 'POST' && !id) {
     const body = await readJson(req);
-    if (!body.password) throw fail('Informe a senha temporária do usuário.');
+    if (!body.password) throw fail('srv.erro.senha_temporaria');
     const password = checkPassword(body.password);
     const created = await userStore.create({ name: body.name, email: body.email, phone: body.phone, role: body.role || 'user', passwordHash: await appCrypto.hashPassword(password), mustChangePassword: true });
     return json(res, 200, { user: userView(created) });
   }
   const target = id ? await userStore.getById(id) : null;
-  if (!target) return json(res, 404, { error: 'Usuário não encontrado.' });
+  if (!target) return jsonError(req, res, 404, 'srv.erro.usuario_nao_encontrado', undefined, user);
   if (method === 'PUT' && !action) {
     const body = await readJson(req);
     const patch = {};
     ['name', 'email', 'phone'].forEach(key => { if (body[key] !== undefined) patch[key] = body[key]; });
     const losesAdmin = target.role === 'admin' && target.active && ((body.role !== undefined && body.role !== 'admin') || body.active === false);
-    if (target.id === user.id && (body.role !== undefined && body.role !== target.role || body.active === false)) return json(res, 409, { error: 'Você não pode alterar o próprio perfil ou desativar a própria conta.' });
-    if (losesAdmin && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'É preciso manter ao menos um administrador ativo.' });
+    if (target.id === user.id && (body.role !== undefined && body.role !== target.role || body.active === false)) return jsonError(req, res, 409, 'srv.erro.nao_alterar_proprio_perfil', undefined, user);
+    if (losesAdmin && (await activeAdminCount()) <= 1) return jsonError(req, res, 409, 'srv.erro.manter_um_admin', undefined, user);
     if (body.role !== undefined) patch.role = body.role;
     if (body.active !== undefined) patch.active = Boolean(body.active);
     return json(res, 200, { user: userView(await userStore.update(target.id, patch)) });
@@ -692,41 +723,45 @@ async function handleUsersApi(req, res, pathname, user) {
     return json(res, 200, { user: userView(updated), temporaryPassword: generated ? password : undefined });
   }
   if (method === 'DELETE' && !action) {
-    if (target.id === user.id) return json(res, 409, { error: 'Você não pode excluir a própria conta.' });
-    if (target.role === 'admin' && target.active && (await activeAdminCount()) <= 1) return json(res, 409, { error: 'É preciso manter ao menos um administrador ativo.' });
+    if (target.id === user.id) return jsonError(req, res, 409, 'srv.erro.nao_excluir_propria', undefined, user);
+    if (target.role === 'admin' && target.active && (await activeAdminCount()) <= 1) return jsonError(req, res, 409, 'srv.erro.manter_um_admin', undefined, user);
     const removedProjects = await projectStore.countFor(target.id);
     await userStore.remove(target.id);
     return json(res, 200, { ok: true, removedProjects });
   }
-  return json(res, 405, { error: 'Método não permitido.' });
+  return jsonError(req, res, 405, 'srv.erro.metodo_nao_permitido', undefined, user);
 }
 
 async function handleApi(req, res, pathname) {
+  let user = null;
   try {
     if (req.method === 'GET' && pathname === '/api/health') {
       try { await db.ping(); } catch { return json(res, 503, { ok: false, service: 'gerador-one', db: false }); }
       return json(res, 200, { ok: true, service: 'gerador-one', db: true });
     }
-    if (req.method !== 'GET' && !sameOrigin(req)) return json(res, 403, { error: 'Origem não permitida.' });
+    if (req.method !== 'GET' && !sameOrigin(req)) return jsonError(req, res, 403, 'srv.erro.origem_nao_permitida');
     const isPublicAuth = ['/api/auth/login', '/api/auth/logout', '/api/auth/config', '/api/auth/forgot', '/api/auth/confirm', '/api/auth/signup', '/api/auth/signup/confirm'].includes(pathname);
     if (isPublicAuth) return await handleAuthApi(req, res, pathname, null);
-    const user = await authenticate(req);
-    if (!user) return json(res, 401, { error: 'Sessão expirada. Entre novamente.' });
-    if (user.mustChangePassword && !PASSWORD_CHANGE_ALLOWED.includes(pathname)) return json(res, 403, { error: 'Troque a senha para continuar.', code: 'PASSWORD_CHANGE_REQUIRED' });
+    user = await authenticate(req);
+    if (!user) return jsonError(req, res, 401, 'srv.erro.sessao_expirada');
+    if (user.mustChangePassword && !PASSWORD_CHANGE_ALLOWED.includes(pathname)) return jsonError(req, res, 403, 'srv.erro.troca_senha', undefined, user, { code: 'PASSWORD_CHANGE_REQUIRED' });
     if (pathname.startsWith('/api/auth/')) return await handleAuthApi(req, res, pathname, user);
     if (pathname === '/api/users' || pathname.startsWith('/api/users/')) return await handleUsersApi(req, res, pathname, user);
     if (pathname.startsWith('/api/settings/')) return await handleSettingsApi(req, res, pathname, user);
     return await handleAppApi(req, res, pathname, user);
   } catch (error) {
     if (!error.status) console.error('Falha na API:', error.message);
-    return json(res, error.status || 500, { error: error.status ? error.message : 'Erro interno. Tente novamente.' });
+    return json(res, error.status || 500, corpoErro(req, user, error, 'srv.erro.erro_interno'));
   }
 }
 
 async function handleSettingsApi(req, res, pathname, user) {
-  if (user.role !== 'admin') return json(res, 403, { error: 'Apenas administradores podem alterar as configurações.' });
+  if (user.role !== 'admin') return jsonError(req, res, 403, 'srv.erro.somente_admin_config', undefined, user);
   const method = req.method;
-  if (pathname === '/api/settings/backup' && method === 'GET') return json(res, 200, backup.situacao());
+  if (pathname === '/api/settings/backup' && method === 'GET') {
+    const situacao = backup.situacao();
+    return json(res, 200, situacao.avisoChave ? { ...situacao, aviso: tr(req, user, situacao.avisoChave) } : situacao);
+  }
   if (pathname === '/api/settings/smtp' && method === 'GET') return json(res, 200, await smtpView());
   if (pathname === '/api/settings/smtp' && method === 'PUT') {
     const body = await readJson(req);
@@ -734,25 +769,25 @@ async function handleSettingsApi(req, res, pathname, user) {
     const port = Number(body.port);
     const from = String(body.from || '').trim().slice(0, 200);
     const smtpUser = String(body.user || '').trim().slice(0, 200);
-    if (!host || host.length > 200 || /[\s/]/.test(host)) throw fail('Informe o servidor SMTP, só o nome (por exemplo, smtp.exemplo.com).');
-    if (!Number.isInteger(port) || port < 1 || port > 65535) throw fail('Porta inválida. Use um número de 1 a 65535.');
-    if (!/[^\s@<]+@[^\s@>]+\.[^\s@>]{2,}/.test(from)) throw fail('Informe o remetente com um e-mail válido, por exemplo: GeradorOne <contato@exemplo.com>.');
-    if (/[\r\n]/.test(from + smtpUser)) throw fail('Remetente ou usuário inválido.');
+    if (!host || host.length > 200 || /[\s/]/.test(host)) throw fail('srv.erro.smtp_servidor');
+    if (!Number.isInteger(port) || port < 1 || port > 65535) throw fail('srv.erro.smtp_porta');
+    if (!/[^\s@<]+@[^\s@>]+\.[^\s@>]{2,}/.test(from)) throw fail('srv.erro.smtp_remetente');
+    if (/[\r\n]/.test(from + smtpUser)) throw fail('srv.erro.smtp_remetente_usuario');
     const appUrl = String(body.appUrl || '').trim().slice(0, 200);
     if (appUrl) {
       let parsed;
       try { parsed = new URL(appUrl); } catch { parsed = null; }
-      if (!parsed || !['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) throw fail('Endereço do app inválido. Use um endereço completo, como https://app.exemplo.com.br.');
+      if (!parsed || !['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) throw fail('srv.erro.smtp_url');
     }
     const contactEmail = normalizeEmail(body.contactEmail).slice(0, 200);
-    if (contactEmail && !EMAIL_RE.test(contactEmail)) throw fail('E-mail de contato inválido.');
+    if (contactEmail && !EMAIL_RE.test(contactEmail)) throw fail('srv.erro.email_contato_invalido');
     const previous = await settingsStore.get(SMTP_KEY);
     const newPass = typeof body.pass === 'string' ? body.pass.slice(0, MAX_PASSWORD) : '';
     let passEnc = '';
     if (newPass) passEnc = appCrypto.encrypt(newPass, keyEncKey);
     else if (previous?.passEnc) passEnc = previous.passEnc;
     else if (envSmtp.pass && envSmtp.host === host && envSmtp.user === smtpUser && !previous) passEnc = appCrypto.encrypt(envSmtp.pass, keyEncKey);
-    if (smtpUser && !passEnc) throw fail('Informe a senha do e-mail.');
+    if (smtpUser && !passEnc) throw fail('srv.erro.smtp_senha');
     await settingsStore.set(SMTP_KEY, { host, port, secure: Boolean(body.secure), requireTLS: Boolean(body.requireTLS), user: smtpUser, from, appUrl, contactEmail, passEnc });
     await loadSmtpSettings();
     return json(res, 200, await smtpView());
@@ -765,18 +800,18 @@ async function handleSettingsApi(req, res, pathname, user) {
   if (pathname === '/api/settings/smtp/test' && method === 'POST') {
     const body = await readJson(req);
     const to = normalizeEmail(body.to || user.email);
-    if (!EMAIL_RE.test(to)) throw fail('E-mail de destino inválido.');
-    if (!mailer.enabled) throw fail('Salve o servidor SMTP e o remetente antes de testar.');
+    if (!EMAIL_RE.test(to)) throw fail('srv.erro.email_destino_invalido');
+    if (!mailer.enabled) throw fail('srv.erro.smtp_salvar_antes');
     try {
       await mailer.verify();
-      await mailer.sendTest(to);
+      await mailer.sendTest(to, idiomaDaRequisicao(req, user));
     } catch (error) {
       console.error('Falha no teste de SMTP:', error.message);
-      throw fail(`O servidor recusou o teste: ${String(error.message).slice(0, 200)}`, 502);
+      throw fail('srv.erro.smtp_recusou', { detalhe: String(error.message).slice(0, 200) }, 502);
     }
-    return json(res, 200, { ok: true, message: `E-mail de teste enviado para ${to}.` });
+    return json(res, 200, { ok: true, message: tr(req, user, 'srv.msg.teste_enviado', { email: to }) });
   }
-  return json(res, 404, { error: 'Rota não encontrada.' });
+  return jsonError(req, res, 404, 'srv.erro.rota_nao_encontrada', undefined, user);
 }
 
 async function handleAppApi(req, res, pathname, user) {
@@ -787,10 +822,10 @@ async function handleAppApi(req, res, pathname, user) {
   if (req.method === 'GET' && pathname === '/api/ai/config') return json(res, 200, publicAiConfig(user));
   if (req.method === 'POST' && pathname === '/api/ai/config') {
     const payload = await readJson(req);
-    if (payload.provider !== undefined && !PROVIDERS.includes(payload.provider)) throw fail('Provedor inválido.');
-    if (payload.apiKey !== undefined && (typeof payload.apiKey !== 'string' || (payload.apiKey.trim() && !API_KEY_RE.test(payload.apiKey.trim())))) throw fail('Chave com formato inválido.');
+    if (payload.provider !== undefined && !PROVIDERS.includes(payload.provider)) throw fail('srv.erro.provedor_invalido');
+    if (payload.apiKey !== undefined && (typeof payload.apiKey !== 'string' || (payload.apiKey.trim() && !API_KEY_RE.test(payload.apiKey.trim())))) throw fail('srv.erro.chave_formato');
     for (const key of ['model', 'imageModel']) {
-      if (payload[key] !== undefined && (typeof payload[key] !== 'string' || payload[key].length > 100)) throw fail('Nome de modelo inválido.');
+      if (payload[key] !== undefined && (typeof payload[key] !== 'string' || payload[key].length > 100)) throw fail('srv.erro.modelo_invalido');
     }
     const updated = await userStore.update(user.id, { ai: nextAiSettings(user, payload), keepSessions: true });
     return json(res, 200, publicAiConfig(updated));
@@ -799,24 +834,25 @@ async function handleAppApi(req, res, pathname, user) {
     try {
       const raw = await readBody(req);
       const payload = JSON.parse(raw || '{}');
-      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
-      const html = renderDocument(payload);
-      return json(res, 200, { html, renderer: 'preview', note: 'Prévia segura do prompt, sem execução de conteúdo.' });
+      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return jsonError(req, res, 400, 'srv.erro.prompt_obrigatorio', undefined, user);
+      const idioma = idiomaDoCorpo(req, user, payload.language);
+      const html = renderDocument({ ...payload, language: idioma });
+      return json(res, 200, { html, renderer: 'preview', note: tr(req, user, 'srv.msg.previa_nota') });
     } catch (error) {
-      return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'JSON inválido.' });
+      return json(res, error.status || 400, corpoErro(req, user, error.status === 413 ? error : null, 'srv.erro.json_invalido'));
     }
   }
   if (req.method === 'POST' && pathname === '/api/pdf') {
     try {
       const raw = await readBody(req);
       const payload = JSON.parse(raw || '{}');
-      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
-      const pdf = await renderPdf(payload);
+      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return jsonError(req, res, 400, 'srv.erro.prompt_obrigatorio', undefined, user);
+      const pdf = await renderPdf({ ...payload, language: idiomaDoCorpo(req, user, payload.language) });
       res.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="prompt-geradorone.pdf"', 'Content-Length': pdf.length, 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
       res.end(pdf);
       return true;
     } catch (error) {
-      return json(res, error.status || 400, { error: error.status === 413 ? error.message : 'Não foi possível gerar o PDF.' });
+      return json(res, error.status || 400, corpoErro(req, user, error.status === 413 ? error : null, 'srv.erro.pdf_falhou'));
     }
   }
   if (pathname === '/api/projects' || pathname.startsWith('/api/projects/')) {
@@ -829,26 +865,26 @@ async function handleAppApi(req, res, pathname, user) {
       }
       if (req.method === 'GET' && id) {
         const project = await projectStore.get(user.id, id);
-        return project ? json(res, 200, { project }) : json(res, 404, { error: 'Projeto não encontrado.' });
+        return project ? json(res, 200, { project }) : jsonError(req, res, 404, 'srv.erro.projeto_nao_encontrado', undefined, user);
       }
       if (req.method === 'DELETE' && id) {
-        return (await projectStore.remove(user.id, id)) ? json(res, 200, { ok: true }) : json(res, 404, { error: 'Projeto não encontrado.' });
+        return (await projectStore.remove(user.id, id)) ? json(res, 200, { ok: true }) : jsonError(req, res, 404, 'srv.erro.projeto_nao_encontrado', undefined, user);
       }
-      return json(res, 405, { error: 'Método não permitido.' });
+      return jsonError(req, res, 405, 'srv.erro.metodo_nao_permitido', undefined, user);
     } catch (error) {
       if (!error.status) console.error('Falha em projetos:', error.message);
-      return json(res, error.status || (error instanceof SyntaxError ? 400 : 500), { error: error.status ? error.message : error instanceof SyntaxError ? 'JSON inválido.' : 'Não foi possível acessar os projetos.' });
+      return json(res, error.status || (error instanceof SyntaxError ? 400 : 500), corpoErro(req, user, error, error instanceof SyntaxError ? 'srv.erro.json_invalido' : 'srv.erro.projetos_falhou'));
     }
   }
   if (req.method === 'POST' && pathname === '/api/support') {
     const limiterKey = `user:${user.id}`;
-    if (supportLimiter.blocked(limiterKey)) return json(res, 429, { error: 'Você já enviou várias mensagens na última hora. Aguarde um pouco e tente de novo.' });
+    if (supportLimiter.blocked(limiterKey)) return jsonError(req, res, 429, 'srv.erro.suporte_limite_hora', undefined, user);
     let payload;
     try {
       payload = JSON.parse(await readBody(req, SUPPORT_MAX_BODY) || '{}');
     } catch (error) {
-      if (error.status === 413) return json(res, 413, { error: 'Os anexos passam de 8 MB no total.' });
-      return json(res, 400, { error: 'Pedido inválido.' });
+      if (error.status === 413) return jsonError(req, res, 413, 'srv.erro.suporte_anexos_8mb', undefined, user);
+      return jsonError(req, res, 400, 'srv.erro.pedido_invalido', undefined, user);
     }
     const message = validateSupport(payload);
     // Campo isca que só robôs preenchem: responde como se tivesse dado certo, sem enviar nem guardar nada.
@@ -867,7 +903,7 @@ async function handleAppApi(req, res, pathname, user) {
         console.error('Falha ao enviar a mensagem de suporte:', error.message);
       }
       if (enviado) {
-        try { await mailer.sendSupportReceipt(data); } catch (error) { console.error('Falha ao enviar a confirmação de suporte:', error.message); }
+        try { await mailer.sendSupportReceipt(data, idiomaDaRequisicao(req, user)); } catch (error) { console.error('Falha ao enviar a confirmação de suporte:', error.message); }
       }
     }
     return json(res, 200, { ok: true, enviado, protocolo: data.protocolo });
@@ -875,28 +911,29 @@ async function handleAppApi(req, res, pathname, user) {
   if (req.method === 'POST' && pathname === '/api/improve') {
     try {
       const payload = JSON.parse(await readBody(req) || '{}');
-      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
+      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return jsonError(req, res, 400, 'srv.erro.prompt_obrigatorio', undefined, user);
       const adjustments = Array.isArray(payload.adjustments) ? payload.adjustments.filter(item => typeof item === 'string' && item.trim()).slice(0, 10).map(item => item.trim().slice(0, 300)) : [];
       const instruction = typeof payload.instruction === 'string' ? payload.instruction.trim().slice(0, 1000) : '';
-      if (!adjustments.length && !instruction) return json(res, 400, { error: 'Escolha ao menos um ajuste ou escreva uma instrução.' });
-      return json(res, 200, await improvePrompt(aiConfigFor(user), payload.prompt, adjustments, instruction));
+      if (!adjustments.length && !instruction) return jsonError(req, res, 400, 'srv.erro.ajuste_obrigatorio', undefined, user);
+      return json(res, 200, await improvePrompt(aiConfigFor(user), payload.prompt, adjustments, instruction, idiomaDoCorpo(req, user, payload.language)));
     } catch (error) {
       console.error('Falha ao melhorar prompt:', error.message);
-      return json(res, error.status || 500, { error: error.status ? error.message : 'Não foi possível melhorar o prompt com IA.' });
+      return json(res, error.status || 500, corpoErro(req, user, error, 'srv.erro.melhoria_falhou'));
     }
   }
   if (req.method === 'POST' && pathname === '/api/generate') {
     try {
       const raw = await readBody(req);
       const payload = JSON.parse(raw || '{}');
-      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return json(res, 400, { error: 'O prompt é obrigatório.' });
-      if (!['pdf', 'html'].includes(payload.format)) return json(res, 400, { error: 'Formato de saída inválido.' });
+      if (typeof payload.prompt !== 'string' || !payload.prompt.trim()) return jsonError(req, res, 400, 'srv.erro.prompt_obrigatorio', undefined, user);
+      if (!['pdf', 'html'].includes(payload.format)) return jsonError(req, res, 400, 'srv.erro.formato_saida', undefined, user);
       const config = aiConfigFor(user);
-      if (payload.generateImages && !PROVIDERS_WITH_IMAGES.includes(config.provider)) return json(res, 400, { error: NO_IMAGES_MESSAGE });
-      const generated = await requestAiHtml(config, payload.prompt);
+      const idioma = idiomaDoCorpo(req, user, payload.language);
+      if (payload.generateImages && !PROVIDERS_WITH_IMAGES.includes(config.provider)) return jsonError(req, res, 400, 'srv.erro.sem_imagens', undefined, user);
+      const generated = await requestAiHtml(config, payload.prompt, idioma);
       const imageCount = payload.generateImages ? Math.max(1, Math.min(3, Number(payload.imageCount) || 1)) : 0;
-      const images = imageCount ? await Promise.all(Array.from({ length: imageCount }, (_, index) => requestAiImage(config, payload.prompt, index + 1, imageCount))) : [];
-      generated.html = embedImages(generated.html, images);
+      const images = imageCount ? await Promise.all(Array.from({ length: imageCount }, (_, index) => requestAiImage(config, payload.prompt, index + 1, imageCount, idioma))) : [];
+      generated.html = embedImages(generated.html, images, idioma);
       const safeName = String(payload.title || 'material-didatico').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 70).toLowerCase() || 'material-didatico';
       const imageFiles = images.map((image, index) => ({ name: `${safeName}-ilustracao-${index + 1}.png`, mimeType: 'image/png', encoding: 'base64', data: image.data }));
       if (payload.format === 'pdf') {
@@ -906,7 +943,7 @@ async function handleAppApi(req, res, pathname, user) {
       return json(res, 200, { model: generated.model, files: [{ name: `${safeName}.html`, mimeType: 'text/html;charset=utf-8', encoding: 'base64', data: Buffer.from(generated.html).toString('base64'), preview: generated.html }, ...imageFiles] });
     } catch (error) {
       console.error('Falha na geração por IA:', error.message);
-      return json(res, error.status || 500, { error: error.status ? error.message : 'Não foi possível gerar o material com IA.' });
+      return json(res, error.status || 500, corpoErro(req, user, error, 'srv.erro.geracao_falhou'));
     }
   }
   return false;
@@ -917,11 +954,11 @@ async function handleRequest(req, res) {
   try {
     url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   } catch {
-    return json(res, 400, { error: 'Endereço inválido.' });
+    return jsonError(req, res, 400, 'srv.erro.endereco_invalido');
   }
   if (url.pathname.startsWith('/api/')) {
     const handled = await handleApi(req, res, url.pathname);
-    if (handled === false) json(res, 404, { error: 'Rota não encontrada.' });
+    if (handled === false) jsonError(req, res, 404, 'srv.erro.rota_nao_encontrada');
     return;
   }
 
@@ -930,18 +967,22 @@ async function handleRequest(req, res) {
   try {
     decoded = decodeURIComponent(requested);
   } catch {
-    return json(res, 400, { error: 'Endereço inválido.' });
+    return jsonError(req, res, 400, 'srv.erro.endereco_invalido');
   }
   const filePath = path.resolve(PUBLIC_DIR, `.${decoded}`);
-  if (!filePath.startsWith(`${PUBLIC_DIR}${path.sep}`)) return json(res, 403, { error: 'Acesso negado.' });
+  if (!filePath.startsWith(`${PUBLIC_DIR}${path.sep}`)) return jsonError(req, res, 403, 'srv.erro.acesso_negado');
   fs.readFile(filePath, (error, data) => {
-    if (error) return json(res, error.code === 'ENOENT' ? 404 : 500, { error: 'Arquivo não encontrado.' });
+    if (error) return jsonError(req, res, error.code === 'ENOENT' ? 404 : 500, 'srv.erro.arquivo_nao_encontrado');
     // Termos, Política e FAQ citam o e-mail de contato; mostram o configurado (painel ou CONTACT_EMAIL) em vez do padrão.
     if (CONTACT_PAGES.has(path.basename(filePath))) {
       const contact = mailer.supportAddress();
       if (contact && contact !== DEFAULT_CONTACT) data = Buffer.from(data.toString('utf8').split(DEFAULT_CONTACT).join(contact));
     }
+    // Termos e Política ficam só em português; em outro idioma ganham a ressalva no topo e variam por idioma.
+    const legal = LEGAL_PAGES.has(path.basename(filePath));
+    if (legal) data = Buffer.from(injetarRessalva(data.toString('utf8'), idiomaDaRequisicao(req)));
     res.writeHead(200, {
+      ...(legal ? { Vary: 'Cookie, Accept-Language' } : {}),
       'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
@@ -955,7 +996,7 @@ async function handleRequest(req, res) {
 const server = http.createServer((req, res) => {
   handleRequest(req, res).catch(error => {
     console.error('Falha ao atender a requisição:', error.message);
-    if (!res.headersSent) json(res, 500, { error: 'Erro interno. Tente novamente.' });
+    if (!res.headersSent) jsonError(req, res, 500, 'srv.erro.erro_interno');
     else res.end();
   });
 });
@@ -976,4 +1017,4 @@ if (require.main === module) {
   process.on('SIGINT', shutdown);
 }
 
-module.exports = { server, prepare, ensureAdmin, db, userStore, projectStore, mailer, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, createProjectStore, validateProject };
+module.exports = { server, prepare, ensureAdmin, db, userStore, projectStore, mailer, renderDocument, renderPdf, escapeHtml, cleanGeneratedHtml, cleanImprovedPrompt, extractOutputText, htmlToPdf, embedImages, withLanguageRule, imageBriefing, createProjectStore, validateProject };
