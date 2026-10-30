@@ -214,3 +214,12 @@ body { margin: 0; background: var(--bg); }
 .idioma-lista li[aria-selected="true"] { font-weight: 700; }
 .sidebar-foot .idioma-lista { inset-block-end: 100%; margin: 0 0 4px; }
 .ressalva-legal { margin: 0; padding: 8px 12px; border: 1px solid var(--line); border-inline-start: 4px solid var(--accent); border-radius: 2px; background: var(--paper); }
+
+/* Idioma do prompt: cinco bandeiras pequenas e um anel que anda de uma a outra (--i = posição, definida pelo JS). */
+.idioma-prompt { display: grid; gap: 4px; margin: 0 0 14px; }
+.idioma-prompt-titulo { font-weight: 700; font-size: 14px; }
+.idioma-prompt-grupo { --i: 0; --passo: 48px; position: relative; display: inline-flex; gap: 4px; width: max-content; }
+.idioma-prompt-bandeira { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; background: transparent; border: 0; border-radius: 50%; cursor: pointer; }
+.idioma-prompt-bandeira svg { display: block; border: 1px solid var(--line); }
+.idioma-prompt-bandeira:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.idioma-prompt-anel { position: absolute; inset-block-start: 0; inset-inline-start: 0; box-sizing: border-box; width: 44px; height: 44px; border: 2px solid var(--accent); border-radius: 50%; background: color-mix(in srgb, var(--accent) 12%, transparent); transform: translateX(calc(var(--i) * var(--passo))); transition: transform .25s ease; pointer-events: none; }

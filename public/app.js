@@ -250,8 +250,9 @@ function applyData(target, data) {
   updateCompletion();
 }
 
-// Os geradores de prompt (apostila, imagem e capa) ficam em prompts.js e recebem o t() do idioma atual.
-const geradores = () => window.prompts.criarGeradores(window.t, window.idioma.idioma);
+// Os geradores de prompt (apostila, imagem e capa) ficam em prompts.js e recebem o t() do idioma do prompt (idioma-prompt.js),
+// que acompanha o idioma da tela até a pessoa escolher outro.
+const geradores = () => window.prompts.criarGeradores(window.idiomaPrompt.t, window.idiomaPrompt.idioma);
 
 const workspace = document.querySelector('#workspace') || document.querySelector('.workspace');
 const outPanel = document.querySelector('#out-panel');
@@ -597,7 +598,7 @@ form.addEventListener('submit', async event => {
   label.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>' + escapeUi(t('js.gerar.gerando'));
   try {
     const imageCount = settings.frequencia.startsWith('Intensa') ? 3 : settings.frequencia.startsWith('Equilibrada') ? 2 : 1;
-    const response = await apiFetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt, generateImages: settings.modoImagem === 'gerar', imageCount, language: window.idioma.idioma }) });
+    const response = await apiFetch('api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: settings.assunto, format: settings.formatoEntrega, prompt, generateImages: settings.modoImagem === 'gerar', imageCount, language: window.idiomaPrompt.idioma }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || t('js.gerar.erro_material'));
     currentFiles = result.files || [];
@@ -693,7 +694,7 @@ previewButton.addEventListener('click', async () => {
   status.textContent = t('js.exportar.preparando_previa');
   try {
     if (!currentPreviewHtml) {
-      const response = await apiFetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt, language: window.idioma.idioma }) });
+      const response = await apiFetch('api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt, language: window.idiomaPrompt.idioma }) });
       if (!response.ok) throw new Error('Falha na prévia');
       currentPreviewHtml = (await response.json()).html;
     }
@@ -708,7 +709,7 @@ showPromptButton.addEventListener('click', () => { previewFrame.hidden = true; o
 document.querySelector('#export-pdf').addEventListener('click', async () => {
   status.textContent = t('js.exportar.gerando_pdf');
   try {
-    const response = await apiFetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt, language: window.idioma.idioma }) });
+    const response = await apiFetch('api/pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: projectTitle(), prompt: currentPrompt, language: window.idiomaPrompt.idioma }) });
     if (!response.ok) throw new Error('Falha no PDF');
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
@@ -781,7 +782,7 @@ document.querySelector('#improve-apply').addEventListener('click', async () => {
   apply.disabled = true;
   improveStatus.textContent = t('js.melhorar.reescrevendo');
   try {
-    const response = await apiFetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction, language: window.idioma.idioma }) });
+    const response = await apiFetch('api/improve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: currentPrompt, adjustments, instruction, language: window.idiomaPrompt.idioma }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || t('js.melhorar.erro'));
     replacePrompt(result.prompt);

@@ -68,7 +68,7 @@ Início (os três passos do pedido ao material, uma demonstração animada dos 5
 Em Apostila e Capa a tela se divide em duas abas: "Dados" e "Resultado". Ao gerar, o app abre a aba "Resultado".
 
 # Idioma
-O seletor com bandeiras fica na tela de entrada e no rodapé do menu lateral, acima de "Tema". Há cinco idiomas: Português, English, Español, Deutsch e Italiano. A escolha muda a tela inteira, os prompts gerados e o texto que o prompt pede dentro das imagens, e fica salva na conta. Termos de uso e Política de privacidade existem só em português do Brasil; em outro idioma aparece uma ressalva. O que a pessoa digita não é traduzido.
+O seletor com bandeiras fica na tela de entrada e no rodapé do menu lateral, acima de "Tema". Há cinco idiomas: Português, English, Español, Deutsch e Italiano. A escolha muda a tela inteira e fica salva na conta. Os prompts gerados acompanham o idioma da tela, mas dá para trocar só o idioma do prompt: nos formulários da Apostila e da Capa, acima do botão de gerar, o seletor "Idioma do prompt" mostra cinco bandeiras pequenas, com um anel que anda de uma à outra. Escolher uma bandeira faz o prompt (e o texto que ele pede dentro das imagens) sair nesse idioma, mesmo com a tela em outro; escolher a bandeira do idioma da tela volta a acompanhá-la. A escolha do idioma do prompt vale só no navegador onde foi feita. Gerar material com IA, Melhorar com IA, Prévia e PDF usam o idioma do prompt. Termos de uso e Política de privacidade existem só em português do Brasil; em outro idioma aparece uma ressalva. O que a pessoa digita não é traduzido.
 
 # Tema
 "Tema" oferece seis temas (Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste) ou seguir o sistema. A primeira entrada é no Papel. A escolha fica na sua conta.
