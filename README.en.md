@@ -184,6 +184,17 @@ zcat backups/FILE.sql.gz | docker exec -i gerador-one-db psql -U geradorone gera
 
 Node.js 22 with no framework and no build step: `node:http` on the server, plain JavaScript in the browser, `pg` for the database, `pdfkit` for the prompt PDF, `nodemailer` for email, and Chromium to convert the generated HTML to PDF. The container runs as an unprivileged user, with a read-only file system and no capabilities.
 
+```mermaid
+graph LR
+    B["Browser<br/>(public/, plain JS)"] -->|"HTTP"| S["Node.js server<br/>(server.js and lib/)"]
+    P["Optional Caddy proxy<br/>(compose.prod.yaml, HTTPS)"] -->|"HTTP"| S
+    B -.->|"HTTPS, if using the proxy"| P
+    S -->|"SQL (pg)"| D[("Postgres 17")]
+    S -->|"HTML to PDF"| C["Chromium<br/>(no network)"]
+    S -->|"user's BYOK key"| A["User's AI provider<br/>(OpenAI, Gemini or Anthropic)"]
+    S -->|"codes and notices"| M["SMTP server"]
+```
+
 ```text
 .
 ├── server.js              # HTTP server, /api routes, session, AI, and PDF

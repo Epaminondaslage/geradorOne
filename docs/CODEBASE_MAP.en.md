@@ -257,6 +257,10 @@ Load order: `styles.css`, `theme.css`, `app.css`, `design.css` (last, overrides 
 
 ## Main flows
 
+### Login and session
+
+From the sign-in form to the first authenticated call.
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -278,6 +282,10 @@ sequenceDiagram
     S-->>B: owner's projects
 ```
 
+### AI generation
+
+From the prompt built in the browser to the returned files.
+
 ```mermaid
 sequenceDiagram
     participant B as Browser
@@ -292,6 +300,143 @@ sequenceDiagram
     S->>S: cleanGeneratedHtml (address allowlist)
     S->>C: HTML to PDF (no network, minimal environment)
     S-->>B: files in base64
+```
+
+### Password recovery
+
+The new password is sent with the request and only takes effect once the code from the email is confirmed.
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant S as server.js
+    participant DB as Postgres
+    participant M as SMTP
+    B->>S: POST /api/auth/forgot (email and new password)
+    S->>S: resetLimiter (5 per 15 min, per email and per IP)
+    S->>S: refuses with 503 if SMTP is not configured
+    S->>DB: looks up the user by email
+    opt user exists and is active
+        S->>S: generates a 6-digit code and keeps it in memory (hash of code and password, valid for 10 min)
+        S->>M: sends the code
+    end
+    S-->>B: 200 with the same message, whether the account exists or not
+    B->>S: POST /api/auth/confirm (email and code)
+    alt no request, expired, more than 5 attempts or wrong code
+        S-->>B: 400 invalid code (each failure counts in the limiter)
+    else correct code
+        S->>DB: saves the new password (pwd_version + 1 ends the sessions)
+        S-->>B: 200 password reset
+    end
+```
+
+### Self-registration
+
+The account is only created after the code sent by email is confirmed.
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant S as server.js
+    participant DB as Postgres
+    participant M as SMTP
+    B->>S: POST /api/auth/signup (name, email, password, terms acceptance)
+    S->>S: refuses with 503 if SMTP is not configured
+    S->>S: limiters (5 per 15 min per email, 20 per 15 min per IP) and field validation
+    S->>DB: looks up the email
+    opt email not registered yet
+        S->>S: generates a 6-digit code and keeps the pending entry in memory (valid for 10 min)
+        S->>M: sends the code
+    end
+    S-->>B: 200 with the same message, whether the email exists or not
+    B->>S: POST /api/auth/signup/confirm (email and code)
+    alt no pending entry, expired, more than 5 attempts or wrong code
+        S-->>B: 400 invalid code (each failure counts in the limiters)
+    else correct code
+        S->>DB: creates the user with the user role
+        opt request language other than pt-BR
+            S->>DB: saves users.language
+        end
+        S-->>B: 200 user and session cookie
+    end
+```
+
+### Language choice
+
+The core `public/i18n.js` applies the same precedence in the browser and on the server. The server has no `?lang=` and starts from the cookie. After sign-in, in the browser, the account language beats the cookie when the URL has no `?lang=`.
+
+```mermaid
+flowchart TD
+    A["Language request"] --> Q{"?lang= in the URL<br/>(browser only)"}
+    Q -- "supported language" --> R["Uses that language"]
+    Q -- "missing or invalid" --> C{"idioma cookie"}
+    C -- "supported language" --> R
+    C -- "missing or invalid" --> U{"Account<br/>(users.language)"}
+    U -- "supported language" --> R
+    U -- "empty or invalid" --> H{"Accept-Language<br/>(ordered by q)"}
+    H -- "any supported language" --> R
+    H -- "none" --> P["pt-BR"]
+```
+
+### Data model
+
+Tables created by the migrations in `lib/db.js`. The only foreign-key relations are `users` to `projects` and `support_messages` (cascade delete); `settings` and `schema_migrations` are not linked to any table.
+
+```mermaid
+erDiagram
+    users ||--o{ projects : "owner_id"
+    users ||--o{ support_messages : "user_id"
+    users {
+        uuid id PK
+        text name
+        text email UK
+        text phone
+        text role "admin or user"
+        boolean active
+        text password_hash
+        boolean must_change_password
+        integer pwd_version
+        jsonb ai "per-user AI configuration"
+        text theme
+        text language
+        text terms_version
+        timestamptz terms_accepted_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    projects {
+        uuid id PK
+        uuid owner_id FK
+        text name
+        text kind "apostila or capa"
+        jsonb settings
+        text prompt
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    support_messages {
+        uuid id PK
+        uuid user_id FK
+        text protocolo
+        text tipo
+        text mensagem
+        text nome
+        text email
+        text origem
+        jsonb anexos
+        boolean sent
+        timestamptz created_at
+    }
+    settings {
+        text key PK
+        jsonb value "SMTP, password encrypted"
+        timestamptz updated_at
+    }
+    schema_migrations {
+        integer version PK
+        text name
+        timestamptz applied_at
+    }
 ```
 
 ## Security

@@ -257,6 +257,10 @@ Ordem de carga: `styles.css`, `theme.css`, `app.css`, `design.css` (por último,
 
 ## Fluxos principais
 
+### Login e sessão
+
+Do formulário de entrada até a primeira chamada autenticada.
+
 ```mermaid
 sequenceDiagram
     participant U as Usuário
@@ -278,6 +282,10 @@ sequenceDiagram
     S-->>B: projetos do dono
 ```
 
+### Geração com IA
+
+Do prompt montado no navegador até os arquivos devolvidos.
+
 ```mermaid
 sequenceDiagram
     participant B as Navegador
@@ -292,6 +300,143 @@ sequenceDiagram
     S->>S: cleanGeneratedHtml (lista de permissão de endereços)
     S->>C: HTML para PDF (sem rede, ambiente mínimo)
     S-->>B: arquivos em base64
+```
+
+### Recuperação de senha
+
+A nova senha é enviada junto com o pedido e só vale depois que o código do e-mail é confirmado.
+
+```mermaid
+sequenceDiagram
+    participant B as Navegador
+    participant S as server.js
+    participant DB as Postgres
+    participant M as SMTP
+    B->>S: POST /api/auth/forgot (e-mail e nova senha)
+    S->>S: resetLimiter (5 por 15 min, por e-mail e por IP)
+    S->>S: recusa com 503 se o SMTP não está configurado
+    S->>DB: busca o usuário por e-mail
+    opt usuário existe e está ativo
+        S->>S: gera código de 6 dígitos e guarda na memória (hash do código e da senha, validade de 10 min)
+        S->>M: envia o código
+    end
+    S-->>B: 200 com a mesma mensagem, exista a conta ou não
+    B->>S: POST /api/auth/confirm (e-mail e código)
+    alt sem pedido, expirado, mais de 5 tentativas ou código errado
+        S-->>B: 400 código inválido (cada falha conta no limitador)
+    else código correto
+        S->>DB: grava a nova senha (pwd_version + 1 encerra as sessões)
+        S-->>B: 200 senha redefinida
+    end
+```
+
+### Cadastro próprio
+
+A conta só é criada depois da confirmação do código enviado por e-mail.
+
+```mermaid
+sequenceDiagram
+    participant B as Navegador
+    participant S as server.js
+    participant DB as Postgres
+    participant M as SMTP
+    B->>S: POST /api/auth/signup (nome, e-mail, senha, aceite dos termos)
+    S->>S: recusa com 503 se o SMTP não está configurado
+    S->>S: limitadores (5 por 15 min por e-mail, 20 por 15 min por IP) e validação dos campos
+    S->>DB: busca o e-mail
+    opt e-mail ainda não cadastrado
+        S->>S: gera código de 6 dígitos e guarda o pendente na memória (validade de 10 min)
+        S->>M: envia o código
+    end
+    S-->>B: 200 com a mesma mensagem, o e-mail exista ou não
+    B->>S: POST /api/auth/signup/confirm (e-mail e código)
+    alt sem pendente, expirado, mais de 5 tentativas ou código errado
+        S-->>B: 400 código inválido (cada falha conta nos limitadores)
+    else código correto
+        S->>DB: cria o usuário com perfil user
+        opt idioma da requisição diferente de pt-BR
+            S->>DB: grava users.language
+        end
+        S-->>B: 200 usuário e cookie de sessão
+    end
+```
+
+### Escolha do idioma
+
+O núcleo `public/i18n.js` aplica a mesma precedência no navegador e no servidor. No servidor não há `?lang=`: ele parte do cookie. Depois do login, no navegador, o idioma da conta vence o cookie quando a URL não tem `?lang=`.
+
+```mermaid
+flowchart TD
+    A["Pedido de idioma"] --> Q{"?lang= na URL<br/>(só no navegador)"}
+    Q -- "idioma suportado" --> R["Usa esse idioma"]
+    Q -- "ausente ou inválido" --> C{"Cookie idioma"}
+    C -- "idioma suportado" --> R
+    C -- "ausente ou inválido" --> U{"Conta<br/>(users.language)"}
+    U -- "idioma suportado" --> R
+    U -- "vazio ou inválido" --> H{"Accept-Language<br/>(por ordem de q)"}
+    H -- "algum idioma suportado" --> R
+    H -- "nenhum" --> P["pt-BR"]
+```
+
+### Modelo de dados
+
+Tabelas criadas pelas migrações de `lib/db.js`. A única relação com chave estrangeira é a de `users` com `projects` e `support_messages` (exclusão em cascata); `settings` e `schema_migrations` não se ligam a nenhuma tabela.
+
+```mermaid
+erDiagram
+    users ||--o{ projects : "owner_id"
+    users ||--o{ support_messages : "user_id"
+    users {
+        uuid id PK
+        text name
+        text email UK
+        text phone
+        text role "admin ou user"
+        boolean active
+        text password_hash
+        boolean must_change_password
+        integer pwd_version
+        jsonb ai "configuração de IA do usuário"
+        text theme
+        text language
+        text terms_version
+        timestamptz terms_accepted_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    projects {
+        uuid id PK
+        uuid owner_id FK
+        text name
+        text kind "apostila ou capa"
+        jsonb settings
+        text prompt
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    support_messages {
+        uuid id PK
+        uuid user_id FK
+        text protocolo
+        text tipo
+        text mensagem
+        text nome
+        text email
+        text origem
+        jsonb anexos
+        boolean sent
+        timestamptz created_at
+    }
+    settings {
+        text key PK
+        jsonb value "SMTP, senha cifrada"
+        timestamptz updated_at
+    }
+    schema_migrations {
+        integer version PK
+        text name
+        timestamptz applied_at
+    }
 ```
 
 ## Segurança
