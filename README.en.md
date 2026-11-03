@@ -1,4 +1,7 @@
-<p align="center"><a href="README.md">Português</a> | <b>English</b></p>
+<p align="center">
+  <a href="README.md"><img alt="Ler em português" src="https://img.shields.io/badge/Portugu%C3%AAs-1D3FBF?style=for-the-badge"></a>
+  <a href="README.en.md"><img alt="English (current language)" src="https://img.shields.io/badge/English-009C3B?style=for-the-badge"></a>
+</p>
 
 <p align="center">
   <img src="public/assets/icons/mapa-mental.png" alt="GeradorOne logo: a head with a mind map in place of the brain" width="170">
