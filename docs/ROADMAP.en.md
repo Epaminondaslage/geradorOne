@@ -1,6 +1,6 @@
 [Português](ROADMAP.md) | **English**
 
-# Roadmap: from the current GeradorOne to a SaaS
+# GeradorOne roadmap
 
 Assessment made on 2026-10-22. Each item has a checkbox to tick when it is done.
 
@@ -14,9 +14,9 @@ Assessment made on 2026-10-22. Each item has a checkbox to tick when it is done.
 - [x] Login by email and password, admin and user roles, mandatory password change on first access, recovery by a code sent by email and an attempt limit.
 - [x] Per-user AI keys (BYOK), encrypted with AES-256-GCM. The master key lives in `APP_SECRET`, outside the database, and the app refuses to start if it changes.
 - [x] Hardened container (unprivileged user, read-only file system, no capabilities) and a test suite against a real Postgres.
-- [x] 2026-10-29: app in pt-BR, en, es, de and it (interface, FAQ, emails, prompts and text inside the images), with a flag selector and language stored on the account. Missing: native-speaker review, landing page and carousel in other languages (commercial repository) and the 40 example images.
+- [x] 2026-10-29: app in pt-BR, en, es, de and it (interface, FAQ, emails, prompts and text inside the images), with a flag selector and language stored on the account. Missing: native-speaker review and the 40 example images.
 
-**Not ready for customers.** The blocks below explain what is missing, in order.
+**Not ready for public use.** The blocks below explain what is missing, in order.
 
 ---
 
@@ -79,20 +79,7 @@ Goal: invited users use the app safely, at a public address, with no risk of los
 
 ---
 
-## Phase 3: charging (organizations, plans and payment)
-
-- [ ] Organizations (teams): invitations, per-organization roles and shared projects. Today everything is per user.
-- [ ] Plans and quotas (per user, per project or per monthly access, depending on the decision below) and a trial period.
-- [ ] Integration with a payment provider (Asaas, Stripe or Pagar.me) with webhooks for billing, renewal and cancellation.
-- [ ] Block or warning for non-payment and for exceeded quota.
-- [ ] Usage dashboard for the customer and billing dashboard for the administrator.
-- [ ] Invoice (nota fiscal), if applicable.
-
-**Done when:** a customer subscribes, pays, uses the product within the plan quota and is blocked with a clear warning when the plan expires.
-
----
-
-## Phase 4: scale and resilience
+## Phase 3: scale and resilience
 
 - [ ] More than one instance of the app (depends on sessions, limits and codes already being in the database).
 - [ ] Task queue for PDF and AI calls, outside the web process.
@@ -107,8 +94,6 @@ Goal: invited users use the app safely, at a public address, with no risk of los
 | Decision | Why it matters |
 |---|---|
 | Public domain for GeradorOne and who controls the DNS | Blocks all of Phase 1 |
-| How billing will work (per user, per project or monthly fee) | Defines plans, quotas and the design of Phase 3 |
-| Payment provider | Defines the integration and the fees |
 | Where to keep the external backup copy | Defines the cost and the retention period |
 | Host on the current server or in the cloud | Affects availability, firewall and cost |
 | Legal review of the terms of use and the privacy policy | Required before opening to the general public |

@@ -24,4 +24,4 @@ Only the version on the `main` branch receives security fixes.
 
 ## Out of scope
 
-Instances hosted by third parties: talk to whoever administers the instance. For the commercial version hosted at geradorone.com.br, use the Support item inside the app.
+Instances hosted by third parties: talk to whoever administers the instance.

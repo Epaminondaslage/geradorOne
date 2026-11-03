@@ -13,7 +13,7 @@
   <img alt="Node.js 22" src="https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white">
   <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white">
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
-  <img alt="Language: Brazilian Portuguese" src="https://img.shields.io/badge/language-Portuguese%20(BR)-009C3B">
+  <img alt="Languages: Brazilian Portuguese, English, Spanish, German, and Italian" src="https://img.shields.io/badge/languages-pt--BR%20%7C%20en%20%7C%20es%20%7C%20de%20%7C%20it-009C3B">
 </p>
 
 ## Table of contents
@@ -31,7 +31,6 @@
 - [Security](#security)
 - [License](#license)
 - [Credits and third-party data](#credits-and-third-party-data)
-- [Prefer not to host? Use the ready-made version](#prefer-not-to-host-use-the-ready-made-version)
 
 ## What it is
 
@@ -77,7 +76,7 @@ Users who register their own AI key (BYOK: OpenAI, Google Gemini, or Anthropic) 
 
 - Pages Home (first-steps guide, with an animated demo and a sample prompt), About, FAQ with search, and Support (a form with attachments that sends the message by email).
 - Six color themes: Paper, Graphite, Chalkboard, Ink blue, Sepia, and High contrast, or follow the system. See [docs/DESIGN.en.md](docs/DESIGN.en.md).
-- Responsive interface for desktop, tablet, and phone, in Brazilian Portuguese.
+- Responsive interface for desktop, tablet, and phone.
 
 **Administration:** the Settings screen has the tabs Users (create, edit, activate, deactivate, reset password, and delete), Email (SMTP), with a test send, and Backup, which shows the status of the database copies.
 
@@ -230,9 +229,3 @@ GeradorOne is free software, licensed under the [GNU Affero General Public Licen
 - **BNCC:** the skill codes and texts come from the [bncc.dev](https://github.com/bncc-dev/bncc-dados) dataset, under the CC BY 4.0 license. Details, version, and how to update are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). For formal use, always check the official MEC document.
 - **Fonts:** Literata and Atkinson Hyperlegible Next, under the SIL Open Font License, in `public/fonts/`.
 - **Diagrams and charts:** Mermaid and Chart.js, in `vendor/`, with the licenses alongside (`vendor/LICENSE-mermaid` and `vendor/LICENSE-chartjs`).
-
-## Prefer not to host? Use the ready-made version
-
-If you just want to use GeradorOne without installing anything, there is a hosted version at **<https://geradorone.com.br>**. It generates the finished material as PDF with the service's own AI, and starts with a Trial at no cost. The Gold and Diamond plans unlock more sheets per month and the use of your own AI key.
-
-This repository remains the open-source project: you can install, study, modify, and host your own instance under the AGPL-3.0.

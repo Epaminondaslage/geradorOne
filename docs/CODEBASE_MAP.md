@@ -1,17 +1,17 @@
 ---
-last_mapped: 2026-10-23T03:06:30Z
-total_files: 33
-total_tokens: 83516
+last_mapped: 2026-11-03T22:21:00Z
+total_files: 110
+total_tokens: 1509896
 ---
 **Português** | [English](CODEBASE_MAP.en.md)
 
 # Mapa do código do GeradorOne
 
-> Gerado pelo Cartographer em 23/10/2026 (03:06 UTC) e revisado à mão. Os números contam só os arquivos do projeto: ficam de fora `.agents/`, `.claude/`, `.remember/` (ferramentas), `docs/exemplos/`, `docs/branding/` e o `package-lock.json`.
+> Gerado pelo Cartographer em 03/11/2026 (22:21 UTC) e revisado à mão. Os números contam só os arquivos do projeto: ficam de fora `.agents/`, `.claude/`, `.remember/` (ferramentas), `docs/exemplos/`, `docs/branding/` e o `package-lock.json`.
 
 ## Visão geral
 
-Aplicativo web em Node.js 22 (sem framework, sem etapa de build) que gera prompts de imagem para materiais didáticos (apostilas e capas) e, opcionalmente, chama uma IA (OpenAI ou Gemini) para gerar o material. Tem login por e-mail e senha, perfis admin e usuário, projetos salvos por usuário e a chave de IA de cada pessoa (BYOK) cifrada no servidor.
+Aplicativo web em Node.js 22 (sem framework, sem etapa de build) que gera prompts de imagem para materiais didáticos (apostilas e capas) e, opcionalmente, chama uma IA (OpenAI, Gemini ou Anthropic, esta só para texto) para gerar o material. Tem login por e-mail e senha, perfis admin e usuário, projetos salvos por usuário e a chave de IA de cada pessoa (BYOK) cifrada no servidor.
 
 ```mermaid
 graph TB
@@ -32,7 +32,7 @@ graph TB
         ENV[.env<br/>APP_SECRET, POSTGRES_PASSWORD, SMTP]
     end
     subgraph Externos
-        AI[OpenAI / Gemini<br/>chave de cada usuário]
+        AI[OpenAI / Gemini / Anthropic<br/>chave de cada usuário]
         SMTP[Zimbra SMTP]
     end
     UI --> T --> S
@@ -49,7 +49,7 @@ graph TB
 
 ```text
 .
-├── server.js                 # servidor HTTP, rotas /api, sessão, IA, PDF (~670 linhas)
+├── server.js                 # servidor HTTP, rotas /api, sessão, IA, PDF (~1.020 linhas)
 ├── lib/
 │   ├── db.js                 # Pool do pg, transações, migrações versionadas com trava
 │   ├── users.js              # armazenamento e validação de usuários (Postgres)
@@ -63,30 +63,48 @@ graph TB
 │   ├── legal.js              # LEGAL_VERSION: versão vigente dos Termos e da Política (mudar a data exige novo aceite de todos)
 │   ├── support.js            # validação da mensagem e dos anexos, protocolo e tabela support_messages
 │   ├── email-template.js     # modelo HTML (tabelas e estilos inline) e texto puro dos e-mails; logotipo embutido por cid
+│   ├── settings.js           # configurações gerais do sistema, uma linha por chave na tabela settings (hoje: o SMTP)
+│   ├── i18n-servidor.js      # idioma da requisição e mensagens do servidor (mesmos dicionários do navegador)
+│   ├── mensagens-pt.js       # reserva em português das mensagens do servidor (chaves srv.*)
 │   └── rate-limit.js         # limitador em memória (janela deslizante)
 ├── scripts/
 │   ├── reset-password.js     # senha temporária de emergência (docker exec)
 │   ├── test-smtp.js          # testa o SMTP (--verify só conecta e autentica)
 │   ├── backup-db.sh          # pg_dump comprimido, rotação de 14 dias
 │   ├── build-bncc-data.js    # converte o clone de bncc-dev/bncc-dados em public/data/bncc.json (com checagens de contagem)
+│   ├── node-minimo.js        # falha o build da imagem se o Node for mais velho que o mínimo do package.json
 │   └── run-tests.js          # sobe um Postgres descartável e roda a suíte
 ├── public/                   # frontend estático servido com CSP restrita
 │   ├── index.html            # tela de login + app (menu, páginas, painel de resultado)
-│   ├── app.js                # toda a lógica do navegador (~1.330 linhas)
+│   ├── app.js                # toda a lógica do navegador (~2.200 linhas)
 │   ├── app.css               # shell, menu, painel de resultado, login, páginas novas
 │   ├── theme.css             # componentes compartilhados (herança do desenho antigo)
 │   ├── design.css            # identidade: tokens dos 6 temas, fontes, acabamento (ver docs/DESIGN.md)
+│   ├── i18n.js               # núcleo de idiomas (UMD: navegador e servidor)
+│   ├── i18n-ui.js            # traduz o HTML marcado e desenha o seletor de idioma com bandeiras
+│   ├── i18n/                 # dicionários pt-BR, en, es, de e it (mesmas chaves)
+│   ├── prompts.js            # geradores de prompt (imagem, capa e documento), com textos dos dicionários
+│   ├── faq-data.js           # estrutura da FAQ (ids e categorias; os textos ficam nos dicionários)
+│   ├── legal.js, legal.css   # tema e estilo das páginas públicas de Termos e Política
+│   ├── termos.html, privacidade.html  # Termos de uso e Política de privacidade
+│   ├── data/bncc.json        # dados da BNCC usados pelo seletor da apostila
 │   ├── style-art.js          # miniaturas SVG dos 12 estilos de ilustração (window.styleArt)
 │   ├── fonts/                # Literata e Atkinson Hyperlegible Next (woff2, SIL OFL)
 │   ├── styles.css            # base legada minificada (ainda necessária)
 │   └── assets/icons/         # PNGs dos recursos, logo (mapa-mental.png) e favicon
 ├── test/                     # node:test contra Postgres real (ver "Testes")
 ├── docs/
-│   ├── ROADMAP.md            # caminho até virar SaaS
+│   ├── ROADMAP.md            # próximos passos
 │   ├── CODEBASE_MAP.md       # este arquivo
+│   ├── DESIGN.md             # identidade visual e temas
+│   ├── PADRAO_ICONES.md      # padrão dos botões só com ícone
+│   ├── design/               # telas de referência do desenho
 │   ├── exemplos/             # um prompt de exemplo por modelo (aguardando as imagens)
 │   └── branding/             # foto original do logotipo
+├── vendor/                   # Mermaid e Chart.js de terceiros, usados só no servidor pelo Chromium (ver vendor/README.md)
+├── deploy/Caddyfile          # modelo de proxy para quem hospeda a própria instância
 ├── Dockerfile, compose.yaml  # app + db, redes, volumes, rótulos do Traefik
+├── compose.prod.yaml         # modelo de composição para instância própria (Caddy, pasta monitor/)
 ```
 
 ## Backend
@@ -125,6 +143,7 @@ graph TB
 | POST | `/api/auth/accept-terms` | sessão | Registra o aceite (`{accept: true}`): grava `terms_version` = `LEGAL_VERSION` e `terms_accepted_at`, sem mexer em `pwd_version` (não derruba sessões). `userView` devolve `termsCurrent` e `legalVersion`; o frontend bloqueia o app (painel `terms`) enquanto `termsCurrent` for falso |
 | POST | `/api/support` | sessão | "Fale com o suporte": valida tipo, texto (5 a 2.000), e-mail e anexos (até 5, 5 MB cada, 8 MB no total, conferindo extensão e primeiros bytes), guarda em `support_messages`, envia ao `mailer.supportAddress()` com `replyTo` na pessoa e manda a confirmação com protocolo. Corpo de até 12 MB só nesta rota; 5 por hora por conta (429); campo isca `site` devolve sucesso sem enviar |
 | POST | `/api/auth/delete-account` | sessão | Exclui a própria conta. Exige a senha atual (erros contam no limite de login); 409 se for o único administrador ativo; apaga os projetos em cascata, devolve `removedProjects` e limpa o cookie |
+| POST | `/api/auth/language` | sessão | Idioma da conta (`pt-BR`, `en`, `es`, `de`, `it`; vazio = sem escolha); não derruba as sessões |
 | POST | `/api/auth/theme` | sessão | Tema de cores da conta (`papel`, `grafite`, `lousa`, `azul-tinta`, `sepia`, `alto-contraste`; `sistema` = seguir o sistema; vazio = ainda sem escolha, entra no Papel) |
 | GET/POST | `/api/users` | admin | Listar e criar (senha e telefone obrigatórios) |
 | PUT/DELETE | `/api/users/:id` | admin | Editar e excluir; nunca deixa sem administrador ativo |
@@ -147,6 +166,7 @@ Migração 1 (`usuarios-e-projetos`), aplicada sozinha na inicialização:
 - `users`: `id uuid`, `name`, `email` (único, minúsculo), `phone`, `role` (`admin`/`user`), `active`, `password_hash`, `must_change_password`, `pwd_version`, `ai jsonb`, `theme` (vazio até escolher), `created_at`, `updated_at`.
 - `projects`: `id uuid`, `owner_id` (cascata ao excluir o usuário), `name`, `kind` (`apostila`/`capa`), `settings jsonb`, `prompt`, `created_at`, `updated_at`; índice `(owner_id, updated_at DESC)`.
 - `users.ai`: `{provider, keyEnc, model, imageModel}`; `keyEnc` tem o formato `v1.<iv>.<tag>.<texto>` (AES-256-GCM, chave derivada por HKDF com o propósito `byok`).
+- Migrações seguintes: 2 `tema-do-usuario` (`users.theme`), 3 `configuracoes-do-sistema` (tabela `settings`), 4 `mensagens-ao-suporte` (tabela `support_messages`), 5 `aceite-dos-termos` (`terms_version`, `terms_accepted_at`), 6 `tema-sistema` (aceita o tema `sistema`) e 7 `idioma-do-usuario` (`users.language`).
 - Novas mudanças de esquema entram como novas versões em `MIGRATIONS`.
 
 ### Módulos de `lib/`
@@ -160,6 +180,9 @@ Migração 1 (`usuarios-e-projetos`), aplicada sozinha na inicialização:
 | `secret-check.js` | Guarda uma impressão digital da chave mestra em `runtime/secret.check`; se ela mudar, o servidor recusa iniciar, a menos que `ALLOW_NEW_SECRET=true`. |
 | `legacy-import.js` | Importa `runtime/users.json` e `projects.json` quando o banco está vazio e renomeia os arquivos para `*.migrado-AAAAMMDD`. |
 | `mailer.js` | Transporte criado sob demanda; `enabled` só com `SMTP_HOST` e `SMTP_FROM`; `setTransport` para testes. |
+| `settings.js` | `get`, `set` e `remove` por chave na tabela `settings` (valor em jsonb); o servidor guarda aqui o SMTP do painel. |
+| `i18n-servidor.js` | Escolhe o idioma da requisição (cookie, conta, `Accept-Language`, pt-BR), traduz as chaves `srv.*` com os dicionários de `public/i18n/` e monta erros com `code` estável. |
+| `mensagens-pt.js` | Mensagens do servidor em português; valem quando o dicionário ainda não tem a chave. |
 | `rate-limit.js` | Janela deslizante em memória, por processo. |
 
 ### Variáveis de ambiente
@@ -173,6 +196,9 @@ Migração 1 (`usuarios-e-projetos`), aplicada sozinha na inicialização:
 | `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PHONE`, `ADMIN_PASSWORD` | `Administrador`, `admin@geradorone.local`, vazio, aleatória | Primeiro administrador |
 | `SMTP_HOST/PORT/SECURE/REQUIRE_TLS/USER/PASS/FROM` | porta 587 | Recuperação de senha por e-mail |
 | `PORT`, `HOST`, `RUNTIME_DIR`, `CHROMIUM_PATH`, `PDF_FONT_DIR` | 3000, 127.0.0.1, `./runtime`, `/usr/bin/chromium-browser`, `/usr/share/fonts/dejavu` | Servidor e PDF |
+| `APP_URL`, `CONTACT_EMAIL` | vazio | Endereço público do app e e-mail de contato no rodapé dos e-mails, nos Termos, na Política e na FAQ; o que o administrador salva no painel tem prioridade |
+| `MONITOR_DIR` | `./monitor` | Pasta (somente leitura) com `backup-db.json`, `pbs.json` e `backup.log`, lida por `lib/backup.js` |
+| `BACKUP_ESPERADO` | vazio | `1` faz a ausência da pasta de status contar como erro em `/api/settings/backup` |
 | `TEST_DATABASE_URL` | definida por `npm test` | Postgres dos testes |
 | `BACKUP_DIR` | `./backups` | Destino do `backup-db.sh` |
 
@@ -184,7 +210,7 @@ Migração 1 (`usuarios-e-projetos`), aplicada sozinha na inicialização:
 
 Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scripts inline por causa da CSP; o JS ajusta variáveis CSS pela API do navegador, o que é permitido.
 
-**Tela de login** (`#auth-screen`): duas áreas (formulário à esquerda, logo à direita), com quatro painéis alternados por `showAuth`: `login`, `forgot`, `confirm` e `first` (troca obrigatória de senha).
+**Tela de login** (`#auth-screen`): duas áreas (formulário à esquerda, logo à direita), com painéis alternados por `showAuth`: `login`, `signup` e `signup-confirm` (autocadastro), `terms` (aceite dos Termos), `forgot`, `confirm` e `first` (troca obrigatória de senha).
 
 **App** (`#shell`): menu lateral recolhível (Ctrl+B; gaveta no celular) e uma `<section class="view">` por página, mais o painel de resultado à direita.
 
@@ -201,7 +227,7 @@ Um único script clássico (`app.js`), sem módulos. Não há `style=` nem scrip
 | `apostila` (seletor da BNCC) | No bloco "Configuração pedagógica": painel com filtros e busca sobre `public/data/bncc.json` (carregado só ao abrir o painel ou ao digitar códigos); "Usar as selecionadas" grava os códigos no campo `bncc`, e `bnccTextBlock` junta o texto oficial ao prompt | `GET /data/bncc.json` (estático) |
 | `suporte` | Formulário "Fale com o suporte" (tipo em botões, texto, anexos por clique, arrastar ou colar, nome e e-mail) | `POST /api/support` |
 | `faq` | Perguntas e respostas (dados em `public/faq-data.js`), com busca, filtro por categoria e resposta aberta na linha | nenhuma |
-| `usuarios` | Gestão de usuários em tabela, com busca, filtro e edição por linha (admin) | `/api/users*` |
+| `config` | "Configurações" no menu, só para admin, em três abas: "Usuários" (tabela com busca, filtro e edição por linha), "E-mail (SMTP)" e "Backup" | `/api/users*`, `/api/settings/smtp*`, `/api/settings/backup` |
 
 O painel de resultado só aparece nas páginas `apostila` e `capa` (regra de CSS por `data-view`).
 
@@ -209,13 +235,13 @@ O painel de resultado só aparece nas páginas `apostila` e `capa` (regra de CSS
 
 - Núcleo: `public/i18n.js` (UMD: navegador e servidor). Dicionários com as mesmas 1.579 chaves em `public/i18n/<código>.js`; `pt-BR.js` é a fonte. `public/i18n-ui.js` traduz o HTML marcado (`data-i18n`, `data-i18n-attr`, `data-fora-pt` para avisos só de outros idiomas) e desenha o seletor com bandeiras (`[data-seletor-idioma]`, na tela de entrada e no rodapé do menu).
 - Escolha do idioma: `?lang=` na URL, cookie `idioma` (1 ano, sem dado pessoal), conta (`users.language`, `POST /api/auth/language`), `Accept-Language`, pt-BR. O servidor usa o mesmo núcleo (`lib/i18n-servidor.js`): erros da API têm `error` traduzido e `code` estável, e-mails seguem o idioma do destinatário, `language` vai no corpo de `api/generate`, `api/improve`, `api/render` e `api/pdf`.
-- Termos de uso e Política de privacidade ficam só em português do Brasil (contrato e pagamento no Brasil): em outro idioma, o servidor injeta a ressalva `legal.ressalva` e o aceite dos Termos mostra o mesmo aviso. `lib/mensagens-pt.js` é a reserva em português das mensagens do servidor.
+- Termos de uso e Política de privacidade ficam só em português do Brasil (o texto jurídico vale no Brasil): em outro idioma, o servidor injeta a ressalva `legal.ressalva` e o aceite dos Termos mostra o mesmo aviso. `lib/mensagens-pt.js` é a reserva em português das mensagens do servidor.
 - Os textos do prompt moram nos dicionários (`prompt.*`) e são montados por `public/prompts.js`; `test/fixtures/prompts-pt-BR.json` garante que o pt-BR não mude. Prompts dos exemplos do carrossel em outros idiomas: `docs/exemplos-i18n/`.
 - `test/i18n.test.js` falha se algum idioma tiver chave a mais ou a menos, parâmetro `{x}` diferente ou valor vazio. Ao mudar um texto de tela, mude as cinco línguas.
 
 ### Geradores de prompt (`public/prompts.js`, chamados por `app.js`)
 
-- `generateImagePrompt` (modo "somente prompt", o padrão): prompt de imagem, uma imagem por página. Usa `typeProfiles` (13 tipos), `typeLayouts` (regras de layout por tipo), `typeElements`, `styleProfiles` (12 estilos), `pagePlan` (plano de páginas quando há mais de uma) e `imagePageFormats`. O número de páginas padrão é 1.
+- `generateImagePrompt` (modo "somente prompt", o padrão): prompt de imagem, uma imagem por página. Usa `perfilTipo` (13 tipos), `layoutsTipo` (regras de layout por tipo), `perfilEstilo` (12 estilos), `pagePlan` (plano de páginas quando há mais de uma) e `formatoPagina`; os textos vêm de `prompt.tipo.*`, `prompt.layout.*` e `prompt.estilo.*` nos dicionários. O número de páginas padrão é 1.
 - `generateCoverPrompt`: capa, com os textos exatos entre aspas e a mesma tabela de estilos.
 - `generatePrompt` (modo IA): prompt de documento completo, com as seções 1 a 8, mais as seções 9 a 11 acrescentadas no envio.
 
@@ -281,7 +307,7 @@ sequenceDiagram
 
 ## Testes
 
-`npm test` sobe um Postgres 17 descartável em Docker, cria um banco por arquivo de teste e remove tudo no fim (45 testes). `npm run test:node` usa um Postgres seu (`TEST_DATABASE_URL`).
+`npm test` sobe um Postgres 17 descartável em Docker, cria um banco por arquivo de teste e remove tudo no fim (139 testes em 18 arquivos). `npm run test:node` usa um Postgres seu (`TEST_DATABASE_URL`).
 
 | Arquivo | Cobre |
 |---|---|
@@ -291,6 +317,19 @@ sequenceDiagram
 | `crypto.test.js` | Senha, AES-GCM, token, limitador, chave mestra. |
 | `secret.test.js` | Impressão digital da chave e recusa de iniciar (sobe o servidor como processo filho). |
 | `server.test.js` | Funções puras: sanitizador, PDF, prévia, validação. |
+| `backup.test.js` | `lib/backup.js`: sem a pasta de status e com os arquivos do banco e das cópias externas (atraso e falha). |
+| `bncc.test.js` | Dados da BNCC: fonte e licença, contagens, registros conhecidos e reconhecimento de códigos digitados. |
+| `faq.test.js` | FAQ: campos preenchidos, ids únicos, links https, sem travessão e as mesmas chaves nos cinco idiomas. |
+| `faq-badges.test.js` | Categorias da FAQ como badges que filtram, só com tokens do tema. |
+| `i18n.test.js` | Núcleo de idiomas: precedência da escolha, normalização, plural e dicionários com as mesmas chaves e parâmetros. |
+| `i18n-servidor.test.js` | Idioma no servidor: precedência, erros com `code` estável, e-mails, prévia, PDF e páginas legais com a ressalva. |
+| `mailer.test.js` | Modelo dos e-mails: cabeçalho, código, rodapé com endereço e contato, e escape de HTML. |
+| `node-minimo.test.js` | Versão mínima do Node: comparação por parte numérica, `engines.node` e checagem no `Dockerfile`. |
+| `olho-senha.test.js` | Botão de mostrar a senha em todos os campos de senha. |
+| `prompts.test.js` | Geradores de prompt: pt-BR idêntico ao original (`test/fixtures/prompts-pt-BR.json`) e textos dos outros idiomas. |
+| `prompt-revisao.test.js` | Bloco de revisão técnica nos prompts de imagem e de capa, na geração e nos exemplos. |
+| `support.test.js` | Mensagem de suporte: validação, anexos, nome do arquivo, campo isca e protocolo. |
+| `visuals.test.js` | Diagramas e gráficos do HTML da IA: extração, limites, limpeza do SVG e desenho no Chromium. |
 
 ## Convenções
 
@@ -314,13 +353,13 @@ sequenceDiagram
 
 | Para... | Mexa em |
 |---|---|
-| Novo tipo de material | `typeProfiles` (e, se tiver layout próprio, `typeLayouts`) em `public/app.js`; opção em `select[name=tipo]` em `public/index.html` |
-| Novo estilo visual | `styles` e `styleProfiles` em `public/app.js` e a amostra em `styleSamples` |
+| Novo tipo de material | textos `prompt.tipo.<tipo>.*` (e `prompt.layout.<tipo>_N`, se tiver layout próprio) nos cinco dicionários de `public/i18n/`; lógica em `perfilTipo` e `layoutsTipo` (`public/prompts.js`); opção `input[name=tipo]` em `public/index.html` |
+| Novo estilo visual | lista `styles` em `public/app.js`, textos `prompt.estilo.<estilo>.*` e `js.estilo.<estilo>.*` nos dicionários, `perfilEstilo` em `public/prompts.js` e a miniatura em `public/style-art.js` |
 | Nova rota da API | `handleAppApi` (ou `handleAuthApi`/`handleUsersApi`) em `server.js`; teste em `test/auth.test.js` |
 | Nova coluna ou tabela | nova versão em `MIGRATIONS` (`lib/db.js`); ajuste a store correspondente e os testes de `store.test.js` |
 | Nova página no menu | `<a class="nav-item" data-view>` e `<section class="view" data-view>` em `index.html`; incluir em `VIEWS` e tratar em `showView` (`app.js`); decidir se esconde o painel de resultado em `app.css` |
 | Regra de login ou sessão | `handleAuthApi`, `authenticate`, `issueSession` em `server.js`; `lib/users.js` (`pwd_version`) |
-| Chave de IA e provedores | `aiConfigFor`, `nextAiSettings`, `requestOpenAiText`, `requestGeminiText`, `requestAiImage` em `server.js` |
+| Chave de IA e provedores | `aiConfigFor`, `nextAiSettings`, `requestOpenAiText`, `requestGeminiText`, `requestAnthropicText`, `requestAiImage` em `server.js` |
 | E-mail | `lib/mailer.js` e as variáveis `SMTP_*` |
 | Deploy, rede, volumes | `compose.yaml` e `Dockerfile` |
 | Backup e restauração | `scripts/backup-db.sh` e o README |
