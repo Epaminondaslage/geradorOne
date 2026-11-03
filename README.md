@@ -1,3 +1,5 @@
+<p align="center"><b>Português</b> | <a href="README.en.md">English</a></p>
+
 <p align="center">
   <img src="public/assets/icons/mapa-mental.png" alt="Logotipo do GeradorOne: cabeça com um mapa mental no lugar do cérebro" width="170">
 </p>

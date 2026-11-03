@@ -3,6 +3,7 @@ last_mapped: 2026-10-23T03:06:30Z
 total_files: 33
 total_tokens: 83516
 ---
+**Português** | [English](CODEBASE_MAP.en.md)
 
 # Mapa do código do GeradorOne
 

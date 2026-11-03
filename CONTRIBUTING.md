@@ -1,3 +1,5 @@
+**Português** | [English](CONTRIBUTING.en.md)
+
 # Como contribuir com o GeradorOne
 
 Obrigado pelo interesse. Este guia explica o fluxo e as regras que valem para qualquer mudança.

@@ -1,3 +1,5 @@
+**Português** | [English](DESIGN.en.md)
+
 # Sistema de design do GeradorOne
 
 Este documento explica a identidade visual aplicada em 23/10/2026 e como usá-la em páginas novas. O código vive em `public/design.css` (tokens, temas e acabamento); as pranchas de referência estão em `docs/design/`.

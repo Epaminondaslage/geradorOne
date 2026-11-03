@@ -1,3 +1,5 @@
+**Português** | [English](ROADMAP.en.md)
+
 # Roadmap: do GeradorOne atual a um SaaS
 
 Avaliação feita em 22/10/2026. Cada item tem uma caixa para marcar quando for concluído.
