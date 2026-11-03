@@ -1,3 +1,5 @@
+**Português** | [English](PADRAO_ICONES.en.md)
+
 # Padrão de ícones de ação
 
 Padrão dos ícones de ação do GeradorOne: JS puro, sem React, e só os tokens de `public/design.css`. Vale para qualquer botão de ação de linha: tabelas, cartões e listas.

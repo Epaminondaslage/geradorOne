@@ -1,4 +1,6 @@
-# Roadmap: do GeradorOne atual a um SaaS
+**Português** | [English](ROADMAP.en.md)
+
+# Roadmap do GeradorOne
 
 Avaliação feita em 22/10/2026. Cada item tem uma caixa para marcar quando for concluído.
 
@@ -12,9 +14,9 @@ Avaliação feita em 22/10/2026. Cada item tem uma caixa para marcar quando for 
 - [x] Login por e-mail e senha, perfis admin e usuário, troca de senha obrigatória no primeiro acesso, recuperação por código enviado por e-mail e limite de tentativas.
 - [x] Chaves de IA por usuário (BYOK), cifradas com AES-256-GCM. A chave mestra fica em `APP_SECRET`, fora do banco, e o app recusa iniciar se ela mudar.
 - [x] Contêiner endurecido (usuário sem privilégios, sistema de arquivos somente leitura, sem capabilities) e suíte de testes contra Postgres real.
-- [x] 29/10/2026: app em pt-BR, en, es, de e it (interface, FAQ, e-mails, prompts e texto dentro das imagens), com seletor de bandeiras e idioma na conta. Falta: revisão por falante nativo, landing e carrossel em outros idiomas (repositório comercial) e as 40 imagens dos exemplos.
+- [x] 29/10/2026: app em pt-BR, en, es, de e it (interface, FAQ, e-mails, prompts e texto dentro das imagens), com seletor de bandeiras e idioma na conta. Falta: revisão por falante nativo e as 40 imagens dos exemplos.
 
-**Não está pronto para clientes.** Os blocos abaixo explicam o que falta, em ordem.
+**Não está pronto para uso público.** Os blocos abaixo explicam o que falta, em ordem.
 
 ---
 
@@ -77,20 +79,7 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 
 ---
 
-## Fase 3: cobrar (organizações, planos e pagamento)
-
-- [ ] Organizações (equipes): convites, papéis por organização e projetos compartilhados. Hoje tudo é por usuário.
-- [ ] Planos e cotas (por usuário, por projetos ou por acesso mensal, conforme a decisão abaixo) e período de teste.
-- [ ] Integração com provedor de pagamento (Asaas, Stripe ou Pagar.me) com webhooks de cobrança, renovação e cancelamento.
-- [ ] Bloqueio ou aviso por inadimplência e por cota excedida.
-- [ ] Painel de uso para o cliente e de faturamento para o administrador.
-- [ ] Nota fiscal, se aplicável.
-
-**Pronto quando:** um cliente assina, paga, usa dentro da cota do plano e é bloqueado com aviso claro quando o plano vence.
-
----
-
-## Fase 4: escala e resiliência
+## Fase 3: escala e resiliência
 
 - [ ] Mais de uma instância do app (depende de sessões, limites e códigos já estarem no banco).
 - [ ] Fila de tarefas para PDF e chamadas de IA, fora do processo web.
@@ -105,8 +94,6 @@ Meta: convidados usam o app com segurança, num endereço público, sem risco de
 | Decisão | Por que importa |
 |---|---|
 | Domínio público do GeradorOne e quem controla o DNS | Bloqueia a Fase 1 inteira |
-| Como será a cobrança (por usuário, projetos ou mensalidade) | Define planos, cotas e o desenho da Fase 3 |
-| Provedor de pagamento | Define a integração e as taxas |
 | Onde guardar a cópia externa do backup | Define o custo e o prazo de retenção |
 | Hospedar no servidor atual ou em nuvem | Afeta disponibilidade, firewall e custo |
 | Revisão jurídica dos termos de uso e da política de privacidade | Necessário antes de abrir ao público em geral |

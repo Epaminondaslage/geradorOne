@@ -1,3 +1,5 @@
+**Português** | [English](SECURITY.en.md)
+
 # Política de segurança
 
 ## Como relatar uma vulnerabilidade
@@ -22,4 +24,4 @@ Só a versão da branch `main` recebe correções de segurança.
 
 ## Fora do escopo
 
-Instâncias hospedadas por terceiros: fale com quem administra a instância. Para a versão comercial hospedada em geradorone.com.br, use o item "Suporte" dentro do aplicativo.
+Instâncias hospedadas por terceiros: fale com quem administra a instância.

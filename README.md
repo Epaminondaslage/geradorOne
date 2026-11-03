@@ -1,3 +1,5 @@
+<p align="center"><b>Português</b> | <a href="README.en.md">English</a></p>
+
 <p align="center">
   <img src="public/assets/icons/mapa-mental.png" alt="Logotipo do GeradorOne: cabeça com um mapa mental no lugar do cérebro" width="170">
 </p>
@@ -11,7 +13,7 @@
   <img alt="Node.js 22" src="https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white">
   <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white">
   <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white">
-  <img alt="Idioma português do Brasil" src="https://img.shields.io/badge/idioma-portugu%C3%AAs%20(BR)-009C3B">
+  <img alt="Idiomas: português do Brasil, inglês, espanhol, alemão e italiano" src="https://img.shields.io/badge/idiomas-pt--BR%20%7C%20en%20%7C%20es%20%7C%20de%20%7C%20it-009C3B">
 </p>
 
 ## Sumário
@@ -29,7 +31,6 @@
 - [Segurança](#segurança)
 - [Licença](#licença)
 - [Créditos e dados de terceiros](#créditos-e-dados-de-terceiros)
-- [Prefere não hospedar? Use a versão pronta](#prefere-não-hospedar-use-a-versão-pronta)
 
 ## O que é
 
@@ -75,7 +76,7 @@ Quem cadastrar a própria chave de IA (BYOK: OpenAI, Google Gemini ou Anthropic)
 
 - Páginas Início (guia dos primeiros passos, com demonstração animada e um prompt de exemplo), Sobre, FAQ com busca e Suporte (formulário com anexos que envia a mensagem por e-mail).
 - Seis temas de cores: Papel, Grafite, Lousa, Azul-tinta, Sépia e Alto contraste, ou seguir o sistema. Veja [docs/DESIGN.md](docs/DESIGN.md).
-- Interface responsiva para computador, tablet e celular, em português do Brasil.
+- Interface responsiva para computador, tablet e celular.
 
 **Administração:** a tela Configurações tem as abas Usuários (criar, editar, ativar, desativar, redefinir senha e excluir), E-mail (SMTP), com envio de teste, e Backup, que mostra a situação das cópias do banco.
 
@@ -228,9 +229,3 @@ O GeradorOne é software livre, licenciado sob a [GNU Affero General Public Lice
 - **BNCC:** os códigos e textos das habilidades vêm do dataset [bncc.dev](https://github.com/bncc-dev/bncc-dados), sob licença CC BY 4.0. Detalhes, versão e forma de atualizar em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Para uso formal, confira sempre o documento oficial do MEC.
 - **Fontes:** Literata e Atkinson Hyperlegible Next, sob a SIL Open Font License, em `public/fonts/`.
 - **Diagramas e gráficos:** Mermaid e Chart.js, em `vendor/`, com as licenças ao lado (`vendor/LICENSE-mermaid` e `vendor/LICENSE-chartjs`).
-
-## Prefere não hospedar? Use a versão pronta
-
-Se você só quer usar o GeradorOne, sem instalar nada, existe uma versão hospedada em **<https://geradorone.com.br>**. Ela gera o material pronto em PDF com a IA do próprio serviço, e começa no Trial, sem custo. Os planos Gold e Diamond liberam mais folhas por mês e o uso da sua própria chave de IA.
-
-Este repositório continua sendo o projeto de código aberto: você pode instalar, estudar, modificar e hospedar a sua instância sob a AGPL-3.0.
